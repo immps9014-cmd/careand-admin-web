@@ -172,7 +172,7 @@ CMD ["npm", "start"]
 - ✅ 4주차-2: 보호자/회원 웹 → `careand-member-web`(:3106, `/app`)으로 구현 완료 (2026-06)
 - ⏳ 카카오맵 연동: 카카오 디벨로퍼스 승인 대기 — 승인 후 REST 키(백엔드 `KAKAO_REST_API_KEY`)·JS 키(member-web) 주입, `map-preview.tsx` SDK 교체
 - ✅ 4주차-3: CI/CD + 운영 인프라 → 단일호스트 git+deploy/backup/monitor 구축 완료 (런북 /root/CAREAND-OPS.md, 2026-06-10)
-- 4주차-4: ML 모델 실제 구현 (careand-ai-service stub 교체)
+- ✅ 4주차-4: AI 서비스 v0.2 실구현 (rule/시계열 실로직 + Claude LLM 연동, API 키 충전 시 활성) — 2026-06-10
 
 추가로 본 관리자 웹에 필요한 작업:
 - TanStack Query Devtools 설정 보완
