@@ -1,0 +1,155 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Activity,
+  ArrowRightLeft,
+  BarChart3,
+  Brain,
+  CalendarClock,
+  ClipboardCheck,
+  ClipboardList,
+  Clock,
+  DollarSign,
+  LayoutDashboard,
+  Megaphone,
+  MessageCircle,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/store";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  badge?: string | number;
+}
+
+const MAIN_NAV: NavItem[] = [
+  { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
+  { href: "/members", label: "회원 관리", icon: Users },
+  { href: "/matching", label: "매칭 관리", icon: ArrowRightLeft },
+  { href: "/care-monitoring", label: "케어 모니터링", icon: ClipboardList },
+  { href: "/settlements", label: "정산", icon: DollarSign },
+];
+
+const OPS_NAV: NavItem[] = [
+  { href: "/caregiver-approval", label: "인력 자격검증", icon: ShieldCheck },
+  { href: "/contracts", label: "계약·일정", icon: CalendarClock },
+  { href: "/care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
+  { href: "/announcements", label: "공지·푸시", icon: Megaphone },
+];
+
+const AI_NAV: NavItem[] = [
+  { href: "/ai-models", label: "AI 모델", icon: Brain },
+  { href: "/cs", label: "CS / 분쟁", icon: MessageCircle },
+  { href: "/reports", label: "리포트", icon: BarChart3 },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const user = useAuth((s) => s.user);
+
+  return (
+    <aside className="w-60 bg-gradient-to-b from-warm-800 to-warm-900 text-white/70 flex flex-col">
+      {/* 로고 */}
+      <div className="px-6 py-6 border-b border-white/8 flex items-center gap-2.5">
+        <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center font-en font-extrabold text-white text-base shadow-md">
+          C
+        </div>
+        <div>
+          <div className="font-en font-extrabold text-white text-base tracking-tight leading-none">
+            Care&
+          </div>
+          <div className="text-[11px] font-medium text-white/50 mt-0.5">
+            관리자 콘솔
+          </div>
+        </div>
+      </div>
+
+      {/* 메인 메뉴 */}
+      <NavSection title="메인" items={MAIN_NAV} pathname={pathname} />
+
+      {/* 운영 관리 */}
+      <NavSection title="운영 관리" items={OPS_NAV} pathname={pathname} />
+
+      {/* AI 운영 */}
+      <NavSection title="AI 운영" items={AI_NAV} pathname={pathname} />
+
+      {/* 사용자 */}
+      <div className="mt-auto px-6 py-4 border-t border-white/8 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          {user?.name?.[0] || "관"}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-white truncate">
+            {user?.name || "관리자"}
+          </div>
+          <div className="text-[11px] text-white/50 truncate">
+            {user?.admin?.permission_level === "super"
+              ? "Super Admin"
+              : user?.admin?.permission_level === "operator"
+              ? "Operator"
+              : user?.admin?.permission_level === "cs"
+              ? "CS"
+              : user?.admin?.permission_level === "analyst"
+              ? "Analyst"
+              : "관리자"}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function NavSection({
+  title,
+  items,
+  pathname,
+}: {
+  title: string;
+  items: NavItem[];
+  pathname: string;
+}) {
+  return (
+    <div className="pt-4 pb-2">
+      <div className="px-6 pb-2 text-[10px] font-bold text-white/35 uppercase tracking-widest">
+        {title}
+      </div>
+      <nav>
+        {items.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-6 py-2.5 text-sm font-medium border-l-[3px] transition-all",
+                isActive
+                  ? "text-white bg-white/6 border-brand-400 font-semibold"
+                  : "text-white/65 border-transparent hover:bg-white/3 hover:text-white"
+              )}
+            >
+              <Icon
+                className={cn(
+                  "w-[18px] h-[18px] opacity-70",
+                  isActive && "opacity-100 text-brand-300"
+                )}
+              />
+              <span className="flex-1">{item.label}</span>
+              {item.badge !== undefined && (
+                <span className="px-2 py-0.5 bg-danger text-white text-[10px] font-bold rounded-full font-en">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
