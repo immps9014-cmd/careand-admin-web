@@ -34,7 +34,7 @@ const REVIEW_BADGE: Record<string, { variant: "warn" | "success" | "danger"; lab
 const DOMAIN_LABEL: Record<string, string> = {
   senior: "시니어",
   postpartum: "산후",
-  care: "간병",
+  nursing: "간병",
   companion: "동행",
   housekeeping: "가사",
 };
