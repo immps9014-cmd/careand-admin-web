@@ -33,6 +33,10 @@ const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "o
   leave: { variant: "outline", label: "휴직" },
 };
 
+const DOMAIN_LABEL: Record<string, string> = {
+  senior: "시니어", postpartum: "산후", nursing: "간병", housekeeping: "가사",
+};
+
 export default function CaregiverApprovalPage() {
   const [status, setStatus] = useState("pending");
   const qc = useQueryClient();
@@ -105,6 +109,7 @@ export default function CaregiverApprovalPage() {
             <TableRow>
               <TableHead>이름</TableHead>
               <TableHead>연락처</TableHead>
+              <TableHead>도메인</TableHead>
               <TableHead>특기</TableHead>
               <TableHead>자격증번호</TableHead>
               <TableHead>신청일</TableHead>
@@ -115,14 +120,14 @@ export default function CaregiverApprovalPage() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={8} className="text-center text-warm-400 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {query.data?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={8} className="text-center text-warm-400 py-10">
                   해당 상태의 인력이 없습니다
                 </TableCell>
               </TableRow>
@@ -131,6 +136,13 @@ export default function CaregiverApprovalPage() {
               <TableRow key={c.id}>
                 <TableCell className="font-medium text-warm-800">{c.name}</TableCell>
                 <TableCell className="text-warm-600 font-en text-xs">{c.phone || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {(c.service_domains || "senior").split(",").map((d) => (
+                      <Badge key={d} variant="outline">{DOMAIN_LABEL[d] ?? d}</Badge>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {c.specialties.length === 0 && <span className="text-warm-400 text-xs">-</span>}
