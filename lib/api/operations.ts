@@ -146,7 +146,7 @@ export const operationsApi = {
     api.post("/v1/admin/announcements", payload),
 
   // #18
-  async matchingRequests(params?: { status?: string; page?: number }): Promise<Paginated<MatchingRequest>> {
+  async matchingRequests(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<MatchingRequest>> {
     const { data } = await api.get<ApiResponse<MatchingRequest[]>>("/v1/admin/matching/requests", { params });
     return unwrap(data);
   },

@@ -38,15 +38,28 @@ const DOMAIN_LABEL: Record<string, string> = {
   senior: "시니어", postpartum: "산후", nursing: "간병", companion: "동행", housekeeping: "가사",
 };
 
+const DOMAIN_TABS = [
+  { key: "", label: "전체 도메인" },
+  { key: "senior", label: "시니어" },
+  { key: "nursing", label: "간병" },
+  { key: "housekeeping", label: "가사" },
+  { key: "postpartum", label: "산후" },
+];
+
 export default function MatchingPage() {
   const [status, setStatus] = useState("");
+  const [domain, setDomain] = useState("");
   const [assignTo, setAssignTo] = useState<number | null>(null);
   const [selectedCg, setSelectedCg] = useState<number | "">("");
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["admin", "matching", status],
-    queryFn: () => operationsApi.matchingRequests(status ? { status } : undefined),
+    queryKey: ["admin", "matching", status, domain],
+    queryFn: () =>
+      operationsApi.matchingRequests({
+        ...(status ? { status } : {}),
+        ...(domain ? { domain } : {}),
+      }),
     refetchInterval: 30_000,
   });
 
@@ -76,7 +89,7 @@ export default function MatchingPage() {
         </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         {TABS.map((t) => (
           <Button
             key={t.key || "all"}
@@ -85,6 +98,19 @@ export default function MatchingPage() {
             onClick={() => setStatus(t.key)}
           >
             {t.label}
+          </Button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        {DOMAIN_TABS.map((d) => (
+          <Button
+            key={d.key || "all"}
+            variant={domain === d.key ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setDomain(d.key)}
+          >
+            {d.label}
           </Button>
         ))}
       </div>

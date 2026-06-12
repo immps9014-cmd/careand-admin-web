@@ -24,6 +24,13 @@ import { dashboardApi } from "@/lib/api/dashboard";
 import { cn, formatKRW, ko } from "@/lib/utils";
 import { HourlyRequestsChart } from "./_components/hourly-requests-chart";
 
+const DOMAIN_CARDS = [
+  { key: "senior", label: "시니어 돌봄" },
+  { key: "nursing", label: "병원 간병" },
+  { key: "housekeeping", label: "가사" },
+  { key: "postpartum", label: "산후" },
+];
+
 export default function DashboardPage() {
   const [now, setNow] = useState(new Date());
 
@@ -125,6 +132,35 @@ export default function DashboardPage() {
           icon={Clock}
         />
       </div>
+
+      {/* 도메인별 현황 */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base font-bold text-warm-800">도메인별 현황</h2>
+            <span className="text-[11px] text-warm-400">진행중 매칭 · 주간 요청 · 주간 매출</span>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {DOMAIN_CARDS.map((d) => {
+              const v = kpi?.by_domain?.[d.key];
+              return (
+                <div key={d.key} className="rounded-lg border border-warm-100 p-4">
+                  <div className="text-xs font-semibold text-warm-500 mb-2">{d.label}</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-en text-xl font-bold text-warm-800">
+                      {v?.matches_in_progress ?? 0}
+                    </span>
+                    <span className="text-[11px] text-warm-400">진행중</span>
+                  </div>
+                  <div className="text-[11px] text-warm-500 mt-1.5">
+                    주간 요청 {v?.requests_this_week ?? 0}건 · {formatKRW(v?.revenue_this_week ?? 0)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 차트 + 알림 (2:1) */}
       <div className="grid grid-cols-3 gap-4 mb-6">

@@ -11,6 +11,13 @@ export interface DashboardKpi {
   active_users: number;
   active_seniors: number;
   active_caregivers: number;
+  by_domain?: Record<string, DomainKpi>;
+}
+
+export interface DomainKpi {
+  matches_in_progress: number;
+  requests_this_week: number;
+  revenue_this_week: number;
 }
 
 export interface HourlyRequest {
