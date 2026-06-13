@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 정산 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+/* pipeline */
+.pipe{display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
+.pstep{flex:1;padding:16px 18px;position:relative;display:flex;flex-direction:column;justify-content:center;}
+.pstep:not(:last-child){border-right:1px solid var(--line);}
+.pstep .pl{font-size:12px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:7px;}
+.pstep .pl .d{width:9px;height:9px;border-radius:50%;}
+.pstep .pn{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:8px;line-height:1;}
+.pstep .pn small{font-size:13px;font-weight:700;color:var(--ink-3);margin-left:3px;}
+.pstep .pa{font-size:11.5px;color:var(--ink-3);margin-top:6px;font-variant-numeric:tabular-nums;}
+.pstep .arrow{position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink-3);}
+.pstep .arrow svg{width:11px;height:11px;}
+.pstep.cur{background:linear-gradient(180deg,#FBFAFF,#fff);}
+.pstep.cur:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--purple);}
+
+/* money */
+.money{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+.m-gross{color:var(--ink-2);font-weight:600;font-size:13.5px;}
+.m-tax{color:var(--crit-deep);font-weight:600;font-size:13px;}
+.m-net{color:var(--ink);font-weight:800;font-size:14px;}
+.col-net{background:#FBFBFD;}
+
+.pay-done{background:var(--ok-bg);color:var(--ok-deep);} .pay-done .d{background:var(--ok);}
+.pay-confirm{background:var(--info-bg);color:var(--info);} .pay-confirm .d{background:var(--info);}
+.pay-draft{background:#ECEFF3;color:#6B7280;} .pay-draft .d{background:#9097A6;}
+.pay-fail{background:var(--crit-bg);color:var(--crit-deep);} .pay-fail .d{background:var(--crit);}
+
+/* bulk bar */
+.bulkbar{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;margin-bottom:14px;box-shadow:var(--shadow-lift);}
+.bulkbar .bc{font-size:13px;font-weight:700;}
+.bulkbar .bc b{color:#C9BFFF;}
+.bulkbar .bsp{flex:1;}
+.bulkbar button{height:36px;padding:0 14px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.bulkbar button.pri{background:var(--purple);border-color:var(--purple);}
+.bulkbar button svg{width:14px;height:14px;}
+.bulkbar.hide{display:none;}
+.taxinfo{display:inline-flex;align-items:center;gap:7px;background:var(--info-bg);color:var(--info);font-size:12px;font-weight:600;padding:5px 11px;border-radius:8px;white-space:nowrap;}
+.taxinfo svg{width:14px;height:14px;}
+</style>
+</head>
+<body data-screen-label="정산">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a class="on" href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">1</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row">
+        <div><div class="h1">정산</div><div class="subt">주간 정산 처리 + 홈택스 원천징수(3.3%) 신고 · 정산 기간 2026-04-27 ~ 05-03</div></div>
+        <button class="btn pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6"/></svg>홈택스 일괄 신고</button>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpis pos">
+        <div class="kpi"><div class="kh"><span class="lab">정산 인력</span><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 19c.5-3 2.5-5 6-5M16 11l2 2 3-4"/></svg></span></div><div class="val">6<small>명</small></div><div class="sub2">이번 주 정산 대상</div></div>
+        <div class="kpi"><div class="kh"><span class="lab">총 세전</span><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M16 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7"/></svg></span></div><div class="val" style="font-size:27px">373,000<small>원</small></div><div class="sub2">지급 전 총 금액</div></div>
+        <div class="kpi"><div class="kh"><span class="lab">원천징수 (3.3%)</span><span class="ico" style="background:var(--crit-bg);color:var(--crit)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h3"/></svg></span></div><div class="val" style="font-size:27px;color:var(--crit-deep)">12,309<small>원</small></div><div class="sub2">홈택스 신고 대상</div></div>
+        <div class="kpi" style="background:linear-gradient(150deg,#2E9E6B,#1F7A50);border:none;box-shadow:0 8px 26px rgba(31,122,80,.28)"><div class="kh"><span class="lab" style="color:rgba(255,255,255,.92)">총 실지급</span><span class="ico" style="background:rgba(255,255,255,.18);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v11H3zM3 10h18M7 15h3"/></svg></span></div><div class="val" style="font-size:27px;color:#fff">360,691<small style="color:rgba(255,255,255,.8)">원</small></div><div class="sub2" style="color:rgba(255,255,255,.85)">인력에게 지급될 순액</div></div>
+        <span class="pin" data-n="1" style="top:-11px;right:-11px"><span class="tip"><b>개선 1 · 핵심 금액 강조</b><br>실제로 빠져나가는 돈인 '총 실지급'을 초록으로 강조하고, 원천징수는 차감을 뜻하는 빨강으로 묶었습니다.</span>1</span>
+      </div>
+
+      <!-- pipeline -->
+      <div class="pipe pos">
+        <div class="pstep"><div class="pl"><span class="d" style="background:#9097A6"></span>작성중</div><div class="pn">3<small>건</small></div><div class="pa">세전 207,000원</div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="pstep cur"><div class="pl"><span class="d" style="background:var(--info)"></span>확정 (지급 대기)</div><div class="pn">1<small>건</small></div><div class="pa">실지급 77,360원</div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="pstep"><div class="pl"><span class="d" style="background:var(--ok)"></span>지급완료</div><div class="pn">2<small>건</small></div><div class="pa">실지급 83,162원</div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="pstep"><div class="pl"><span class="d" style="background:var(--crit)"></span>실패</div><div class="pn">0<small>건</small></div><div class="pa">재처리 대상 없음</div></div>
+        <span class="pin" data-n="2" style="bottom:-11px;left:-11px"><span class="tip"><b>개선 2 · 정산 사이클 파이프라인</b><br>정산은 작성중 → 확정 → 지급완료로 흐르는 업무입니다. 단계별 건수와 금액을 한 줄로 보여 어디가 막혔는지 즉시 파악됩니다.</span>2</span>
+      </div>
+
+      <!-- toolbar -->
+      <div class="toolbar">
+        <div class="tabs"><button class="on">전체<span class="c">6</span></button><button>작성중<span class="c">3</span></button><button>확정<span class="c">1</span></button><button>지급완료<span class="c">2</span></button><button>실패<span class="c">0</span></button></div>
+        <div class="tb-sp"></div>
+        <span class="taxinfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>원천징수율 3.3% 자동 적용</span>
+      </div>
+
+      <!-- bulk bar -->
+      <div class="bulkbar hide" id="bulk">
+        <span class="bc"><b id="bcount">0</b>건 선택됨 · 실지급 합계 <b id="bsum">0원</b></span>
+        <div class="bsp"></div>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5 9-11"/></svg>일괄 확정</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v13l-3.5-3H5z"/></svg>홈택스 신고</button>
+        <button class="pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v11H3zM3 10h18"/></svg>일괄 지급 실행</button>
+      </div>
+
+      <!-- table -->
+      <div class="card pos">
+        <div class="ch"><div class="t">정산 목록</div><span class="count-pill">총 6건</span></div>
+        <table class="tbl">
+          <thead><tr>
+            <th style="width:38px"><input type="checkbox" class="chk" id="all"></th>
+            <th>인력</th><th class="r">세전</th><th class="r">원천징수 (3.3%)</th><th class="r">실지급</th><th>홈택스 신고</th><th>상태</th><th class="r">처리</th>
+          </tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+        <div class="pager">
+          <div class="info"><b>1–6</b> / 총 6건 · 실지급 합계 <b>360,691원</b></div>
+          <div class="pages"><button disabled>‹</button><button class="on">1</button><button disabled>›</button></div>
+        </div>
+        <span class="pin" data-n="3" style="top:64px;left:280px"><span class="tip"><b>개선 3 · 단계 색배지 · 홈택스 · 일괄처리</b><br>상태를 단계별 색으로, 세무 신고 여부 컬럼을 추가하고, 체크박스로 여러 건을 한 번에 확정·지급·신고합니다.</span>3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+
+<script>
+const rows=[
+  {nm:'백선영',av:'백',gross:68000,tax:2244,net:65756,st:'done',hometax:'done',pay:'2026-05-04 지급'},
+  {nm:'정연희',av:'정',gross:80000,tax:2640,net:77360,st:'confirm',hometax:'wait',pay:''},
+  {nm:'김순자',av:'김',gross:60000,tax:1980,net:58020,st:'draft',hometax:'none',pay:''},
+  {nm:'서민정',av:'서',gross:72000,tax:2376,net:69624,st:'draft',hometax:'none',pay:''},
+  {nm:'송미라',av:'송',gross:75000,tax:2475,net:72525,st:'draft',hometax:'none',pay:''},
+  {nm:'강민지',av:'강',gross:18000,tax:594,net:17406,st:'done',hometax:'done',pay:'2026-05-04 지급'},
+];
+const stMap={done:['pay-done','지급완료'],confirm:['pay-confirm','확정 · 지급대기'],draft:['pay-draft','작성중'],fail:['pay-fail','실패']};
+const htMap={done:['v-done','신고완료','<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>'],wait:['v-wait','신고대기','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],none:['v-none','미신고','<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>']};
+const won=n=>n.toLocaleString('ko-KR')+'원';
+const actMap={done:'상세',confirm:'지급 실행',draft:'확정',fail:'재시도'};
+const avColor=['var(--purple)','var(--teal)','var(--info)','var(--ok-deep)','#9A7400','#5b6172'];
+
+document.getElementById('tb').innerHTML=rows.map((r,i)=>{
+  const [sc,sl]=stMap[r.st]; const [hc,hl,hi]=htMap[r.hometax];
+  const pri=(r.st==='confirm'||r.st==='draft')?'':' ';
+  return `<tr data-net="${r.net}">
+    <td><input type="checkbox" class="chk rowchk"></td>
+    <td><div class="usr"><div class="av" style="background:${avColor[i%avColor.length]}">${r.av}</div><div><div class="nm">${r.nm}</div><div class="em">2026-04-27 ~ 05-03${r.pay?' · '+r.pay:''}</div></div></div></td>
+    <td class="r"><span class="money m-gross">${won(r.gross)}</span></td>
+    <td class="r"><span class="money m-tax">−${won(r.tax)}</span></td>
+    <td class="r col-net"><span class="money m-net">${won(r.net)}</span></td>
+    <td><span class="verify ${hc}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">${hi}</svg>${hl}</span></td>
+    <td><span class="status ${sc}"><span class="d"></span>${sl}</span></td>
+    <td class="r"><button class="rowact${r.st==='confirm'?' pri':''}">${actMap[r.st]}</button></td>
+  </tr>`;
+}).join('');
+
+const bulk=document.getElementById('bulk');
+function refresh(){
+  const checked=[...document.querySelectorAll('.rowchk:checked')];
+  const sum=checked.reduce((a,c)=>a+ +c.closest('tr').dataset.net,0);
+  document.getElementById('bcount').textContent=checked.length;
+  document.getElementById('bsum').textContent=won(sum);
+  bulk.classList.toggle('hide',checked.length===0);
+}
+document.querySelectorAll('.rowchk').forEach(c=>c.addEventListener('change',refresh));
+document.getElementById('all').addEventListener('change',e=>{document.querySelectorAll('.rowchk').forEach(c=>c.checked=e.target.checked);refresh();});
+
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

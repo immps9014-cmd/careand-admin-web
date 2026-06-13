@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 계약·일정 관리 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+.sumrow{display:flex;gap:12px;margin-bottom:18px;}
+.sumc{flex:1;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px;}
+.sumc .sd{width:10px;height:10px;border-radius:50%;flex:none;}
+.sumc .sn{font-size:23px;font-weight:800;line-height:1;}
+.sumc .sl{font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap;}
+.viewtog{display:flex;background:#fff;border:1px solid var(--line-2);border-radius:10px;padding:3px;gap:2px;}
+.viewtog button{border:0;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-2);padding:7px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.viewtog button.on{background:var(--purple);color:#fff;}
+.viewtog button svg{width:15px;height:15px;}
+.weeknav{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;}
+.weeknav button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--ink-2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.weeknav button svg{width:15px;height:15px;}
+
+.board{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;}
+.day{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);min-height:340px;display:flex;flex-direction:column;overflow:hidden;}
+.day.today{border-color:var(--purple);box-shadow:0 0 0 2px rgba(109,93,232,.16),var(--shadow);}
+.dayh{padding:11px 13px;border-bottom:1px solid var(--line);}
+.dayh .dow{font-size:11.5px;font-weight:700;color:var(--ink-3);}
+.dayh.sun .dow,.dayh.sun .dnum{color:var(--crit);}
+.dayh .dnum{font-size:18px;font-weight:800;letter-spacing:-.02em;margin-top:2px;display:flex;align-items:center;gap:7px;}
+.dayh .todaypill{font-size:9.5px;font-weight:800;color:#fff;background:var(--purple);border-radius:20px;padding:1px 7px;white-space:nowrap;}
+.day.today .dayh{background:linear-gradient(180deg,#FBFAFF,#fff);}
+.dvisits{padding:9px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.visit{border-left:3px solid var(--ink-3);background:#FAFAFB;border:1px solid var(--line);border-left-width:3px;border-radius:9px;padding:9px 10px;cursor:pointer;transition:.12s;}
+.visit:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
+.visit .vt{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
+.visit .vp{font-size:11.5px;color:var(--ink-2);margin-top:3px;font-weight:600;line-height:1.35;}
+.visit .vs{font-size:10px;font-weight:700;margin-top:5px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.visit .vs .d{width:6px;height:6px;border-radius:50%;}
+.v-confirm{border-left-color:var(--info)!important;} .v-confirm .vs{color:var(--info);} .v-confirm .vs .d{background:var(--info);}
+.v-prog{border-left-color:var(--purple)!important;background:var(--purple-soft);} .v-prog .vs{color:var(--purple);} .v-prog .vs .d{background:var(--purple);}
+.v-done{border-left-color:var(--ok)!important;} .v-done .vs{color:var(--ok-deep);} .v-done .vs .d{background:var(--ok);} .v-done{opacity:.78;}
+.v-cancel{border-left-color:#9097A6!important;} .v-cancel .vs{color:#6B7280;} .v-cancel .vs .d{background:#9097A6;} .v-cancel .vp{text-decoration:line-through;color:var(--ink-3);}
+.emptyday{flex:1;display:flex;align-items:center;justify-content:center;color:#C7CCD6;font-size:11.5px;}
+
+.money{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;white-space:nowrap;}
+.zero{color:var(--warn-deep);background:var(--warn-bg);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;}
+.ct-confirm{background:var(--info-bg);color:var(--info);} .ct-confirm .d{background:var(--info);}
+.ct-prog{background:var(--purple-soft);color:var(--purple);} .ct-prog .d{background:var(--purple);}
+.ct-done{background:var(--ok-bg);color:var(--ok-deep);} .ct-done .d{background:var(--ok);}
+.ct-cancel{background:#ECEFF3;color:#6B7280;} .ct-cancel .d{background:#9097A6;}
+.hide{display:none;}
+</style>
+</head>
+<body data-screen-label="계약일정">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">3</span></a>
+      <a class="on" href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row">
+        <div><div class="h1">계약·일정 관리</div><div class="subt">전체 계약(매칭)의 방문 일정을 캘린더로 보고, 상태를 관리합니다.</div></div>
+        <div class="viewtog"><button class="on" data-v="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>주간 일정</button><button data-v="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>목록</button></div>
+      </div>
+
+      <!-- summary -->
+      <div class="sumrow pos">
+        <div class="sumc"><div><div class="sn">9</div><div class="sl">이번 주 방문</div></div></div>
+        <div class="sumc"><span class="sd" style="background:var(--info)"></span><div><div class="sn">4</div><div class="sl">확정 (예정)</div></div></div>
+        <div class="sumc"><span class="sd" style="background:var(--purple)"></span><div><div class="sn">2</div><div class="sl">진행중</div></div></div>
+        <div class="sumc"><span class="sd" style="background:var(--ok)"></span><div><div class="sn">3</div><div class="sl">완료</div></div></div>
+        <div class="sumc"><span class="sd" style="background:#9097A6"></span><div><div class="sn">0</div><div class="sl">취소</div></div></div>
+        <span class="pin" data-n="2" style="top:-11px;left:-11px"><span class="tip"><b>개선 2 · 상태 색 구분</b><br>확정/진행중/완료/취소를 캘린더와 표 모두에서 색으로 구분해 한눈에 들어오게 했습니다.</span>2</span>
+      </div>
+
+      <!-- BOARD VIEW -->
+      <div id="boardview" class="pos">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="weeknav"><button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg></button>2026년 6월 · 2주차 (6/8 – 6/14)<button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg></button></div>
+          <div class="tabs"><button class="on">전체 도메인</button><button>시니어</button><button>간병</button><button>가사</button></div>
+        </div>
+        <div class="board" id="board"></div>
+        <span class="pin" data-n="1" style="top:46px;left:-11px"><span class="tip"><b>개선 1 · 주간 일정 보드 (핵심)</b><br>'일정' 관리인데 표만 있던 화면에 캘린더 뷰를 추가했습니다. 오늘 기준 어느 날 누가 누구를 방문하는지 즉시 파악됩니다.</span>1</span>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="listview" class="card pos hide">
+        <div class="ch"><div class="t">계약 목록</div><span class="count-pill">총 29건</span></div>
+        <div class="toolbar" style="padding:0 20px 8px;margin:0;">
+          <div class="tabs"><button class="on">전체<span class="c">29</span></button><button>확정<span class="c">21</span></button><button>진행중<span class="c">2</span></button><button>완료<span class="c">5</span></button><button>취소<span class="c">1</span></button></div>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>계약 ID</th><th>인력</th><th>대상자</th><th>도메인</th><th>일정</th><th class="r">예상금액</th><th>상태</th><th class="r">관리</th></tr></thead>
+          <tbody id="ltb"></tbody>
+        </table>
+        <div class="pager"><div class="info"><b>1–10</b> / 총 29건</div><div class="pages"><button disabled>‹</button><button class="on">1</button><button>2</button><button>3</button><button>›</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+
+<script>
+const days=[
+  {dow:'월',num:8,today:false,visits:[{t:'09:00',cg:'한지숙',cl:'손할머니',st:'done'}]},
+  {dow:'화',num:9,today:false,visits:[{t:'14:00',cg:'양진주',cl:'강할머니',st:'done'}]},
+  {dow:'수',num:10,today:false,visits:[{t:'10:00',cg:'이정희',cl:'홍어머님',st:'done'},{t:'16:00',cg:'박미경',cl:'문이머님',st:'prog'}]},
+  {dow:'목',num:11,today:false,visits:[{t:'11:00',cg:'서민정',cl:'하환머님',st:'prog'}]},
+  {dow:'금',num:13,today:true,visits:[{t:'13:00',cg:'백선영',cl:'정할아버지',st:'confirm'},{t:'16:00',cg:'김순자',cl:'최환머님',st:'confirm'},{t:'18:30',cg:'윤혜진',cl:'백이버님',st:'confirm'}]},
+  {dow:'토',num:14,today:false,visits:[{t:'10:00',cg:'최영숙',cl:'최환머님',st:'confirm'}]},
+  {dow:'일',num:15,today:false,sun:true,visits:[]},
+];
+const stL={confirm:['v-confirm','확정'],prog:['v-prog','진행중'],done:['v-done','완료'],cancel:['v-cancel','취소']};
+document.getElementById('board').innerHTML=days.map(d=>`
+  <div class="day ${d.today?'today':''}">
+    <div class="dayh ${d.sun?'sun':''}"><div class="dow">${d.dow}</div><div class="dnum">${d.num}${d.today?'<span class="todaypill">오늘</span>':''}</div></div>
+    <div class="dvisits">${d.visits.length?d.visits.map(v=>{const[c,l]=stL[v.st];return `<div class="visit ${c}"><div class="vt">${v.t}</div><div class="vp">${v.cg} → ${v.cl}</div><div class="vs"><span class="d"></span>${l}</div></div>`;}).join(''):'<div class="emptyday">일정 없음</div>'}</div>
+  </div>`).join('');
+
+const contracts=[
+  {id:'#29',cg:'백선영',cl:'정할아버지',dom:'시니어',sch:'06.13 13:00',amt:36000,st:'confirm'},
+  {id:'#7',cg:'한지숙',cl:'손환머님',dom:'시니어',sch:'06.08 09:00',amt:64000,st:'done'},
+  {id:'#25',cg:'조선희',cl:'홍어머님',dom:'시니어',sch:'06.12 14:00',amt:0,st:'confirm'},
+  {id:'#26',cg:'이정희',cl:'홍이머님',dom:'시니어',sch:'06.10 10:00',amt:36000,st:'done'},
+  {id:'#12',cg:'서민정',cl:'하환머님',dom:'시니어',sch:'06.11 11:00',amt:48000,st:'prog'},
+  {id:'#27',cg:'간병사',cl:'환자',dom:'간병',sch:'06.12 17:37',amt:180000,st:'confirm',test:true},
+  {id:'#5',cg:'박미경',cl:'문이머님',dom:'시니어',sch:'06.10 16:00',amt:80000,st:'prog'},
+  {id:'#17',cg:'김순자',cl:'최환머님',dom:'시니어',sch:'06.06 16:00',amt:60000,st:'done'},
+  {id:'#16',cg:'백선영',cl:'정환아버지',dom:'시니어',sch:'05.05 18:30',amt:48000,st:'done'},
+  {id:'#20',cg:'강민지',cl:'문이머님',dom:'시니어',sch:'05.02 17:30',amt:18000,st:'cancel'},
+];
+const ctMap={confirm:['ct-confirm','확정'],prog:['ct-prog','진행중'],done:['ct-done','완료'],cancel:['ct-cancel','취소']};
+const won=n=>n.toLocaleString('ko-KR')+'원';
+document.getElementById('ltb').innerHTML=contracts.map(c=>{const[sc,sl]=ctMap[c.st];return `<tr>
+  <td class="idcell">${c.id}</td>
+  <td><div class="usr"><div class="av" style="background:var(--teal)">${c.cg[c.cg.length-3]||c.cg[0]}</div><div><div class="nm">${c.cg}${c.test?'<span class="tag-chip">테스트</span>':''}</div><div class="em">담당 케어 인력</div></div></div></td>
+  <td style="font-weight:600">${c.cl}</td>
+  <td><span class="badge dom-senior">${c.dom}</span></td>
+  <td class="mono muted">2026.${c.sch}</td>
+  <td class="r">${c.amt===0?'<span class="zero">금액 미설정</span>':'<span class="money">'+won(c.amt)+'</span>'}</td>
+  <td><span class="status ${sc}"><span class="d"></span>${sl}</span></td>
+  <td class="r"><button class="rowact">상세</button></td>
+</tr>`;}).join('');
+
+document.querySelectorAll('.viewtog button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.viewtog button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const board=b.dataset.v==='board';
+  document.getElementById('boardview').classList.toggle('hide',!board);
+  document.getElementById('listview').classList.toggle('hide',board);
+}));
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

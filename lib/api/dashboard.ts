@@ -31,6 +31,8 @@ export interface HourlyRequestsResponse {
   peak_hour: number | null;
   peak_count: number;
   total_count: number;
+  /** 매칭 성공률(%) — 백엔드 미제공 시 undefined → UI에 "—" 표시 */
+  match_success_rate?: number;
 }
 
 export interface RegionalDemand {

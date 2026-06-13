@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& AI 모델 운영 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+.mono2{font-variant-numeric:tabular-nums;}
+.modelnm{font-weight:800;font-size:13.5px;}
+.ver{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;background:#F1F2F5;border-radius:6px;padding:2px 7px;}
+.accbar{display:flex;align-items:center;gap:9px;justify-content:flex-end;}
+.accbar .bar{width:62px;height:7px;border-radius:4px;background:var(--line);overflow:hidden;}
+.accbar .bar i{display:block;height:100%;border-radius:4px;}
+.accbar .pct{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;width:46px;text-align:right;}
+.lat{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+.lat.slow{color:var(--warn-deep);}
+.lattag{font-size:9.5px;font-weight:800;color:#fff;background:var(--warn);border-radius:5px;padding:1px 6px;margin-left:6px;}
+.st-active2{background:var(--ok-bg);color:var(--ok-deep);} .st-active2 .d{background:var(--ok);}
+.st-deprecated{background:#ECEFF3;color:#6B7280;} .st-deprecated .d{background:#9097A6;}
+.st-shadow{background:var(--info-bg);color:var(--info);} .st-shadow .d{background:var(--info);}
+.audit{font-size:12.5px;font-variant-numeric:tabular-nums;}
+.audit.stale{color:var(--warn-deep);font-weight:700;}
+.flagdot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--warn-deep);white-space:nowrap;}
+.flagdot svg{width:13px;height:13px;}
+.abnote{font-size:10.5px;font-weight:700;color:var(--purple);background:var(--purple-soft);border-radius:5px;padding:1px 7px;margin-left:7px;}
+</style>
+</head>
+<body data-screen-label="AI모델">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">3</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a class="on" href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row"><div><div class="h1">AI 모델 운영</div><div class="subt">6개 AI 모델의 버전·성능·지연을 통합 관리합니다. 임계치 미달 모델은 자동 플래그됩니다.</div></div><button class="btn pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>새 모델 배포</button></div>
+
+      <div class="kpis pos" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi"><div class="kh"><span class="lab">운영중 (active)</span><span class="ico" style="background:var(--ok-bg);color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span></div><div class="val">5<small>개</small></div></div>
+        <div class="kpi"><div class="kh"><span class="lab">섀도우 (shadow)</span><span class="ico" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z"/></svg></span></div><div class="val">0<small>개</small></div></div>
+        <div class="kpi"><div class="kh"><span class="lab">폐기 (deprecated)</span><span class="ico" style="background:#ECEFF3;color:#6B7280"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h14M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span></div><div class="val">1<small>개</small></div></div>
+        <div class="kpi"><div class="kh"><span class="lab">평균 정확도</span><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1118 0M12 12l4-3"/></svg></span></div><div class="val">88.9<small>%</small></div></div>
+        <div class="kpi pos"><div class="kh"><span class="lab">성능 경고</span><span class="ico" style="background:var(--warn-bg);color:var(--warn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span></div><div class="val" style="color:var(--warn-deep)">3<small>건</small></div><span class="pin" data-n="1" style="top:-11px;right:-11px"><span class="tip"><b>개선 1 · 모델 헬스 요약</b><br>정확도 임계치 미달·지연 과다·감사 지연을 자동 집계해, 손볼 모델이 몇 개인지 먼저 보여줍니다.</span>1</span></div>
+      </div>
+
+      <div class="card pos">
+        <div class="ch"><div class="t">배포 모델 일람</div><span class="count-pill">6개 모델 · 5 active / 0 shadow</span></div>
+        <table class="tbl">
+          <thead><tr><th>모델</th><th>버전</th><th>상태</th><th class="r">정확도</th><th class="r">평균 지연</th><th>마지막 감사</th><th class="r">액션</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+        <span class="pin" data-n="2" style="top:64px;left:300px"><span class="tip"><b>개선 2 · 성능 시각화 + 자동 플래그</b><br>정확도는 막대로, 느린 지연(1초+)과 낮은 정확도(85% 미만)·오래된 감사는 색으로 경고합니다. 같은 모델의 beta/구버전은 A/B로 묶었습니다.</span>2</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+
+<script>
+const models=[
+  {nm:'voice-summary-llm',ver:'v2.0.0',st:'active',acc:94.5,lat:2143,audit:'2026.04.24',ab:''},
+  {nm:'anomaly-detector',ver:'v0.8.1',st:'active',acc:91.2,lat:88,audit:'2026.04.09',ab:''},
+  {nm:'matching-recommender',ver:'v1.3.0-beta',st:'active',acc:89.2,lat:139,audit:'2026.04.21',ab:'A/B · 신규'},
+  {nm:'rag-chatbot',ver:'v1.0.0',st:'active',acc:88.3,lat:1820,audit:'2026.04.25',ab:''},
+  {nm:'matching-recommender',ver:'v1.2.0',st:'deprecated',acc:87.4,lat:142,audit:'2026.04.05',ab:'A/B · 구버전'},
+  {nm:'demand-forecast',ver:'v0.5.0',st:'active',acc:82.1,lat:65,audit:'2026.04.16',ab:''},
+];
+const stMap={active:['st-active2','Active'],deprecated:['st-deprecated','Deprecated'],shadow:['st-shadow','Shadow']};
+function accColor(a){return a>=90?'var(--ok)':a>=85?'var(--info)':'var(--warn)';}
+function fmtLat(ms){return ms>=1000?(ms/1000).toFixed(1)+'s':ms+'ms';}
+// stale audit if before 2026.04.15 (demo)
+function isStale(d){return d<'2026.04.15';}
+document.getElementById('tb').innerHTML=models.map(m=>{
+  const [sc,sl]=stMap[m.st];
+  const slow=m.lat>=1000; const lowAcc=m.acc<85; const stale=isStale(m.audit);
+  return `<tr ${m.st==='deprecated'?'class="test"':''}>
+    <td><div class="modelnm">${m.nm}${m.ab?`<span class="abnote">${m.ab}</span>`:''}</div></td>
+    <td><span class="ver">${m.ver}</span></td>
+    <td><span class="status ${sc}"><span class="d"></span>${sl}</span></td>
+    <td class="r"><span class="accbar"><span class="bar"><i style="width:${m.acc}%;background:${accColor(m.acc)}"></i></span><span class="pct" style="color:${lowAcc?'var(--warn-deep)':'var(--ink)'}">${m.acc}%</span></span>${lowAcc?'<div class="flagdot" style="justify-content:flex-end;margin-top:3px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg>임계치 미달</div>':''}</td>
+    <td class="r"><span class="lat ${slow?'slow':''}">${fmtLat(m.lat)}</span>${slow?'<span class="lattag">지연</span>':''}</td>
+    <td><span class="audit ${stale?'stale':'muted'}">${m.audit}${stale?' · 감사 필요':''}</span></td>
+    <td class="r"><button class="rowact">상세 →</button></td>
+  </tr>`;
+}).join('');
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

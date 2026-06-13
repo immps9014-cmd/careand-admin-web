@@ -9,17 +9,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         brand:
-          "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700",
+          "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 shadow-sm",
         primary:
           "bg-warm-800 text-white hover:bg-warm-900",
         secondary:
-          "bg-warm-100 text-warm-800 hover:bg-warm-200",
+          "bg-warm-100 text-warm-700 hover:bg-warm-200",
         outline:
-          "border border-warm-300 bg-transparent text-warm-700 hover:bg-warm-50",
+          "border border-warm-200 bg-white text-warm-700 hover:bg-warm-50 hover:border-warm-300",
         danger:
-          "bg-danger text-white hover:bg-[#A8423E]",
+          "bg-danger text-white hover:bg-red-600",
         ghost:
-          "text-brand-600 hover:bg-brand-50",
+          "text-brand-600 hover:bg-brand-50 hover:text-brand-700",
         link:
           "text-brand-600 underline-offset-4 hover:underline",
       },

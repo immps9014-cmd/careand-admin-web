@@ -1,0 +1,17 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/(dashboard)/ai-models/page": "app/(dashboard)/ai-models/page.js",
+  "/(dashboard)/announcements/page": "app/(dashboard)/announcements/page.js",
+  "/(dashboard)/care-logs/page": "app/(dashboard)/care-logs/page.js",
+  "/(dashboard)/care-monitoring/page": "app/(dashboard)/care-monitoring/page.js",
+  "/(dashboard)/caregiver-approval/page": "app/(dashboard)/caregiver-approval/page.js",
+  "/(dashboard)/contracts/page": "app/(dashboard)/contracts/page.js",
+  "/(dashboard)/cs/page": "app/(dashboard)/cs/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/matching/page": "app/(dashboard)/matching/page.js",
+  "/(dashboard)/members/page": "app/(dashboard)/members/page.js",
+  "/(dashboard)/reports/page": "app/(dashboard)/reports/page.js",
+  "/(dashboard)/settlements/page": "app/(dashboard)/settlements/page.js"
+}

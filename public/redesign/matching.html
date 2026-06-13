@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 매칭 관리 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+.aicand{display:inline-flex;align-items:center;gap:7px;}
+.aicand .stack{display:flex;}
+.aicand .stack i{width:22px;height:22px;border-radius:50%;border:2px solid #fff;margin-left:-7px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+.aicand .stack i:first-child{margin-left:0;}
+.aicand .n{font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap;}
+.nocand{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--crit-deep);background:var(--crit-bg);padding:3px 10px;border-radius:7px;white-space:nowrap;}
+.nocand svg{width:14px;height:14px;}
+.sched{font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink-2);}
+.sched .imm{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:var(--warn-deep);background:var(--warn-bg);padding:1px 7px;border-radius:6px;margin-left:7px;}
+</style>
+</head>
+<body data-screen-label="매칭관리">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a class="on" href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리<span class="pill">3</span></a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">1</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row">
+        <div><div class="h1">매칭 관리</div><div class="subt">AI 매칭 추천 결과를 검토하고, 미해결 매칭에 수동 개입합니다.</div></div>
+        <div class="live"><span class="b"></span>실시간 · 2026-06-13 18:54</div>
+      </div>
+
+      <!-- needs-action strip -->
+      <div class="strip pos">
+        <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+        <div><div class="st-t">수동 개입 필요 — AI가 후보를 찾지 못한 매칭</div><div class="st-s">접수 상태이며 AI 추천 후보가 없는 요청입니다. 직접 인력을 배정해 주세요.</div></div>
+        <div class="big">3<small>건</small></div>
+        <button class="go">바로 처리 →</button>
+        <span class="pin" data-n="1" style="top:-11px;left:-11px"><span class="tip"><b>개선 1 · 할 일 부각</b><br>'접수 + 후보없음'은 운영자가 직접 처리해야 하는 핵심 백로그입니다. 표에 묻지 않고 상단으로 끌어올렸습니다.</span>1</span>
+      </div>
+
+      <!-- filters -->
+      <div class="toolbar pos">
+        <div class="tabs"><button class="on">전체<span class="c">47</span></button><button>접수<span class="c">9</span></button><button>매칭됨<span class="c">35</span></button><button>취소<span class="c">3</span></button></div>
+        <div class="tabs"><button class="on">전체 도메인</button><button>시니어</button><button>간병</button><button>가사</button><button>산후</button></div>
+        <div class="tb-sp"></div>
+        <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>요청 ID·대상자 검색</div>
+        <span class="pin" data-n="3" style="top:-11px;left:200px"><span class="tip"><b>개선 3 · 상태 카운트</b><br>각 필터 탭에 건수를 붙여, 어디에 일이 쌓였는지 클릭 전에 파악됩니다.</span>3</span>
+      </div>
+
+      <!-- table -->
+      <div class="card pos">
+        <div class="ch"><div class="t">매칭 요청</div><span class="count-pill">총 47건</span></div>
+        <table class="tbl">
+          <thead><tr>
+            <th>요청 ID</th><th>대상자</th><th>도메인</th><th>일정</th><th>AI 후보</th><th>상태</th><th class="r">액션</th>
+          </tr></thead>
+          <tbody>
+            <tr class="urgent pos">
+              <td class="idcell">#44</td>
+              <td><div class="usr"><div class="av" style="background:var(--ok-deep)">테</div><div><div class="nm">테스트본가</div><div class="em muted">가사 · 일반</div></div></div></td>
+              <td><span class="badge dom-house">가사</span></td>
+              <td><span class="sched">2026.06.21 06:00</span></td>
+              <td><span class="nocand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 10v3M12 16h.01"/></svg>후보 없음</span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.7-4.7 5.5-4.7M16 11v6M13 14h6"/></svg>수동 매칭</button></td>
+              <td><span class="pin left" data-n="2" style="top:6px;right:140px"><span class="tip"><b>개선 2 · 상태 색 재정의</b><br>'후보 없음'을 경고색으로, 행 전체를 옅은 주황으로 강조. 성공인 '매칭됨'은 초록, 취소는 회색으로 의미를 맞췄습니다.</span>2</span></td>
+            </tr>
+            <tr class="urgent">
+              <td class="idcell">#43</td>
+              <td><div class="usr"><div class="av" style="background:var(--ok-deep)">테</div><div><div class="nm">테스트본가</div><div class="em muted">가사 · 일반</div></div></div></td>
+              <td><span class="badge dom-house">가사</span></td>
+              <td><span class="sched">2026.06.21 04:00</span></td>
+              <td><span class="nocand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 10v3M12 16h.01"/></svg>후보 없음</span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.7-4.7 5.5-4.7M16 11v6M13 14h6"/></svg>수동 매칭</button></td>
+            </tr>
+            <tr class="urgent">
+              <td class="idcell">#42</td>
+              <td><div class="usr"><div class="av" style="background:var(--info)">테</div><div><div class="nm">테스트환자</div><div class="em muted">간병 · 일반</div></div></div></td>
+              <td><span class="badge dom-nursing">간병</span></td>
+              <td><span class="sched">2026.06.21 00:00</span></td>
+              <td><span class="nocand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 10v3M12 16h.01"/></svg>후보 없음</span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.7-4.7 5.5-4.7M16 11v6M13 14h6"/></svg>수동 매칭</button></td>
+            </tr>
+            <tr>
+              <td class="idcell">#48</td>
+              <td><div class="usr"><div class="av" style="background:var(--purple)">테</div><div><div class="nm">테스트어르신</div><div class="em muted">시니어 · 일반</div></div></div></td>
+              <td><span class="badge dom-senior">시니어</span></td>
+              <td><span class="sched">2026.06.23 05:00</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--teal)">곽</i><i style="background:var(--purple)">인</i><i style="background:var(--info)">조</i></span><span class="n">후보 5명</span></span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact">후보 검토</button></td>
+            </tr>
+            <tr>
+              <td class="idcell">#47</td>
+              <td><div class="usr"><div class="av" style="background:var(--ok-deep)">테</div><div><div class="nm">테스트본가</div><div class="em muted">가사 · 일반</div></div></div></td>
+              <td><span class="badge dom-house">가사</span></td>
+              <td><span class="sched">2026.06.23 01:00</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--teal)">구</i></span><span class="n">후보 1명</span></span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact">후보 검토</button></td>
+            </tr>
+            <tr>
+              <td class="idcell">#46</td>
+              <td><div class="usr"><div class="av" style="background:var(--ok-deep)">강</div><div><div class="nm">강남댁</div><div class="em muted">가사 · 일반</div></div></div></td>
+              <td><span class="badge dom-house">가사</span></td>
+              <td><span class="sched">2026.06.22 05:00</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--teal)">인</i></span><span class="n">후보 1명</span></span></td>
+              <td><span class="status st-recv"><span class="d"></span>접수·대기</span></td>
+              <td class="r"><button class="rowact">후보 검토</button></td>
+            </tr>
+            <tr>
+              <td class="idcell">#41</td>
+              <td><div class="usr"><div class="av" style="background:var(--purple)">테</div><div><div class="nm">테스트어르신</div><div class="em muted">시니어 · 일반</div></div></div></td>
+              <td><span class="badge dom-senior">시니어</span></td>
+              <td><span class="sched">2026.06.20 01:00</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--teal)">곽</i><i style="background:var(--purple)">조</i></span><span class="n">매칭 곽지은</span></span></td>
+              <td><span class="status st-matched"><span class="d"></span>매칭됨</span></td>
+              <td class="r"><button class="rowact">상세</button></td>
+            </tr>
+            <tr>
+              <td class="idcell">#37</td>
+              <td><div class="usr"><div class="av" style="background:var(--purple)">홍</div><div><div class="nm">홍어머님</div><div class="em muted">시니어 · 일반</div></div></div></td>
+              <td><span class="badge dom-senior">시니어</span></td>
+              <td><span class="sched">2026.06.10 17:51</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--teal)">인</i><i style="background:var(--purple)">조</i></span><span class="n">매칭 인나영</span></span></td>
+              <td><span class="status st-matched"><span class="d"></span>매칭됨</span></td>
+              <td class="r"><button class="rowact">상세</button></td>
+            </tr>
+            <tr class="test">
+              <td class="idcell">#40</td>
+              <td><div class="usr"><div class="av" style="background:var(--info)">환</div><div><div class="nm">환자<span class="tag-chip">테스트</span></div><div class="em muted">간병 · 일반</div></div></div></td>
+              <td><span class="badge dom-nursing">간병</span></td>
+              <td><span class="sched">2026.06.13 01:00</span></td>
+              <td><span class="muted">—</span></td>
+              <td><span class="status st-cancel"><span class="d"></span>취소</span></td>
+              <td class="r"><button class="rowact">사유</button></td>
+            </tr>
+            <tr class="test">
+              <td class="idcell">#38</td>
+              <td><div class="usr"><div class="av" style="background:var(--info)">환</div><div><div class="nm">환자<span class="tag-chip">테스트</span></div><div class="em muted">간병 · 일반</div></div></div></td>
+              <td><span class="badge dom-nursing">간병</span></td>
+              <td><span class="sched">2026.06.12 17:37</span></td>
+              <td><span class="aicand"><span class="stack"><i style="background:var(--info)">김</i></span><span class="n">매칭 김간병</span></span></td>
+              <td><span class="status st-matched"><span class="d"></span>매칭됨</span></td>
+              <td class="r"><button class="rowact">상세</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pager">
+          <div class="info"><b>1–10</b> / 총 47건 · <span style="color:var(--warn-deep);font-weight:700">수동 개입 3건</span></div>
+          <div class="pages"><button disabled>‹</button><button class="on">1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>›</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+<script>
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

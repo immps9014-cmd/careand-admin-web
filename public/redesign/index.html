@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& · 관리자 콘솔</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{
+  --purple:#5E54C8; --purple-2:#847ADE; --purple-soft:#ECEBF8;
+  --page:#F5F6F8; --ink:#181B27; --ink-2:#5B6172; --ink-3:#9097A6;
+  --line:#ECEEF2; --line-2:#E2E5EB; --teal:#0E9C8A; --teal-bg:#E2F6F2;
+  --info:#3E72D6; --info-bg:#EAF0FB; --ok:#2E9E6B; --ok-bg:#E6F5ED;
+  --shadow:0 1px 2px rgba(24,27,39,.04),0 4px 16px rgba(24,27,39,.05);
+  --shadow-lift:0 6px 16px rgba(24,27,39,.07),0 16px 40px rgba(24,27,39,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1180px;margin:0 auto;padding:56px 32px 80px;}
+.head{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--purple),var(--purple-2));color:#fff;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(94,84,200,.35);}
+.head h1{font-size:30px;font-weight:800;letter-spacing:-.02em;}
+.head .ver{font-size:12px;font-weight:700;color:var(--purple);background:var(--purple-soft);border-radius:20px;padding:4px 11px;margin-left:2px;white-space:nowrap;}
+.lead{font-size:15px;color:var(--ink-2);line-height:1.6;margin:14px 0 6px;max-width:680px;}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 44px;}
+.chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line-2);border-radius:30px;padding:8px 15px;font-size:13px;font-weight:600;color:var(--ink-2);box-shadow:var(--shadow);white-space:nowrap;}
+.chip b{color:var(--ink);font-weight:800;}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--ok);}
+.sec{margin-bottom:42px;}
+.sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:18px;}
+.sec-h .t{font-size:14px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap;}
+.sec-h .ln{flex:1;height:1px;background:var(--line);}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid.apps{grid-template-columns:repeat(2,1fr);max-width:680px;}
+.card{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;text-decoration:none;color:inherit;box-shadow:var(--shadow);transition:transform .16s cubic-bezier(.2,.7,.2,1),box-shadow .16s,border-color .16s;position:relative;overflow:hidden;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:var(--line-2);}
+.card .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:var(--purple-soft);color:var(--purple);}
+.card .ic svg{width:21px;height:21px;}
+.card.app .ic{background:var(--teal-bg);color:var(--teal);}
+.card .nm{font-size:16px;font-weight:800;letter-spacing:-.01em;}
+.card .ds{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.5;}
+.card .go{position:absolute;top:20px;right:20px;color:var(--ink-3);opacity:0;transform:translateX(-4px);transition:.16s;}
+.card:hover .go{opacity:1;transform:none;color:var(--purple);}
+.card .go svg{width:18px;height:18px;}
+.foot{margin-top:30px;padding-top:24px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);line-height:1.7;}
+.foot b{color:var(--ink-2);font-weight:700;}
+@media(max-width:860px){.grid{grid-template-columns:1fr 1fr}.grid.apps{grid-template-columns:1fr}}
+@media(max-width:560px){.grid,.grid.apps{grid-template-columns:1fr}.wrap{padding:40px 20px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo">C</div>
+    <h1>Care&amp;</h1>
+    <span class="ver">개선 시안 v1</span>
+  </div>
+  <p class="lead">시니어·간병·가사 돌봄을 잇는 Care&amp; 통합 플랫폼의 개선 디자인입니다. 관리자 콘솔 12개 화면과 보호자·인력 모바일 앱이 <b style="color:var(--ink)">매칭 → 케어 → 일지 → 검수 → 정산</b>으로 자연스럽게 이어집니다.</p>
+  <div class="meta">
+    <span class="chip"><span class="d"></span><b>14</b>개 화면</span>
+    <span class="chip"><b>3</b>개 표면 · 콘솔·보호자앱·인력앱</span>
+    <span class="chip">정적 배포 가능 · HTML/CSS</span>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">메인</span><span class="ln"></span></div>
+    <div class="grid">
+      <a class="card" href="dashboard.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">대시보드</div><div class="ds">긴급 알림·KPI·시간대별 현황을 한눈에</div></a>
+      <a class="card" href="members.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">회원 관리</div><div class="ds">보호자·인력·기관 통합 조회·자격검증</div></a>
+      <a class="card" href="matching.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">매칭 관리</div><div class="ds">AI 추천 검토·수동 개입 백로그</div></a>
+      <a class="card" href="monitoring.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">케어 모니터링</div><div class="ds">진행 중 케어·이상 징후 실시간 감지</div></a>
+      <a class="card" href="settlement.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">정산</div><div class="ds">정산 사이클·원천징수·홈택스 일괄처리</div></a>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">운영 관리</span><span class="ln"></span></div>
+    <div class="grid">
+      <a class="card" href="verification.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">인력 자격검증</div><div class="ds">서류 체크리스트·진위검증·승인/반려</div></a>
+      <a class="card" href="schedule.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">계약·일정</div><div class="ds">주간 일정 캘린더·계약 상태 관리</div></a>
+      <a class="card" href="log-review.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">AI 일지 검수</div><div class="ds">AI 일지 본문·품질점검·발송 승인</div></a>
+      <a class="card" href="notifications.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">공지·푸시</div><div class="ds">채널·대상별 발송·읽음률·예약</div></a>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">AI 운영</span><span class="ln"></span></div>
+    <div class="grid">
+      <a class="card" href="ai-models.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">AI 모델</div><div class="ds">모델 헬스·정확도·지연 자동 플래그</div></a>
+      <a class="card" href="reviews.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 5h16v10H9l-4 4z"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">후기 · CS</div><div class="ds">평점 분포·감성 집계·부정후기 대응</div></a>
+      <a class="card" href="reports.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 19V9M12 19V5M19 19v-7"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">통계 리포트</div><div class="ds">주간 추이·도메인 분포·모델 성능</div></a>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">모바일 앱</span><span class="ln"></span></div>
+    <div class="grid apps">
+      <a class="card app" href="app-guardian.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 18h4"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">보호자 앱 · 새 매칭 요청</div><div class="ds">시니어 친화 입력·예상 비용·AI 추천 안내</div></a>
+      <a class="card app" href="app-caregiver.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><div class="nm">인력 앱 · 케어 플로우</div><div class="ds">일정 수락·GPS 타이머·AI 일지 작성</div></a>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>배포 안내</b> — 이 폴더는 정적 사이트입니다. <b>index.html</b>이 진입점이며, 폴더 전체를 웹 서버(Nginx·S3·Vercel·Netlify 등)에 그대로 올리면 동작합니다.<br>
+    글꼴(Pretendard)·React는 CDN에서 불러옵니다. 폐쇄망 배포가 필요하면 알려주세요 — 외부 의존성까지 한 파일로 인라인해 드립니다.
+  </div>
+</div>
+</body>
+</html>

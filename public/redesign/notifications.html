@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 공지·푸시 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+.grid2{display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start;}
+.flabel{font-size:12px;font-weight:700;color:var(--ink-2);margin:16px 0 8px;display:block;}
+.flabel:first-child{margin-top:0;}
+.seg2{display:flex;gap:8px;flex-wrap:wrap;}
+.seg2 .opt{flex:1;min-width:80px;border:1px solid var(--line-2);border-radius:10px;padding:10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;background:#fff;transition:.12s;display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap;}
+.seg2 .opt svg{width:17px;height:17px;}
+.seg2 .opt.on{border-color:var(--purple);background:var(--purple-soft);color:var(--purple);}
+.seg2 .opt .cnt{font-size:10.5px;font-weight:600;color:var(--ink-3);}
+.seg2 .opt.on .cnt{color:var(--purple);}
+.finput{width:100%;border:1px solid var(--line-2);border-radius:10px;padding:11px 13px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;}
+.finput::placeholder{color:var(--ink-3);}
+textarea.finput{resize:none;line-height:1.6;}
+.estim{display:flex;align-items:center;gap:8px;background:var(--info-bg);color:var(--info);border-radius:10px;padding:10px 13px;font-size:12.5px;font-weight:600;margin-top:14px;white-space:nowrap;}
+.estim svg{width:16px;height:16px;flex:none;}
+.estim b{font-weight:800;}
+.sendrow{display:flex;gap:9px;margin-top:14px;}
+.sendbtn{flex:1;height:44px;border-radius:11px;background:var(--purple);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.sendbtn svg{width:17px;height:17px;}
+.schedbtn{height:44px;padding:0 16px;border-radius:11px;background:#fff;border:1px solid var(--line-2);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;}
+.schedbtn svg{width:16px;height:16px;}
+
+.chcell{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap;}
+.chcell svg{width:14px;height:14px;color:var(--ink-3);}
+.readbar{display:flex;align-items:center;gap:9px;}
+.readbar .bar{width:80px;height:7px;border-radius:4px;background:var(--line);overflow:hidden;}
+.readbar .bar i{display:block;height:100%;border-radius:4px;background:var(--purple);}
+.readbar .pct{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;}
+.send-ok{background:var(--ok-bg);color:var(--ok-deep);} .send-ok .d{background:var(--ok);}
+.send-sched{background:var(--watch-bg);color:#9A7400;} .send-sched .d{background:var(--watch);}
+.send-fail{background:var(--crit-bg);color:var(--crit-deep);} .send-fail .d{background:var(--crit);}
+.preview{border:1px dashed var(--line-2);border-radius:12px;padding:14px;background:#FBFBFD;}
+.pv-app{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow);max-width:300px;}
+.pv-h{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-3);font-weight:600;}
+.pv-h .ai{width:18px;height:18px;border-radius:5px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.pv-t{font-size:13px;font-weight:700;margin-top:7px;}
+.pv-b{font-size:12px;color:var(--ink-2);margin-top:3px;line-height:1.5;}
+</style>
+</head>
+<body data-screen-label="공지푸시">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">3</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a class="on" href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row"><div><div class="h1">공지·푸시 알림</div><div class="subt">보호자·인력 앱에 공지/푸시 알림을 발송하고 발송 이력·읽음률을 관리합니다.</div></div></div>
+
+      <div class="grid2">
+        <!-- compose -->
+        <div class="card pos" style="padding:18px 20px;">
+          <div style="font-size:15.5px;font-weight:800;margin-bottom:6px;">새 공지 발송</div>
+          <span class="flabel">발송 채널</span>
+          <div class="seg2">
+            <div class="opt on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 18h4"/></svg>앱 푸시</div>
+            <div class="opt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v10H9l-4 4z"/></svg>문자(SMS)</div>
+            <div class="opt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>이메일</div>
+          </div>
+          <span class="flabel">수신 대상</span>
+          <div class="seg2">
+            <div class="opt on">전체<span class="cnt">36명</span></div>
+            <div class="opt">보호자<span class="cnt">10명</span></div>
+            <div class="opt">인력<span class="cnt">25명</span></div>
+            <div class="opt">운영자<span class="cnt">1명</span></div>
+          </div>
+          <span class="flabel">제목</span>
+          <input class="finput" placeholder="공지 제목" value="">
+          <span class="flabel">내용</span>
+          <textarea class="finput" rows="4" placeholder="공지 내용을 입력하세요"></textarea>
+          <div class="estim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 9a6 6 0 00-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg>앱 푸시 · <b>약 36명</b>에게 즉시 발송됩니다</div>
+          <div class="sendrow">
+            <button class="sendbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-7z"/></svg>즉시 발송</button>
+            <button class="schedbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>예약</button>
+          </div>
+          <span class="pin" data-n="1" style="top:64px;right:14px"><span class="tip"><b>개선 1 · 채널·대상·예약</b><br>앱푸시/문자/이메일 채널, 대상별 수신자 수 추정, 예약 발송을 더해 실제 운영에 쓸 수 있게 했습니다.</span>1</span>
+        </div>
+
+        <!-- history + preview -->
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div class="card pos">
+            <div class="ch"><div class="t">발송 이력</div><span class="count-pill">총 12건</span></div>
+            <table class="tbl">
+              <thead><tr><th>제목</th><th>채널</th><th>수신자</th><th>읽음률</th><th>상태</th><th class="r">발송일시</th></tr></thead>
+              <tbody>
+                <tr><td><div style="font-weight:700">시스템 점검 안내</div><div class="em muted" style="font-size:11.5px">6/15 새벽 2시 정기 점검이 있습니다.</div></td><td><span class="chcell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/></svg>앱 푸시</span></td><td class="mono">20명</td><td><span class="readbar"><span class="bar"><i style="width:62%"></i></span><span class="pct">62%</span></span></td><td><span class="status send-ok"><span class="d"></span>발송완료</span></td><td class="r mono muted">06.10 07:02</td></tr>
+                <tr><td><div style="font-weight:700">여름철 안전 수칙 안내</div><div class="em muted" style="font-size:11.5px">폭염 대비 어르신 케어 가이드</div></td><td><span class="chcell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>이메일</span></td><td class="mono">36명</td><td><span class="readbar"><span class="bar"><i style="width:48%"></i></span><span class="pct">48%</span></span></td><td><span class="status send-ok"><span class="d"></span>발송완료</span></td><td class="r mono muted">06.09 10:00</td></tr>
+                <tr><td><div style="font-weight:700">정산 안내 (5월분)</div><div class="em muted" style="font-size:11.5px">5월 정산이 완료되었습니다.</div></td><td><span class="chcell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v10H9l-4 4z"/></svg>문자</span></td><td class="mono">25명</td><td><span class="readbar"><span class="bar"><i style="width:88%"></i></span><span class="pct">88%</span></span></td><td><span class="status send-ok"><span class="d"></span>발송완료</span></td><td class="r mono muted">06.05 09:00</td></tr>
+                <tr><td><div style="font-weight:700">신규 기능 업데이트</div><div class="em muted" style="font-size:11.5px">케어 일지 사진 첨부 기능 추가</div></td><td><span class="chcell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/></svg>앱 푸시</span></td><td class="mono">36명</td><td><span class="readbar"><span class="bar" style="background:var(--watch-bg)"><i style="width:8%;background:var(--watch)"></i></span><span class="pct" style="color:#9A7400">예약</span></span></td><td><span class="status send-sched"><span class="d"></span>예약 06.14 09:00</span></td><td class="r mono muted">—</td></tr>
+              </tbody>
+            </table>
+            <span class="pin" data-n="2" style="top:64px;left:300px"><span class="tip"><b>개선 2 · 읽음률·채널·상태</b><br>읽음률을 막대로 시각화하고, 발송 채널과 발송완료/예약/실패 상태를 함께 보여줍니다.</span>2</span>
+          </div>
+          <div class="card" style="padding:16px 18px;">
+            <div style="font-size:13px;font-weight:800;color:var(--ink-3);margin-bottom:11px;text-transform:uppercase;">앱 푸시 미리보기</div>
+            <div class="preview">
+              <div class="pv-app">
+                <div class="pv-h"><span class="ai">C</span>Care& · 지금</div>
+                <div class="pv-t">시스템 점검 안내</div>
+                <div class="pv-b">6/15 새벽 2시 정기 점검이 있습니다. 서비스 이용에 참고 부탁드립니다.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+<script>
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+document.querySelectorAll('.seg2').forEach(g=>g.querySelectorAll('.opt').forEach(o=>o.addEventListener('click',()=>{g.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');})));
+</script>
+</body>
+</html>

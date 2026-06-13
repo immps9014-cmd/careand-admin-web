@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 인력 자격 검증 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+.console{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start;}
+.mlist{display:flex;flex-direction:column;gap:10px;}
+.acard{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 14px;box-shadow:var(--shadow);cursor:pointer;transition:.13s;display:flex;gap:12px;align-items:center;}
+.acard:hover{box-shadow:var(--shadow-lift);transform:translateY(-1px);}
+.acard.sel{border-color:var(--purple);box-shadow:0 0 0 2px rgba(109,93,232,.18),var(--shadow);}
+.acard .av{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex:none;}
+.acard .who{flex:1;min-width:0;}
+.acard .nm{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.acard .role{font-size:12px;color:var(--ink-2);margin-top:3px;font-weight:600;white-space:nowrap;}
+.acard .meta{font-size:11px;margin-top:5px;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.acard .docprog{font-size:11px;font-weight:700;}
+.sla{font-weight:700;}
+.sla.warn{color:var(--warn-deep);} .sla.ok{color:var(--ink-3);}
+.ready-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+
+/* detail */
+.detail{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.dhead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:16px;}
+.dhead .pic{width:56px;height:56px;border-radius:15px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;flex:none;}
+.dhead .dn{font-size:19px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
+.dhead .dm{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.6;}
+.dhead .dm b{color:var(--ink);font-weight:700;}
+.dhead .right{margin-left:auto;text-align:right;flex:none;}
+.dbody{padding:18px 22px;display:grid;grid-template-columns:1.35fr 1fr;gap:22px;}
+.blk-t{font-size:12px;font-weight:800;color:var(--ink-3);letter-spacing:.02em;margin-bottom:11px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;}
+.blk-t .prog{font-size:11px;color:var(--ink-2);background:#F1F2F5;border-radius:20px;padding:2px 9px;}
+.docs{display:flex;flex-direction:column;gap:9px;}
+.doc{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#FCFCFD;}
+.doc.miss{background:var(--crit-bg);border-color:#F6C9C9;}
+.doc .thumb{width:42px;height:52px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;}
+.doc .thumb svg{width:20px;height:20px;}
+.doc .dt{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.doc .req{font-size:9.5px;font-weight:800;color:#fff;background:var(--crit);padding:1px 6px;border-radius:5px;}
+.doc .dd{font-size:11px;color:var(--ink-3);margin-top:2px;}
+.doc .dright{margin-left:auto;display:flex;align-items:center;gap:9px;flex:none;}
+.doc-st{font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.doc-st svg{width:14px;height:14px;}
+.ds-ok{color:var(--ok-deep);} .ds-miss{color:var(--crit-deep);}
+.viewbtn{height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--line-2);background:#fff;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.viewbtn:disabled{opacity:.4;cursor:default;}
+
+.auto{display:flex;flex-direction:column;gap:8px;}
+.arow{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:9px 11px;border-radius:9px;background:#FAFAFB;border:1px solid var(--line);}
+.arow .ai{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none;}
+.arow .ai svg{width:14px;height:14px;}
+.arow .av-l{font-weight:600;}
+.arow .av-r{margin-left:auto;font-weight:700;font-size:12px;white-space:nowrap;}
+
+.decision{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#FBFBFC;}
+.decision .dq{font-size:13px;font-weight:700;margin-bottom:10px;}
+.reason{width:100%;border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;font-size:12.5px;font-family:inherit;resize:none;color:var(--ink);background:#fff;}
+.reason::placeholder{color:var(--ink-3);}
+.dbtns{display:flex;gap:9px;margin-top:11px;}
+.dbtns button{flex:1;height:42px;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line-2);background:#fff;}
+.dbtns .approve{background:var(--ok);border-color:var(--ok);color:#fff;}
+.dbtns .approve:disabled{background:#C8D6CE;border-color:#C8D6CE;cursor:not-allowed;}
+.dbtns .reject{background:#fff;border-color:var(--crit);color:var(--crit-deep);}
+.dbtns button svg{width:16px;height:16px;}
+.blockmsg{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--crit-deep);background:var(--crit-bg);border-radius:8px;padding:9px 11px;margin-bottom:11px;}
+.blockmsg svg{width:15px;height:15px;flex:none;}
+</style>
+</head>
+<body data-screen-label="자격검증">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링</a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a class="on" href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">3</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row">
+        <div><div class="h1">인력 자격 검증</div><div class="subt">신규 인력의 자격증·서류를 검토하고 승인·반려합니다. 시니어 케어는 성범죄경력 회신서 확인이 필수입니다.</div></div>
+      </div>
+
+      <!-- SLA summary -->
+      <div class="triage pos" style="display:flex;gap:12px;margin-bottom:18px;">
+        <div class="tcard" style="background:linear-gradient(150deg,var(--purple),var(--purple-2));border:none;color:#fff;flex:1;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px"><div><div style="font-size:28px;font-weight:800;line-height:1">3</div><div style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.92);margin-top:6px">승인 대기</div></div></div>
+        <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)"><div style="font-size:28px;font-weight:800;line-height:1;color:var(--warn-deep)">5<small style="font-size:13px">일</small></div><div style="font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:6px">최장 대기 (한지숙)</div></div>
+        <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)"><div style="font-size:28px;font-weight:800;line-height:1;color:var(--crit-deep)">2<small style="font-size:13px">건</small></div><div style="font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:6px">서류 미비 (승인 불가)</div></div>
+        <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)"><div style="font-size:28px;font-weight:800;line-height:1;color:var(--ok-deep)">22</div><div style="font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:6px">누적 승인 인력</div></div>
+        <span class="pin" data-n="1" style="top:-11px;left:-11px"><span class="tip"><b>개선 1 · 대기(SLA)·미비 현황</b><br>승인 대기 인력이 며칠째 묶여 있는지(매칭 불가 기간), 서류 미비로 처리 불가한 건이 몇인지 먼저 보여줍니다.</span>1</span>
+      </div>
+
+      <!-- tabs -->
+      <div class="toolbar">
+        <div class="tabs"><button class="on">승인 대기<span class="c">3</span></button><button>승인됨<span class="c">22</span></button><button>반려됨<span class="c">1</span></button></div>
+      </div>
+
+      <!-- console -->
+      <div class="console pos">
+        <div class="mlist" id="mlist"></div>
+        <div class="detail" id="detail"></div>
+        <span class="pin" data-n="3" style="top:-11px;left:358px"><span class="tip"><b>개선 3 · 서류 검토 패널</b><br>승인/반려 버튼만 있던 화면에 <b>제출 서류 체크리스트·자동 진위검증·반려 사유</b>를 더해, 실제로 '검토'가 가능하게 했습니다.</span>3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+
+<script>
+const DOCS=['신분증','자격증','성범죄경력 회신서','건강진단서','통장 사본'];
+const REQ=[true,true,true,true,false]; // 성범죄경력·자격증·신분증·건강진단서 필수
+const docIcon='<path d="M6 2h8l4 4v16H6z" /><path d="M14 2v4h4M9 13h6M9 17h4"/>';
+const applicants=[
+  {nm:'한지숙',av:'한',color:'var(--purple)',role:'시니어 · 요양보호사 1급',phone:'010-2000-**09',cert:'요양 2026-1183**',applied:'2026-06-08',sla:5,test:false,
+   docs:[1,1,1,1,1], auto:[['자격증 진위 조회','한국보건의료인국가시험원 일치','ok'],['신분 실명 인증','본인 명의 일치','ok'],['성범죄경력 조회','해당 없음','ok']]},
+  {nm:'문경아',av:'문',color:'var(--info)',role:'간병 · 간호조무사',phone:'010-2000-**10',cert:'간조 2025-4471**',applied:'2026-06-11',sla:2,test:false,
+   docs:[1,1,0,1,1], auto:[['자격증 진위 조회','일치','ok'],['신분 실명 인증','일치','ok'],['성범죄경력 조회','서류 미제출','miss']]},
+  {nm:'승인검증',av:'승',color:'var(--teal)',role:'가사 · 청소 (hk_cleaning)',phone:'010-2100-**99',cert:'미제출',applied:'2026-06-12',sla:1,test:true,
+   docs:[1,0,0,1,0], auto:[['자격증 진위 조회','자격증 미제출','miss'],['신분 실명 인증','일치','ok'],['성범죄경력 조회','서류 미제출','miss']]},
+];
+function renderList(){
+  document.getElementById('mlist').innerHTML=applicants.map((a,i)=>{
+    const sub=a.docs.filter(Boolean).length;
+    const ready=a.docs.every((d,k)=>!REQ[k]||d);
+    return `<div class="acard ${i===0?'sel':''}" data-i="${i}">
+      <div class="av" style="background:${a.color}">${a.av}</div>
+      <div class="who">
+        <div class="nm">${a.nm}${a.test?'<span class="tag-chip">테스트</span>':''}</div>
+        <div class="role">${a.role}</div>
+        <div class="meta"><span class="ready-dot" style="background:${ready?'var(--ok)':'var(--crit)'}"></span><span class="docprog" style="color:${ready?'var(--ok-deep)':'var(--crit-deep)'}">서류 ${sub}/5${ready?' · 검토가능':' · 미비'}</span> · <span class="sla ${a.sla>=4?'warn':'ok'}">${a.sla}일 대기</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.acard').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.acard').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');renderDetail(+c.dataset.i);
+  }));
+}
+function renderDetail(i){
+  const a=applicants[i];
+  const sub=a.docs.filter(Boolean).length;
+  const ready=a.docs.every((d,k)=>!REQ[k]||d);
+  const missReq=DOCS.filter((d,k)=>REQ[k]&&!a.docs[k]);
+  document.getElementById('detail').innerHTML=`
+    <div class="dhead">
+      <div class="pic" style="background:linear-gradient(135deg,${a.color},${a.color})">${a.av}</div>
+      <div>
+        <div class="dn">${a.nm}${a.test?'<span class="tag-chip">테스트</span>':''}<span class="status ${ready?'pay-confirm':'pay-fail'}" style="font-size:11px"><span class="d"></span>${ready?'검토 가능':'서류 미비'}</span></div>
+        <div class="dm"><b>${a.role}</b> · ${a.phone}<br>자격증번호 <b>${a.cert}</b> · 신청일 ${a.applied} · <span style="color:${a.sla>=4?'var(--warn-deep)':'var(--ink-3)'};font-weight:700">${a.sla}일 대기</span></div>
+      </div>
+    </div>
+    <div class="dbody">
+      <div>
+        <div class="blk-t">제출 서류 검토 <span class="prog">${sub} / 5 제출</span></div>
+        <div class="docs">${DOCS.map((d,k)=>{
+          const has=a.docs[k]; const req=REQ[k];
+          return `<div class="doc ${(!has&&req)?'miss':''}">
+            <div class="thumb" style="background:${has?a.color:'#C2334A'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${docIcon}</svg></div>
+            <div><div class="dt">${d}${req?'<span class="req">필수</span>':''}</div><div class="dd">${has?'제출 2026-06 · PDF':'미제출'}</div></div>
+            <div class="dright">
+              <span class="doc-st ${has?'ds-ok':'ds-miss'}">${has?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg>제출':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>미제출'}</span>
+              <button class="viewbtn" ${has?'':'disabled'}>보기</button>
+            </div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+      <div>
+        <div class="blk-t">자동 진위 검증</div>
+        <div class="auto">${a.auto.map(r=>`<div class="arow"><div class="ai" style="background:${r[2]==='ok'?'var(--ok-bg)':'var(--crit-bg)'};color:${r[2]==='ok'?'var(--ok)':'var(--crit)'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">${r[2]==='ok'?'<path d="M5 12l5 5 9-11"/>':'<path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/>'}</svg></div><span class="av-l">${r[0]}</span><span class="av-r" style="color:${r[2]==='ok'?'var(--ok-deep)':'var(--crit-deep)'}">${r[1]}</span></div>`).join('')}</div>
+        <div class="decision">
+          <div class="dq">검토 결정</div>
+          ${ready?'':`<div class="blockmsg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>필수 서류 미제출: ${missReq.join(', ')} — 보완 요청 후 승인 가능</div>`}
+          <textarea class="reason" rows="2" placeholder="${ready?'승인 메모 (선택) 또는 반려 사유를 입력하세요':'반려/보완요청 사유를 입력하세요 (필수)'}"></textarea>
+          <div class="dbtns">
+            <button class="reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>${ready?'반려':'보완 요청'}</button>
+            <button class="approve" ${ready?'':'disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5 9-11"/></svg>승인</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+renderList(); renderDetail(0);
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

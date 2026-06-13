@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Care& 케어 모니터링 · 개선 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="assets/shell.css">
+<style>
+/* triage header */
+.triage{display:flex;gap:12px;margin-bottom:18px;}
+.tcard{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px;position:relative;overflow:hidden;}
+.tcard .tn{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1;}
+.tcard .tl{font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;}
+.tcard .ts{font-size:11px;color:var(--ink-3);margin-top:3px;white-space:nowrap;}
+.tcard .bardot{width:10px;height:10px;border-radius:50%;flex:none;}
+.tcard.crit{background:linear-gradient(150deg,#E5484D,#C2334A);border:none;color:#fff;}
+.tcard.crit .tl,.tcard.crit .ts{color:rgba(255,255,255,.92);}
+.tcard.crit .ic{position:absolute;right:-14px;bottom:-14px;opacity:.16;}
+.tcard.crit .ic svg{width:74px;height:74px;}
+
+/* layout */
+.console{display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:start;}
+.mlist{display:flex;flex-direction:column;gap:10px;}
+.acard{background:#fff;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:13px;padding:13px 14px;box-shadow:var(--shadow);cursor:pointer;transition:.13s;display:flex;gap:12px;align-items:center;}
+.acard:hover{box-shadow:var(--shadow-lift);transform:translateY(-1px);}
+.acard.sel{border-color:var(--purple);border-left-color:var(--purple);box-shadow:0 0 0 2px rgba(109,93,232,.18),var(--shadow);}
+.score{width:46px;height:46px;border-radius:13px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;line-height:1;}
+.score .s{font-size:16px;} .score .u{font-size:8.5px;font-weight:700;opacity:.85;margin-top:2px;white-space:nowrap;}
+.acard .who{flex:1;min-width:0;}
+.acard .nm{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.acard .risk{font-size:12px;font-weight:700;margin-top:3px;white-space:nowrap;}
+.acard .meta{font-size:11px;color:var(--ink-3);margin-top:5px;display:flex;align-items:center;gap:6px;}
+.acard .elapsed{font-weight:700;}
+.sevtag{font-size:10px;font-weight:800;padding:1px 7px;border-radius:5px;color:#fff;white-space:nowrap;flex:none;}
+.t-crit{background:var(--crit);} .t-high{background:var(--warn);} .t-mid{background:var(--watch);} .t-low{background:#9097A6;}
+.b-crit{border-left-color:var(--crit)!important;} .b-high{border-left-color:var(--warn)!important;} .b-mid{border-left-color:var(--watch)!important;}
+.txt-crit{color:var(--crit-deep);} .txt-high{color:var(--warn-deep);} .txt-mid{color:#9A7400;}
+
+/* detail */
+.detail{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.dhead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:16px;}
+.dhead .pic{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,var(--purple),var(--purple-2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:none;}
+.dhead .dn{font-size:19px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
+.dhead .dm{font-size:12.5px;color:var(--ink-2);margin-top:5px;}
+.dhead .dscore{margin-left:auto;text-align:right;flex:none;}
+.dhead .dscore .v{font-size:30px;font-weight:800;line-height:1;}
+.dhead .dscore .l{font-size:11px;color:var(--ink-3);margin-top:3px;}
+.dbody{padding:18px 22px;display:grid;grid-template-columns:1.2fr 1fr;gap:20px;}
+.blk-t{font-size:12px;font-weight:800;color:var(--ink-3);letter-spacing:.02em;margin-bottom:11px;text-transform:uppercase;}
+.signals{display:flex;flex-direction:column;gap:9px;}
+.sig{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;background:#FAFAFB;border:1px solid var(--line);}
+.sig .si{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;}
+.sig .si svg{width:16px;height:16px;}
+.sig .st{font-size:12.5px;font-weight:700;}
+.sig .sd{font-size:11px;color:var(--ink-3);margin-top:1px;}
+.sig .sv{margin-left:auto;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;}
+.trend{margin-top:18px;}
+.trend .tchart{height:84px;margin-top:8px;}
+.trend svg{width:100%;height:100%;overflow:visible;}
+.rec{background:var(--crit-bg);border:1px solid #F6C9C9;border-radius:12px;padding:14px 15px;}
+.rec.high{background:var(--warn-bg);border-color:#F6D7BE;}
+.rec .rt{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:7px;}
+.rec .rd{font-size:12.5px;color:var(--ink-2);margin-top:7px;line-height:1.5;}
+.assign{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:11px;margin-top:14px;}
+.assign .av{width:36px;height:36px;border-radius:10px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;}
+.assign .an{font-size:13px;font-weight:700;} .assign .ar{font-size:11px;color:var(--ink-3);margin-top:1px;}
+.assign .call{margin-left:auto;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line-2);background:#fff;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
+.assign .call svg{width:13px;height:13px;}
+.dactions{display:flex;gap:9px;padding:16px 22px;border-top:1px solid var(--line);background:#FBFBFC;}
+.da{height:40px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:#fff;color:var(--ink-2);}
+.da svg{width:15px;height:15px;}
+.da.danger{background:var(--crit);border-color:var(--crit);color:#fff;}
+.da.pri{background:var(--purple);border-color:var(--purple);color:#fff;}
+.da.sp{margin-left:auto;}
+.tl-list{display:flex;flex-direction:column;gap:0;margin-top:6px;}
+.tl-it{display:flex;gap:11px;padding-bottom:14px;position:relative;}
+.tl-it:before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line);}
+.tl-it:last-child:before{display:none;}
+.tl-it .dot{width:12px;height:12px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 0 1.5px var(--line-2);flex:none;margin-top:2px;z-index:1;}
+.tl-it .tt{font-size:12px;font-weight:600;}
+.tl-it .td{font-size:11px;color:var(--ink-3);margin-top:2px;}
+</style>
+</head>
+<body data-screen-label="케어모니터링">
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">C</div><div><div class="nm">Care&amp;</div><div class="sub">관리자 콘솔</div></div></div>
+    <nav class="nav">
+      <div class="grp">메인</div>
+      <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>대시보드</a>
+      <a href="members.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 9.5a2.6 2.6 0 100-5"/><path d="M19 19c-.3-2.2-1.4-3.9-3-4.6"/></svg>회원 관리</a>
+      <a href="matching.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>매칭 관리</a>
+      <a class="on" href="monitoring.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>케어 모니터링<span class="pill">3</span></a>
+      <a href="settlement.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.7 2.5-1.7s2.4.7 2.4 1.6c0 2.3-4.9 1.3-4.9 3.7 0 1 1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>정산</a>
+      <div class="grp">운영 관리</div>
+      <a href="verification.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>인력 자격검증<span class="pill">1</span></a>
+      <a href="schedule.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M9 15h6"/></svg>계약·일정</a>
+      <a href="log-review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v13l-3.5-3H5z"/><path d="M9 9h6M9 12h4"/></svg>AI 일지 검수<span class="pill">3</span></a>
+      <a href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a3 3 0 013 3v1a4 4 0 014 4v4l2 3H3l2-3v-4a4 4 0 014-4V6a3 3 0 013-3z"/><path d="M10 20a2 2 0 004 0"/></svg>공지·푸시</a>
+      <div class="grp">AI 운영</div>
+      <a href="ai-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M12 6V3M9 11v2M15 11v2M2 12h3M19 12h3"/></svg>AI 모델</a>
+      <a href="reviews.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v10H9l-4 4z"/></svg>CS / 분쟁</a>
+      <a href="reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>리포트</a>
+    </nav>
+    <div class="me"><div class="av">슈</div><div><div class="nm">슈퍼관리자</div><div class="rl">관리자</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>회원, 매칭 ID, 결제 검색…</div>
+      <div class="sp"></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg><span class="dot"></span></div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L16 2H8l-.6 2.4a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2L8 22h8l.6-2.4c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+      <button class="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</button>
+    </div>
+
+    <div class="content">
+      <div class="h1row">
+        <div><div class="h1">케어 모니터링</div><div class="subt">AI가 감지한 어르신 이상징후를 위험도순으로 분류하고, 바로 대응합니다.</div></div>
+        <div class="live"><span class="b"></span>실시간 · 2026-06-13 18:54</div>
+      </div>
+
+      <!-- triage summary -->
+      <div class="triage pos">
+        <div class="tcard crit"><div><div class="tn">3</div><div class="tl">긴급 (90+)</div><div class="ts">평균 미처리 12분</div></div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span></div>
+        <div class="tcard"><span class="bardot" style="background:var(--warn)"></span><div><div class="tn">2</div><div class="tl">높음 (80–89)</div><div class="ts">관찰 강화 필요</div></div></div>
+        <div class="tcard"><span class="bardot" style="background:var(--watch)"></span><div><div class="tn">0</div><div class="tl">중간 (60–79)</div><div class="ts">정상 범위</div></div></div>
+        <div class="tcard"><span class="bardot" style="background:var(--ok)"></span><div><div class="tn">18</div><div class="tl">오늘 처리 완료</div><div class="ts">평균 대응 23분</div></div></div>
+        <span class="pin" data-n="1" style="top:-11px;left:-11px"><span class="tip"><b>개선 1 · 트리아지 헤더</b><br>알림을 위험도(긴급/높음/중간)로 집계해, 운영자가 "어디부터"를 즉시 판단하게 했습니다.</span>1</span>
+      </div>
+
+      <!-- filters -->
+      <div class="toolbar">
+        <div class="tabs"><button class="on">전체<span class="c">5</span></button><button>긴급<span class="c">3</span></button><button>높음<span class="c">2</span></button><button>중간<span class="c">0</span></button><button>낮음<span class="c">0</span></button></div>
+        <div class="tb-sp"></div>
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M6 12h12M10 18h4"/></svg>정렬: 위험도순</button>
+      </div>
+
+      <!-- console -->
+      <div class="console pos">
+        <div class="mlist" id="mlist"></div>
+        <div class="detail pos" id="detail"></div>
+        <span class="pin" data-n="3" style="top:-11px;left:398px"><span class="tip"><b>개선 3 · 상세 대응 패널</b><br>이름·점수만 있던 화면에 <b>AI 감지 신호·위험 추이·담당 인력·권장 조치·연락</b>을 더해, 클릭 한 번으로 대응 가능하게 했습니다.</span>3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.1 4.8L19 9l-3.5 3.3L16.3 18 12 15.3 7.7 18l.8-5.7L5 9l4.9-1.2z"/></svg>개선 포인트 보기</button>
+
+<script>
+const elders=[
+  {id:'#2',name:'강할머니 어르신',score:94,sev:'crit',sevL:'긴급',risk:'낙상 위험',age:'82세 · 여',region:'경기 화성시',elapsed:'8분 전',ago:'2026-06-13 18:46',
+    cgver:'곽지은',cgPhone:'010-2000-**09',guardian:'강민수 (아들)',
+    signals:[
+      {t:'야간 낙상 감지',d:'어젯밤 2회 · 화장실 동선',v:'2회',ic:'fall',c:'crit'},
+      {t:'활동량 급감',d:'최근 3일 평균 대비',v:'-68%',ic:'act',c:'crit'},
+      {t:'보행 불안정',d:'걸음 흔들림 패턴 증가',v:'高',ic:'walk',c:'high'},
+    ],
+    trend:[62,65,70,74,80,88,94],
+    rec:'야간 낙상 2회 + 활동량 급감으로 재낙상 위험이 매우 높습니다. 담당 인력 즉시 방문 및 보호자 연락을 권장합니다.'},
+  {id:'#3',name:'문어머님 어르신',score:94,sev:'crit',sevL:'긴급',risk:'우울 위험',age:'78세 · 여',region:'경기 수원시',elapsed:'22분 전',ago:'2026-06-13 18:32',
+    cgver:'인나영',cgPhone:'010-2000-**98',guardian:'문지영 (딸)',
+    signals:[
+      {t:'대화 응답 감소',d:'케어 인력 대화 응답률',v:'-54%',ic:'talk',c:'crit'},
+      {t:'식사 거부',d:'연속 결식 일수',v:'2일',ic:'meal',c:'crit'},
+      {t:'외출 0회',d:'최근 5일 외출 기록 없음',v:'5일',ic:'out',c:'high'},
+    ],
+    trend:[58,60,68,72,78,86,94],
+    rec:'식사 거부와 대화 단절이 동반되어 우울 고위험 상태입니다. 정서 케어 방문과 보호자 상담을 권장합니다.'},
+  {id:'#1',name:'정할아버지 어르신',score:93,sev:'crit',sevL:'긴급',risk:'섬망 위험',age:'85세 · 남',region:'경기 평택시',elapsed:'41분 전',ago:'2026-06-13 18:13',
+    cgver:'조선희',cgPhone:'010-2000-**87',guardian:'정수아 (며느리)',
+    signals:[
+      {t:'야간 배회',d:'심야 이동 감지',v:'3회',ic:'walk',c:'crit'},
+      {t:'인지점수 하락',d:'주간 인지 체크 대비',v:'-12p',ic:'brain',c:'crit'},
+      {t:'수면 단절',d:'야간 평균 수면 시간',v:'2.1h',ic:'sleep',c:'high'},
+    ],
+    trend:[70,72,76,80,85,90,93],
+    rec:'야간 배회와 인지 저하로 섬망 가능성이 높습니다. 의료진 연계 및 야간 보호 강화가 필요합니다.'},
+  {id:'#4',name:'손할머니 어르신',score:83,sev:'high',sevL:'높음',risk:'우울 위험',age:'76세 · 여',region:'경기 오산시',elapsed:'2시간 전',ago:'2026-06-13 16:54',
+    cgver:'구미영',cgPhone:'010-2000-**54',guardian:'손재민 (아들)',
+    signals:[
+      {t:'대화 응답 감소',d:'전주 대비',v:'-31%',ic:'talk',c:'high'},
+      {t:'약 복용 누락',d:'주간 복약 누락',v:'2회',ic:'meal',c:'high'},
+    ],
+    trend:[68,70,72,74,78,80,83],
+    rec:'복약 누락과 대화 감소가 관찰됩니다. 다음 방문 시 정서 상태와 복약 점검을 권장합니다.'},
+  {id:'#5',name:'권할아버지 어르신',score:80,sev:'high',sevL:'높음',risk:'낙상 위험',age:'80세 · 남',region:'경기 화성시',elapsed:'5시간 전',ago:'2026-06-13 13:40',
+    cgver:'박서준',cgPhone:'010-2000-**21',guardian:'권나래 (딸)',
+    signals:[
+      {t:'보행속도 저하',d:'전월 평균 대비',v:'-22%',ic:'walk',c:'high'},
+      {t:'미끄러짐 감지',d:'거실 동선',v:'1회',ic:'fall',c:'mid'},
+    ],
+    trend:[66,68,70,72,75,78,80],
+    rec:'보행 기능 저하가 진행 중입니다. 주거 환경 안전점검과 보행 보조를 권장합니다.'},
+];
+const sigIcon={
+  fall:'<path d="M12 5a2 2 0 100-4 2 2 0 000 4zM7 22l3-7 2 2 1 5M10 15l-2-4 4-1 4 2"/>',
+  act:'<path d="M3 12h4l2 6 4-14 2 8h6"/>',
+  walk:'<path d="M13 4a2 2 0 100-1 2 2 0 000 1zM10 22l2-6 3 2v4M12 16l-1-5 4 1 3 3"/>',
+  talk:'<path d="M4 5h16v10H9l-4 4z"/>',
+  meal:'<path d="M5 3v8a2 2 0 004 0V3M7 11v10M16 3c-1.5 0-2 2-2 5s.5 4 2 4 2-1 2-4-.5-5-2-5zM16 16v5"/>',
+  out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',
+  brain:'<path d="M12 5a3 3 0 00-6 .5C4.5 6 4 7 4 8.5S5 11 5 12s-1 1.5-1 3 1.5 3 3.5 3M12 5a3 3 0 016 .5C19.5 6 20 7 20 8.5S19 11 19 12s1 1.5 1 3-1.5 3-3.5 3M12 5v14"/>',
+  sleep:'<path d="M21 12.8A8.5 8.5 0 1111.2 3a6.6 6.6 0 009.8 9.8z"/>',
+};
+const cmap={crit:'var(--crit)',high:'var(--warn)',mid:'var(--watch)'};
+const cbg={crit:'var(--crit-bg)',high:'var(--warn-bg)',mid:'var(--watch-bg)'};
+
+function spark(arr,color){
+  const W=240,H=70,p=6,max=100,min=50;
+  const x=i=>p+(W-2*p)*i/(arr.length-1);
+  const y=v=>p+(H-2*p)*(1-(v-min)/(max-min));
+  let d='M'+x(0)+' '+y(arr[0]);
+  for(let i=1;i<arr.length;i++){const cx=(x(i-1)+x(i))/2;d+=` C${cx} ${y(arr[i-1])}, ${cx} ${y(arr[i])}, ${x(i)} ${y(arr[i])}`;}
+  const area=d+` L${x(arr.length-1)} ${H-p} L${x(0)} ${H-p} Z`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#sg)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/><circle cx="${x(arr.length-1)}" cy="${y(arr[arr.length-1])}" r="4" fill="${color}"/></svg>`;
+}
+
+function renderList(){
+  document.getElementById('mlist').innerHTML=elders.map((e,i)=>`
+    <div class="acard b-${e.sev} ${i===0?'sel':''}" data-i="${i}">
+      <div class="score" style="background:${cmap[e.sev]}"><span class="s">${e.score}</span><span class="u">위험</span></div>
+      <div class="who">
+        <div class="nm">${e.name}<span class="sevtag t-${e.sev}">${e.sevL}</span></div>
+        <div class="risk txt-${e.sev}">${e.risk}</div>
+        <div class="meta"><span class="elapsed txt-${e.sev}">${e.elapsed} · 미처리</span> · 담당 ${e.cgver}</div>
+      </div>
+    </div>`).join('');
+  document.querySelectorAll('.acard').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.acard').forEach(x=>x.classList.remove('sel'));
+    c.classList.add('sel'); renderDetail(+c.dataset.i);
+  }));
+}
+function renderDetail(i){
+  const e=elders[i];
+  document.getElementById('detail').innerHTML=`
+    <div class="dhead">
+      <div class="pic" style="background:linear-gradient(135deg,${cmap[e.sev]},${e.sev==='crit'?'#C2334A':'#C25608'})">${e.name[0]}</div>
+      <div>
+        <div class="dn">${e.name}<span class="sevtag t-${e.sev}">${e.sevL} · ${e.risk}</span></div>
+        <div class="dm">${e.age} · ${e.region} · 케어 ${e.id} · 보호자 ${e.guardian}</div>
+      </div>
+      <div class="dscore"><div class="v txt-${e.sev}">${e.score}<span style="font-size:14px;color:var(--ink-3)">/100</span></div><div class="l">AI 위험 점수 (높을수록 위험)</div></div>
+    </div>
+    <div class="dbody">
+      <div>
+        <div class="blk-t">AI 감지 신호</div>
+        <div class="signals">${e.signals.map(s=>`
+          <div class="sig"><div class="si" style="background:${cbg[s.c]};color:${cmap[s.c]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${sigIcon[s.ic]}</svg></div>
+          <div><div class="st">${s.t}</div><div class="sd">${s.d}</div></div>
+          <div class="sv" style="color:${cmap[s.c]}">${s.v}</div></div>`).join('')}</div>
+        <div class="trend"><div class="blk-t">7일 위험 점수 추이</div><div class="tchart">${spark(e.trend,cmap[e.sev])}</div></div>
+      </div>
+      <div>
+        <div class="blk-t">권장 조치</div>
+        <div class="rec ${e.sev==='high'?'high':''}"><div class="rt txt-${e.sev}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>AI 권장</div><div class="rd">${e.rec}</div></div>
+        <div class="assign"><div class="av">${e.cgver[0]}</div><div><div class="an">${e.cgver}</div><div class="ar">담당 케어 인력 · ${e.cgPhone}</div></div><button class="call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-3 2a11 11 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>연락</button></div>
+        <div style="margin-top:16px"><div class="blk-t">대응 타임라인</div><div class="tl-list">
+          <div class="tl-it"><span class="dot" style="box-shadow:0 0 0 1.5px ${cmap[e.sev]};border-color:#fff;background:${cmap[e.sev]}"></span><div><div class="tt">AI 위험 알림 발생 (${e.score}점)</div><div class="td">${e.ago}</div></div></div>
+          <div class="tl-it"><span class="dot"></span><div><div class="tt">담당 인력 ${e.cgver} 자동 통보</div><div class="td">발생 직후</div></div></div>
+          <div class="tl-it"><span class="dot"></span><div><div class="tt">운영자 확인 대기</div><div class="td">현재 · 미처리</div></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="dactions">
+      <button class="da pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.7-4.7 5.5-4.7M16 11v6M13 14h6"/></svg>담당 인력 긴급 방문 배정</button>
+      <button class="da"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10 20a2 2 0 004 0"/></svg>보호자 알림</button>
+      ${e.sev==='crit'?'<button class="da danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>119 / 의료 연계</button>':''}
+      <button class="da sp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5 9-11"/></svg>처리 완료</button>
+    </div>`;
+}
+renderList(); renderDetail(0);
+const fab=document.getElementById('fab');
+fab.addEventListener('click',()=>{document.body.classList.toggle('annot');const on=document.body.classList.contains('annot');fab.classList.toggle('active',on);fab.lastChild.textContent=on?'개선 포인트 숨기기':'개선 포인트 보기';});
+</script>
+</body>
+</html>

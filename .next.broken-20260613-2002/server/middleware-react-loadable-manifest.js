@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST='{"node_modules/@tanstack/query-devtools/build/index.js -> ./DevtoolsComponent/3PTWN7RB.js":{"id":null,"files":[]},"node_modules/@tanstack/query-devtools/build/index.js -> ./DevtoolsPanelComponent/KFUZFIDZ.js":{"id":null,"files":[]}}';

@@ -3,6 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   basePath: "/admin",
   assetPrefix: "/admin",
+  // 검증 빌드용 distDir 분기 (미지정 시 .next — 라이브 동작 무변화)
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Laravel API 프록시 (basePath 영향 없음)
   async rewrites() {
     return [

@@ -54,17 +54,17 @@ export function Sidebar() {
   const user = useAuth((s) => s.user);
 
   return (
-    <aside className="w-60 bg-gradient-to-b from-warm-800 to-warm-900 text-white/70 flex flex-col">
+    <aside className="w-60 bg-white border-r border-warm-200 flex flex-col">
       {/* 로고 */}
-      <div className="px-6 py-6 border-b border-white/8 flex items-center gap-2.5">
+      <div className="px-6 py-5 border-b border-warm-100 flex items-center gap-2.5">
         <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center font-en font-extrabold text-white text-base shadow-md">
           C
         </div>
         <div>
-          <div className="font-en font-extrabold text-white text-base tracking-tight leading-none">
+          <div className="font-en font-extrabold text-warm-900 text-base tracking-tight leading-none">
             Care&
           </div>
-          <div className="text-[11px] font-medium text-white/50 mt-0.5">
+          <div className="text-[11px] font-medium text-warm-400 mt-0.5">
             관리자 콘솔
           </div>
         </div>
@@ -80,15 +80,15 @@ export function Sidebar() {
       <NavSection title="AI 운영" items={AI_NAV} pathname={pathname} />
 
       {/* 사용자 */}
-      <div className="mt-auto px-6 py-4 border-t border-white/8 flex items-center gap-3">
+      <div className="mt-auto px-6 py-4 border-t border-warm-100 flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
           {user?.name?.[0] || "관"}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-white truncate">
+          <div className="text-sm font-semibold text-warm-800 truncate">
             {user?.name || "관리자"}
           </div>
-          <div className="text-[11px] text-white/50 truncate">
+          <div className="text-[11px] text-warm-500 truncate">
             {user?.admin?.permission_level === "super"
               ? "Super Admin"
               : user?.admin?.permission_level === "operator"
@@ -116,7 +116,7 @@ function NavSection({
 }) {
   return (
     <div className="pt-4 pb-2">
-      <div className="px-6 pb-2 text-[10px] font-bold text-white/35 uppercase tracking-widest">
+      <div className="px-6 pb-2 text-[10px] font-bold text-warm-400 uppercase tracking-widest">
         {title}
       </div>
       <nav>
@@ -130,14 +130,14 @@ function NavSection({
               className={cn(
                 "flex items-center gap-3 px-6 py-2.5 text-sm font-medium border-l-[3px] transition-all",
                 isActive
-                  ? "text-white bg-white/6 border-brand-400 font-semibold"
-                  : "text-white/65 border-transparent hover:bg-white/3 hover:text-white"
+                  ? "text-brand-700 bg-brand-50 border-brand-500 font-semibold"
+                  : "text-warm-500 border-transparent hover:bg-warm-50 hover:text-warm-800"
               )}
             >
               <Icon
                 className={cn(
-                  "w-[18px] h-[18px] opacity-70",
-                  isActive && "opacity-100 text-brand-300"
+                  "w-[18px] h-[18px]",
+                  isActive ? "text-brand-500" : "text-warm-400"
                 )}
               />
               <span className="flex-1">{item.label}</span>
