@@ -13,8 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatKRW } from "@/lib/utils";
-import { FileCheck } from "lucide-react";
+import { KpiCard } from "@/components/domain/kpi-card";
+import { cn, formatKRW } from "@/lib/utils";
+import {
+  Users,
+  Coins,
+  FileText,
+  Wallet,
+  FileCheck,
+  Info,
+  CheckCircle2,
+  Clock,
+  CircleSlash,
+  ChevronRight,
+} from "lucide-react";
 import { operationsApi } from "@/lib/api/operations";
 
 const TABS: { key: string; label: string }[] = [
@@ -25,12 +37,28 @@ const TABS: { key: string; label: string }[] = [
   { key: "failed", label: "실패" },
 ];
 
-const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
-  draft: { variant: "outline", label: "작성중" },
-  confirmed: { variant: "warn", label: "확정" },
-  paid: { variant: "success", label: "지급완료" },
-  failed: { variant: "danger", label: "실패" },
+const STATUS_BADGE: Record<
+  string,
+  { variant: "warn" | "success" | "danger" | "outline" | "info" | "brand"; label: string; dot: string }
+> = {
+  draft: { variant: "outline", label: "작성중", dot: "bg-warm-400" },
+  confirmed: { variant: "info", label: "확정 · 지급대기", dot: "bg-info" },
+  paid: { variant: "success", label: "지급완료", dot: "bg-brand-500" },
+  failed: { variant: "danger", label: "실패", dot: "bg-danger" },
 };
+
+// 정산 사이클 파이프라인 단계 (실데이터에서 집계)
+const PIPELINE: {
+  key: string;
+  label: string;
+  dot: string;
+  cur?: boolean;
+}[] = [
+  { key: "draft", label: "작성중", dot: "bg-warm-400" },
+  { key: "confirmed", label: "확정 (지급 대기)", dot: "bg-info", cur: true },
+  { key: "paid", label: "지급완료", dot: "bg-brand-500" },
+  { key: "failed", label: "실패", dot: "bg-danger" },
+];
 
 export default function SettlementsPage() {
   const [status, setStatus] = useState("");
@@ -41,6 +69,11 @@ export default function SettlementsPage() {
   });
 
   const s = query.data?.summary;
+  const rows = query.data?.data ?? [];
+  const total = query.data?.meta?.total ?? 0;
+
+  // 현재 로드된 정산 건들을 단계별로 집계 (실데이터 기반)
+  const byStatus = (key: string) => rows.filter((r) => r.status === key);
 
   return (
     <div className="p-8">
@@ -51,29 +84,90 @@ export default function SettlementsPage() {
             주간 정산 처리 + 홈택스 원천징수(3.3%) 신고
           </p>
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="primary" size="md">
           <FileCheck className="w-4 h-4" />
           홈택스 일괄 신고
         </Button>
       </div>
 
-      {/* 정산 요약 (실데이터) */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "정산 인력", value: s ? `${s.caregivers}명` : "-" },
-          { label: "총 세전", value: s ? formatKRW(s.gross_amount) : "-" },
-          { label: "원천징수 (3.3%)", value: s ? formatKRW(s.withholding_tax) : "-" },
-          { label: "총 실지급", value: s ? formatKRW(s.net_amount) : "-" },
-        ].map((card) => (
-          <Card key={card.label} className="p-5">
-            <div className="text-xs text-warm-500 font-semibold mb-2">{card.label}</div>
-            <div className="font-en text-xl font-extrabold text-warm-800 leading-none tracking-tight">
-              {card.value}
-            </div>
-          </Card>
-        ))}
+      {/* 정산 요약 (실데이터) — 총 실지급 강조, 원천징수 차감 강조 */}
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        <KpiCard
+          label="정산 인력"
+          value={s ? `${s.caregivers}명` : "-"}
+          icon={Users}
+          subLabel="이번 주 정산 대상"
+        />
+        <KpiCard
+          label="총 세전"
+          value={s ? formatKRW(s.gross_amount) : "-"}
+          icon={Coins}
+          subLabel="지급 전 총 금액"
+        />
+        <KpiCard
+          label="원천징수 (3.3%)"
+          value={s ? formatKRW(s.withholding_tax) : "-"}
+          icon={FileText}
+          iconColor="danger"
+          subLabel="홈택스 신고 대상"
+        />
+        <KpiCard
+          variant="brand"
+          label="총 실지급"
+          value={s ? formatKRW(s.net_amount) : "-"}
+          icon={Wallet}
+          subLabel="인력에게 지급될 순액"
+        />
       </div>
 
+      {/* 정산 사이클 파이프라인 (현재 목록 기준) */}
+      <Card className="flex items-stretch overflow-hidden mb-5 p-0">
+        {PIPELINE.map((step, i) => {
+          const list = byStatus(step.key);
+          const count = list.length;
+          const useNet = step.key === "confirmed" || step.key === "paid";
+          const sum = list.reduce(
+            (acc, r) => acc + (useNet ? r.net_amount : r.gross_amount),
+            0
+          );
+          const moneyLabel =
+            count === 0
+              ? step.key === "failed"
+                ? "재처리 대상 없음"
+                : "대상 없음"
+              : `${useNet ? "실지급" : "세전"} ${formatKRW(sum)}`;
+          return (
+            <div
+              key={step.key}
+              className={cn(
+                "relative flex-1 px-5 py-4 flex flex-col justify-center",
+                i !== PIPELINE.length - 1 && "border-r border-warm-100",
+                step.cur && "bg-gradient-to-b from-brand-50/60 to-white"
+              )}
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-warm-600">
+                <span className={cn("w-2.5 h-2.5 rounded-full", step.dot)} />
+                {step.label}
+              </div>
+              <div className="mt-2 font-en text-2xl font-extrabold text-warm-800 leading-none tracking-tight">
+                {count}
+                <small className="text-[13px] font-bold text-warm-400 ml-0.5">건</small>
+              </div>
+              <div className="mt-1.5 font-en text-[11.5px] text-warm-500">{moneyLabel}</div>
+              {step.cur && (
+                <span className="absolute left-0 right-0 bottom-0 h-[3px] bg-brand-500" />
+              )}
+              {i !== PIPELINE.length - 1 && (
+                <span className="absolute -right-[9px] top-1/2 -translate-y-1/2 z-10 w-[18px] h-[18px] rounded-full bg-white border border-warm-200 flex items-center justify-center text-warm-400">
+                  <ChevronRight className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </Card>
+
+      {/* 툴바: 단계 탭 + 원천징수율 안내 */}
       <div className="flex items-center gap-2 mb-4">
         {TABS.map((t) => (
           <Button
@@ -85,23 +179,28 @@ export default function SettlementsPage() {
             {t.label}
           </Button>
         ))}
+        <div className="flex-1" />
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-info bg-info-bg px-3 py-1.5 rounded-md">
+          <Info className="w-3.5 h-3.5" />
+          원천징수율 3.3% 자동 적용
+        </span>
       </div>
 
       <Card className="overflow-hidden">
         <div className="px-6 py-4 flex justify-between items-center border-b border-warm-100">
           <h2 className="text-base font-bold text-warm-800">정산 목록</h2>
           <span className="font-en text-[11px] text-warm-500 px-2.5 py-1 bg-warm-100 rounded-full">
-            {query.data?.meta?.total ?? 0}건
+            총 {total}건
           </span>
         </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>인력</TableHead>
-              <TableHead>정산 기간</TableHead>
-              <TableHead>세전</TableHead>
-              <TableHead>원천징수</TableHead>
-              <TableHead>실지급</TableHead>
+              <TableHead className="text-right">세전</TableHead>
+              <TableHead className="text-right">원천징수 (3.3%)</TableHead>
+              <TableHead className="text-right">실지급</TableHead>
+              <TableHead>홈택스 신고</TableHead>
               <TableHead className="text-right">상태</TableHead>
             </TableRow>
           </TableHeader>
@@ -113,33 +212,72 @@ export default function SettlementsPage() {
                 </TableCell>
               </TableRow>
             )}
-            {query.data?.data.length === 0 && (
+            {!query.isLoading && rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-warm-400 py-10">
                   정산 내역이 없습니다
                 </TableCell>
               </TableRow>
             )}
-            {query.data?.data.map((st) => (
-              <TableRow key={st.id}>
-                <TableCell className="font-medium text-warm-800">{st.caregiver_name}</TableCell>
-                <TableCell className="text-warm-600 text-xs font-en">
-                  {st.period_start} ~ {st.period_end}
-                </TableCell>
-                <TableCell className="font-en text-warm-700">{formatKRW(st.gross_amount)}</TableCell>
-                <TableCell className="font-en text-warm-500">
-                  -{formatKRW(st.withholding_tax)}
-                </TableCell>
-                <TableCell className="font-en font-bold text-warm-800">
-                  {formatKRW(st.net_amount)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={STATUS_BADGE[st.status]?.variant ?? "outline"}>
-                    {STATUS_BADGE[st.status]?.label ?? st.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
+            {rows.map((st) => {
+              const badge = STATUS_BADGE[st.status] ?? {
+                variant: "outline" as const,
+                label: st.status,
+                dot: "bg-warm-400",
+              };
+              const filed = st.hometax_filing_no != null;
+              return (
+                <TableRow key={st.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-brand-500 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                        {st.caregiver_name?.[0] ?? "?"}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-warm-800">{st.caregiver_name}</div>
+                        <div className="font-en text-[11px] text-warm-500">
+                          {st.period_start} ~ {st.period_end}
+                          {st.paid_at ? ` · ${st.paid_at} 지급` : ""}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-en text-warm-700">
+                    {formatKRW(st.gross_amount)}
+                  </TableCell>
+                  <TableCell className="text-right font-en font-semibold text-danger">
+                    −{formatKRW(st.withholding_tax)}
+                  </TableCell>
+                  <TableCell className="text-right font-en font-extrabold text-warm-800 bg-warm-50">
+                    {formatKRW(st.net_amount)}
+                  </TableCell>
+                  <TableCell>
+                    {filed ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        신고완료
+                      </span>
+                    ) : st.status === "confirmed" ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-info">
+                        <Clock className="w-3.5 h-3.5" />
+                        신고대기
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warm-400">
+                        <CircleSlash className="w-3.5 h-3.5" />
+                        미신고
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={badge.variant}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full", badge.dot)} />
+                      {badge.label}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </Card>

@@ -7,6 +7,7 @@ import {
   Star,
   AlertTriangle,
   MessagesSquare,
+  Reply,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,20 +24,35 @@ import { KpiCard } from "@/components/domain/kpi-card";
 import { csApi } from "@/lib/api/cs";
 import { formatTimeAgo, cn } from "@/lib/utils";
 
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const dim = size === "md" ? "w-4 h-4" : "w-3.5 h-3.5";
   return (
     <span className="inline-flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
           className={cn(
-            "w-3.5 h-3.5",
+            dim,
             i <= rating ? "fill-warn text-warn" : "text-warm-200"
           )}
         />
       ))}
     </span>
   );
+}
+
+// 후기 작성자 아바타 배경 — 작성자명 기반 결정적 색상
+const AVATAR_BG = [
+  "bg-brand-500",
+  "bg-info",
+  "bg-warn",
+  "bg-brand-600",
+  "bg-warm-500",
+];
+function avatarBg(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h + name.charCodeAt(i)) % AVATAR_BG.length;
+  return AVATAR_BG[h];
 }
 
 export default function CsPage() {
@@ -63,6 +79,14 @@ export default function CsPage() {
 
   const stats = statsQuery.data;
 
+  // 별점 분포 (5→1), stats.rating_distribution 사용. 최대값 기준으로 막대 폭 계산
+  const distRows = [5, 4, 3, 2, 1].map((s) => ({
+    star: s,
+    count: stats?.rating_distribution?.[String(s)] ?? 0,
+  }));
+  const positiveCount =
+    stats != null ? Math.max(0, stats.reviews_total - stats.reviews_negative) : 0;
+
   return (
     <div className="p-8">
       <div className="mb-7">
@@ -70,7 +94,7 @@ export default function CsPage() {
           후기 · CS 관리
         </h1>
         <p className="text-sm text-warm-500 mt-1">
-          보호자·인력의 후기와 CS 챗봇 상담을 조회·관리합니다
+          보호자·인력의 후기와 CS 챗봇 상담을 조회하고, 부정 후기에 대응합니다
         </p>
       </div>
 
@@ -102,99 +126,197 @@ export default function CsPage() {
         />
       </div>
 
-      {/* 탭 */}
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          variant={tab === "reviews" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => setTab("reviews")}
-        >
-          <Star className="w-4 h-4" />
-          후기 ({stats?.reviews_total ?? 0})
-        </Button>
-        <Button
-          variant={tab === "chatbot" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => setTab("chatbot")}
-        >
-          <MessageCircle className="w-4 h-4" />
-          CS 상담 ({stats?.chatbot_total ?? 0})
-        </Button>
+      {/* 툴바: 탭 + 부정 후기 필터 */}
+      <div className="flex items-center gap-2 mb-5">
+        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+          <button
+            onClick={() => setTab("reviews")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded inline-flex items-center gap-1.5 transition-colors",
+              tab === "reviews"
+                ? "bg-white text-warm-800 shadow-sm"
+                : "text-warm-600 hover:text-warm-800"
+            )}
+          >
+            <Star className="w-3.5 h-3.5" />
+            후기
+            <span className="font-en text-[10px] font-bold text-warm-500 bg-warm-200/70 px-1.5 py-px rounded-full">
+              {stats?.reviews_total ?? 0}
+            </span>
+          </button>
+          <button
+            onClick={() => setTab("chatbot")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded inline-flex items-center gap-1.5 transition-colors",
+              tab === "chatbot"
+                ? "bg-white text-warm-800 shadow-sm"
+                : "text-warm-600 hover:text-warm-800"
+            )}
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            CS 상담
+            <span className="font-en text-[10px] font-bold text-warm-500 bg-warm-200/70 px-1.5 py-px rounded-full">
+              {stats?.chatbot_total ?? 0}
+            </span>
+          </button>
+        </div>
+        {tab === "reviews" && (
+          <Button
+            variant={onlyNegative ? "danger" : "outline"}
+            size="sm"
+            className="ml-auto"
+            onClick={() => setOnlyNegative((v) => !v)}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            부정 후기만 ({stats?.reviews_negative ?? 0})
+          </Button>
+        )}
       </div>
 
-      {/* 후기 탭 */}
+      {/* 후기 탭 — 좌: 평점 요약 / 우: 후기 목록 */}
       {tab === "reviews" && (
-        <Card className="overflow-hidden">
-          <div className="px-6 py-4 flex justify-between items-center border-b border-warm-100">
-            <h2 className="text-base font-bold text-warm-800">후기 목록</h2>
-            <Button
-              variant={onlyNegative ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setOnlyNegative((v) => !v)}
-            >
-              <AlertTriangle className="w-4 h-4" />
-              부정 후기만
-            </Button>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>평점</TableHead>
-                <TableHead>작성자</TableHead>
-                <TableHead>내용</TableHead>
-                <TableHead>태그</TableHead>
-                <TableHead className="text-right">작성</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <div className="grid grid-cols-[300px_1fr] gap-[18px] items-start">
+          {/* 평점 요약 카드 */}
+          <Card className="overflow-hidden">
+            {/* 큰 평균 평점 */}
+            <div className="text-center px-5 pt-6 pb-5 border-b border-warm-100">
+              <div className="font-en text-[46px] font-extrabold leading-none tracking-tight text-warm-800">
+                {stats ? stats.reviews_avg.toFixed(2) : "-"}
+              </div>
+              <div className="mt-2 flex justify-center">
+                <Stars rating={Math.round(stats?.reviews_avg ?? 0)} size="md" />
+              </div>
+              <div className="text-xs text-warm-500 mt-2">
+                전체 후기 {stats?.reviews_total ?? 0}건 기준
+              </div>
+            </div>
+
+            {/* 별점 분포 막대 */}
+            <div className="px-[18px] py-4">
+              {distRows.map((d) => {
+                const pct =
+                  stats && stats.reviews_total > 0
+                    ? (d.count / stats.reviews_total) * 100
+                    : 0;
+                const barColor =
+                  d.star >= 4 ? "bg-brand-500" : d.star === 3 ? "bg-warn" : "bg-danger";
+                return (
+                  <div key={d.star} className="flex items-center gap-2.5 mb-2.5 last:mb-0">
+                    <div className="flex items-center gap-0.5 w-7 text-[11.5px] font-bold text-warm-600">
+                      {d.star}
+                      <Star className="w-2.5 h-2.5 fill-warn text-warn" />
+                    </div>
+                    <div className="flex-1 h-2 rounded-full bg-warm-100 overflow-hidden">
+                      <span
+                        className={cn("block h-full rounded-full", barColor)}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="font-en w-5 text-right text-[11.5px] font-bold text-warm-400">
+                      {d.count}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 긍정 / 부정 집계 */}
+            <div className="px-[18px] py-3.5 border-t border-warm-100 flex gap-2.5">
+              <div className="flex-1 text-center rounded-md bg-brand-50 py-2.5">
+                <div className="font-en text-xl font-extrabold text-brand-700">
+                  {positiveCount}
+                </div>
+                <div className="text-[11px] font-semibold text-warm-600 mt-0.5">
+                  긍정 (★4–5)
+                </div>
+              </div>
+              <div className="flex-1 text-center rounded-md bg-danger-bg py-2.5">
+                <div className="font-en text-xl font-extrabold text-danger">
+                  {stats?.reviews_negative ?? 0}
+                </div>
+                <div className="text-[11px] font-semibold text-warm-600 mt-0.5">
+                  부정 (★1–2)
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* 후기 목록 카드 */}
+          <Card className="overflow-hidden">
+            <div className="px-6 py-4 flex justify-between items-center border-b border-warm-100">
+              <h2 className="text-base font-bold text-warm-800">후기 목록</h2>
+              <span className="font-en text-[11px] text-warm-500 px-2.5 py-1 bg-warm-100 rounded-full">
+                최신순
+              </span>
+            </div>
+
+            <div>
               {reviewsQuery.isLoading && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-warm-400 py-10">
-                    불러오는 중…
-                  </TableCell>
-                </TableRow>
+                <div className="text-center text-warm-400 py-12">불러오는 중…</div>
               )}
-              {reviewsQuery.data?.data.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-warm-400 py-10">
-                    후기가 없습니다
-                  </TableCell>
-                </TableRow>
+              {!reviewsQuery.isLoading && reviewsQuery.data?.data.length === 0 && (
+                <div className="text-center text-warm-400 py-12">후기가 없습니다</div>
               )}
               {reviewsQuery.data?.data.map((r) => (
-                <TableRow key={r.id} className={cn(r.is_negative && "bg-danger-bg/30")}>
-                  <TableCell>
-                    <Stars rating={r.rating} />
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-warm-800">{r.reviewer_name}</span>
-                    <Badge variant="outline" className="ml-2">
-                      {r.reviewer_role === "guardian" ? "보호자" : "인력"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-[320px]">
-                    <span className="text-warm-600 line-clamp-2">{r.comment || "-"}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
+                <div
+                  key={r.id}
+                  className={cn(
+                    "flex gap-3.5 px-[18px] py-4 border-b border-warm-100 last:border-b-0",
+                    r.is_negative && "bg-danger-bg/40"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-none",
+                      avatarBg(r.reviewer_name)
+                    )}
+                  >
+                    {r.reviewer_name?.[0] ?? "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <Stars rating={r.rating} />
+                      <span className="text-[12.5px] font-bold text-warm-800 whitespace-nowrap">
+                        {r.reviewer_name}
+                      </span>
+                      <Badge variant="outline" className="px-2 py-0 text-[10px]">
+                        {r.reviewer_role === "guardian" ? "보호자" : "인력"}
+                      </Badge>
+                      <span className="ml-auto text-[11px] text-warm-400 whitespace-nowrap">
+                        {formatTimeAgo(r.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-[13.5px] text-warm-700 mt-1.5 leading-relaxed line-clamp-2">
+                      {r.comment || "-"}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2.5">
                       {r.tags.map((t) => (
                         <Badge
                           key={t}
                           variant={r.is_negative ? "danger" : "success"}
+                          className="rounded-md"
                         >
                           {t}
                         </Badge>
                       ))}
+                      <button
+                        className={cn(
+                          "ml-auto h-[30px] px-3 rounded-md text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap transition-colors",
+                          r.is_negative
+                            ? "bg-danger text-white hover:bg-red-600"
+                            : "border border-warm-200 bg-white text-warm-600 hover:bg-warm-50"
+                        )}
+                      >
+                        <Reply className="w-3.5 h-3.5" />
+                        {r.is_negative ? "대응" : "답글"}
+                      </button>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-warm-500">
-                    {formatTimeAgo(r.created_at)}
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </Card>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* CS 상담 탭 */}

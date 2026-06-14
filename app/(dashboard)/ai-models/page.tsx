@@ -1,11 +1,19 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Circle,
+  Gauge,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { KpiCard } from "@/components/domain/kpi-card";
 import {
   Table,
   TableBody,
@@ -14,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { aiModelsApi } from "@/lib/api/ai-models";
+import { aiModelsApi, type AiModel } from "@/lib/api/ai-models";
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { ModelInsights } from "./_components/model-insights";
@@ -26,6 +34,23 @@ const MODEL_NAME_KO: Record<string, string> = {
   anomaly: "이상징후 탐지",
   forecast: "수요 예측",
 };
+
+const SLOW_LATENCY_MS = 1000;
+const LOW_ACCURACY = 0.85;
+// 마지막 감사가 14일 이상 지난 active 모델은 감사 지연으로 본다
+const STALE_AUDIT_MS = 14 * 24 * 60 * 60 * 1000;
+
+function isAuditStale(model: AiModel) {
+  if (model.status !== "active") return false;
+  if (!model.audited_at) return true;
+  return Date.now() - new Date(model.audited_at).getTime() > STALE_AUDIT_MS;
+}
+
+function accuracyColor(accuracy: number) {
+  if (accuracy >= 0.9) return "bg-brand-500";
+  if (accuracy >= LOW_ACCURACY) return "bg-info";
+  return "bg-warn";
+}
 
 export default function AiModelsPage() {
   const queryClient = useQueryClient();
@@ -57,6 +82,21 @@ export default function AiModelsPage() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
+  const models = data?.data ?? [];
+  const summary = data?.summary;
+
+  // 헬스 요약 (실데이터 기반 계산)
+  const avgAccuracy =
+    models.length > 0
+      ? models.reduce((sum, m) => sum + m.accuracy, 0) / models.length
+      : 0;
+  const perfWarnings = models.filter(
+    (m) =>
+      m.accuracy < LOW_ACCURACY ||
+      m.avg_latency_ms >= SLOW_LATENCY_MS ||
+      isAuditStale(m)
+  ).length;
+
   return (
     <div className="p-8">
       {/* 페이지 헤더 */}
@@ -66,7 +106,8 @@ export default function AiModelsPage() {
             AI 모델 운영
           </h1>
           <p className="text-sm text-warm-500 mt-1">
-            5개 AI 모델의 버전·성능·편향성을 통합 관리
+            AI 모델의 버전·성능·편향성을 통합 관리합니다. 임계치 미달 모델은 자동
+            플래그됩니다.
           </p>
         </div>
         <Button variant="brand">
@@ -75,14 +116,52 @@ export default function AiModelsPage() {
         </Button>
       </div>
 
+      {/* 모델 헬스 요약 KPI */}
+      <div className="grid grid-cols-5 gap-4 mb-6">
+        <KpiCard
+          label="운영중 (active)"
+          value={summary?.active ?? 0}
+          icon={CheckCircle2}
+          iconColor="brand"
+        />
+        <KpiCard
+          label="섀도우 (shadow)"
+          value={summary?.shadow ?? 0}
+          icon={Circle}
+          iconColor="info"
+        />
+        <KpiCard
+          label="폐기 (deprecated)"
+          value={summary?.deprecated ?? 0}
+          icon={Trash2}
+          iconColor="warn"
+        />
+        <KpiCard
+          label="평균 정확도"
+          value={models.length > 0 ? `${(avgAccuracy * 100).toFixed(1)}%` : "—"}
+          icon={Gauge}
+          iconColor="brand"
+        />
+        <KpiCard
+          variant={perfWarnings > 0 ? "alert" : "default"}
+          label="성능 경고"
+          value={perfWarnings}
+          icon={AlertTriangle}
+          iconColor="warn"
+          subLabel={
+            perfWarnings > 0 ? "정확도·지연·감사 지연 합산" : undefined
+          }
+        />
+      </div>
+
       {/* 모델 일람 표 */}
       <Card className="mb-6 overflow-hidden">
         <div className="px-6 py-5 flex justify-between items-center border-b border-warm-100">
           <h2 className="text-base font-bold text-warm-800">배포 모델 일람</h2>
-          {data?.summary && (
+          {summary && (
             <span className="font-en text-[11px] text-warm-500 px-2.5 py-1 bg-warm-100 rounded-full">
-              총 {data.summary.total}개 모델 · {data.summary.active} ACTIVE /{" "}
-              {data.summary.shadow} SHADOW
+              총 {summary.total}개 모델 · {summary.active} ACTIVE /{" "}
+              {summary.shadow} SHADOW
             </span>
           )}
         </div>
@@ -106,104 +185,157 @@ export default function AiModelsPage() {
                   로딩 중...
                 </TableCell>
               </TableRow>
-            ) : data?.data.length === 0 ? (
+            ) : models.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-warm-500">
                   배포된 모델이 없습니다.
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data.map((model) => (
-                <TableRow
-                  key={model.id}
-                  className={model.status === "shadow" ? "bg-warn-bg/40" : undefined}
-                >
-                  <TableCell>
-                    <strong className="text-warm-800">
-                      {MODEL_NAME_KO[model.model_name] || model.model_name}
-                    </strong>
-                  </TableCell>
-                  <TableCell className="font-en text-warm-600">
-                    {model.model_name}-{model.version}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        model.status === "active"
-                          ? "success"
-                          : model.status === "shadow"
-                          ? "outline"
-                          : "outline"
-                      }
-                      className={cn(
-                        "uppercase text-[10px]",
-                        model.status === "shadow" && "bg-warm-100 text-warm-700"
-                      )}
-                    >
-                      {model.status === "active"
-                        ? "● ACTIVE"
-                        : model.status === "shadow"
-                        ? "○ SHADOW"
-                        : "DEPRECATED"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-right font-en font-semibold",
-                      model.accuracy >= 0.9
-                        ? "text-brand-600"
-                        : model.accuracy >= 0.8
-                        ? "text-warm-800"
-                        : "text-warn"
-                    )}
+              models.map((model) => {
+                const slow = model.avg_latency_ms >= SLOW_LATENCY_MS;
+                const lowAcc = model.accuracy < LOW_ACCURACY;
+                const stale = isAuditStale(model);
+                return (
+                  <TableRow
+                    key={model.id}
+                    className={
+                      model.status === "shadow" ? "bg-info-bg/40" : undefined
+                    }
                   >
-                    {(model.accuracy * 100).toFixed(1)}%
-                  </TableCell>
-                  <TableCell className="text-right font-en font-semibold">
-                    {model.avg_latency_ms < 1000
-                      ? `${Math.round(model.avg_latency_ms)}ms`
-                      : `${(model.avg_latency_ms / 1000).toFixed(1)}s`}
-                  </TableCell>
-                  <TableCell className="text-warm-500 text-xs">
-                    {model.audited_at ? formatTimeAgo(model.audited_at) : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {model.status === "shadow" ? (
-                      <Button
-                        size="sm"
-                        variant="brand"
-                        onClick={() => promoteMutation.mutate(model.id)}
-                        disabled={promoteMutation.isPending}
+                    <TableCell>
+                      <strong className="text-warm-800">
+                        {MODEL_NAME_KO[model.model_name] || model.model_name}
+                      </strong>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-en text-[11px] text-warm-600 px-1.5 py-0.5 bg-warm-100 rounded-md">
+                        {model.model_name}-{model.version}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          model.status === "active"
+                            ? "success"
+                            : model.status === "shadow"
+                            ? "info"
+                            : "outline"
+                        }
+                        className={cn(
+                          "uppercase text-[10px]",
+                          model.status === "deprecated" &&
+                            "bg-warm-100 text-warm-500"
+                        )}
                       >
-                        승격 ↑
-                      </Button>
-                    ) : model.model_name === "matching" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => auditMutation.mutate(model.id)}
-                        disabled={auditMutation.isPending}
+                        {model.status === "active"
+                          ? "● ACTIVE"
+                          : model.status === "shadow"
+                          ? "○ SHADOW"
+                          : "DEPRECATED"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2.5">
+                        <span className="w-16 h-1.5 bg-warm-200 rounded-sm overflow-hidden">
+                          <span
+                            className={cn(
+                              "block h-full rounded-sm",
+                              accuracyColor(model.accuracy)
+                            )}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                model.accuracy * 100
+                              )}%`,
+                            }}
+                          />
+                        </span>
+                        <span
+                          className={cn(
+                            "font-en font-bold w-12 text-right",
+                            lowAcc ? "text-warn" : "text-warm-800"
+                          )}
+                        >
+                          {(model.accuracy * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      {lowAcc && (
+                        <div className="flex items-center justify-end gap-1 mt-1 text-[10px] font-bold text-warn">
+                          <AlertTriangle className="w-3 h-3" />
+                          임계치 미달
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span
+                        className={cn(
+                          "font-en font-semibold",
+                          slow && "text-warn"
+                        )}
                       >
-                        감사 실행
-                      </Button>
-                    ) : (
-                      <Button size="sm" variant="outline">
-                        상세 →
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
+                        {model.avg_latency_ms < 1000
+                          ? `${Math.round(model.avg_latency_ms)}ms`
+                          : `${(model.avg_latency_ms / 1000).toFixed(1)}s`}
+                      </span>
+                      {slow && (
+                        <span className="ml-1.5 inline-flex items-center text-[9.5px] font-extrabold text-white bg-warn px-1.5 py-px rounded">
+                          지연
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <span
+                        className={cn(
+                          stale ? "text-warn font-bold" : "text-warm-500"
+                        )}
+                      >
+                        {model.audited_at
+                          ? formatTimeAgo(model.audited_at)
+                          : "-"}
+                        {stale && " · 감사 필요"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {model.status === "shadow" ? (
+                        <Button
+                          size="sm"
+                          variant="brand"
+                          onClick={() => promoteMutation.mutate(model.id)}
+                          disabled={promoteMutation.isPending}
+                        >
+                          승격 ↑
+                        </Button>
+                      ) : model.model_name === "matching" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => auditMutation.mutate(model.id)}
+                          disabled={auditMutation.isPending}
+                        >
+                          감사 실행
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline">
+                          상세 →
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </Card>
 
       {/* 편향성 감사 + 검수 (매칭 모델 자세히) */}
-      {data?.data.find((m) => m.model_name === "matching" && m.status === "active") && (
+      {models.find((m) => m.model_name === "matching" && m.status === "active") && (
         <ModelInsights
           modelId={
-            data.data.find((m) => m.model_name === "matching" && m.status === "active")!.id
+            models.find(
+              (m) => m.model_name === "matching" && m.status === "active"
+            )!.id
           }
         />
       )}
