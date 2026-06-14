@@ -32,7 +32,9 @@ export interface HourlyRequestsResponse {
   peak_count: number;
   total_count: number;
   /** 매칭 성공률(%) — 백엔드 미제공 시 undefined → UI에 "—" 표시 */
-  match_success_rate?: number;
+  match_success_rate?: number | null;
+  /** 평균 매칭 소요(분) — 요청→매칭 평균, 데이터 없으면 null → "—" 표시 */
+  avg_match_minutes?: number | null;
 }
 
 export interface RegionalDemand {

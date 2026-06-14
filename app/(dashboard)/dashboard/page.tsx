@@ -132,7 +132,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="text-[11px] text-warm-500">평균 매칭 소요</div>
-                <div className="font-en text-base font-bold text-brand-600 mt-0.5">23분</div>
+                <div className="font-en text-base font-bold text-brand-600 mt-0.5">{hourlyQuery.data?.avg_match_minutes != null ? `${hourlyQuery.data.avg_match_minutes}분` : "—"}</div>
               </div>
               <div>
                 <div className="text-[11px] text-warm-500">총 요청</div>
