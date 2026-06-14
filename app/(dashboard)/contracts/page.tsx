@@ -78,10 +78,11 @@ export default function ContractsPage() {
   const rows = query.data?.data ?? [];
   const total = query.data?.meta?.total ?? 0;
 
-  // 요약 카운트 — 실데이터 기반
-  const cnt = (s: string) => rows.filter((r) => r.status === s).length;
+  // 요약 카운트 — 백엔드 전체 집계(counts) 기반, 필터와 무관
+  const counts = query.data?.counts ?? {};
+  const cnt = (s: string) => counts[s] ?? 0;
   const summary = [
-    { n: rows.length, label: "조회된 방문", dot: "" },
+    { n: counts.all ?? total, label: "전체 방문", dot: "" },
     { n: cnt("confirmed"), label: "확정 (예정)", dot: "bg-info" },
     { n: cnt("in_progress"), label: "진행중", dot: "bg-brand-500" },
     { n: cnt("completed"), label: "완료", dot: "bg-brand-400" },
@@ -156,6 +157,9 @@ export default function ContractsPage() {
             onClick={() => setStatus(t.key)}
           >
             {t.label}
+            {counts[t.key || "all"] != null && (
+              <span className="ml-1.5 font-en text-[11px] opacity-70">{counts[t.key || "all"]}</span>
+            )}
           </Button>
         ))}
       </div>

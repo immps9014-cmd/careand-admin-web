@@ -56,6 +56,15 @@ const ROLE_AVATAR: Record<string, string> = {
   admin: "bg-warm-600",
 };
 
+// 인력 자격검증 상태 (caregiver_status)
+const CG_VERIFY: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
+  pending: { variant: "warn", label: "검증 대기" },
+  active: { variant: "success", label: "검증 완료" },
+  suspended: { variant: "danger", label: "정지" },
+  rejected: { variant: "danger", label: "거절" },
+  leave: { variant: "outline", label: "휴직" },
+};
+
 export default function MembersPage() {
   const [role, setRole] = useState("");
   const [q, setQ] = useState("");
@@ -191,6 +200,7 @@ export default function MembersPage() {
             <TableRow>
               <TableHead>회원</TableHead>
               <TableHead>역할</TableHead>
+              <TableHead>자격검증</TableHead>
               <TableHead>연락처</TableHead>
               <TableHead>가입일</TableHead>
               <TableHead>상태</TableHead>
@@ -200,14 +210,14 @@ export default function MembersPage() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {query.data?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
                   회원이 없습니다
                 </TableCell>
               </TableRow>
@@ -240,6 +250,15 @@ export default function MembersPage() {
                     <Badge variant={ROLE_BADGE[m.role]?.variant ?? "outline"}>
                       {ROLE_BADGE[m.role]?.label ?? m.role}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {m.role === "caregiver" && m.caregiver_status && CG_VERIFY[m.caregiver_status] ? (
+                      <Badge variant={CG_VERIFY[m.caregiver_status].variant}>
+                        {CG_VERIFY[m.caregiver_status].label}
+                      </Badge>
+                    ) : (
+                      <span className="text-warm-300 text-xs">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-warm-600 font-en text-xs">
                     {m.phone || "-"}

@@ -79,6 +79,8 @@ export interface Member {
   phone: string | null;
   role: "guardian" | "caregiver" | "organization" | "admin";
   status: "active" | "suspended" | "withdrawn";
+  /** 인력(caregiver) 행의 자격검증 상태 — 비-인력은 null */
+  caregiver_status?: "pending" | "active" | "suspended" | "leave" | "rejected" | null;
   created_at: string;
 }
 export interface MemberSummary {
@@ -123,9 +125,9 @@ export const operationsApi = {
     api.post(`/v1/admin/caregivers/${id}/reject`, { reason }),
 
   // #21
-  async contracts(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<Contract>> {
-    const { data } = await api.get<ApiResponse<Contract[]>>("/v1/admin/contracts", { params });
-    return unwrap(data);
+  async contracts(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<Contract> & { counts: Record<string, number> }> {
+    const { data } = await api.get<ApiResponse<Contract[]> & { counts?: Record<string, number> }>("/v1/admin/contracts", { params });
+    return { ...unwrap(data), counts: data.counts ?? {} };
   },
 
   // #22
@@ -146,9 +148,9 @@ export const operationsApi = {
     api.post("/v1/admin/announcements", payload),
 
   // #18
-  async matchingRequests(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<MatchingRequest>> {
-    const { data } = await api.get<ApiResponse<MatchingRequest[]>>("/v1/admin/matching/requests", { params });
-    return unwrap(data);
+  async matchingRequests(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<MatchingRequest> & { counts: Record<string, number> }> {
+    const { data } = await api.get<ApiResponse<MatchingRequest[]> & { counts?: Record<string, number> }>("/v1/admin/matching/requests", { params });
+    return { ...unwrap(data), counts: data.counts ?? {} };
   },
   manualAssign: (requestId: number, caregiverId: number) =>
     api.post(`/v1/admin/matching/requests/${requestId}/manual-assign`, { caregiver_id: caregiverId }),

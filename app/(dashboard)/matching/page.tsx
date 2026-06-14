@@ -102,6 +102,7 @@ export default function MatchingPage() {
 
   const rows = query.data?.data ?? [];
   const total = query.data?.meta?.total ?? 0;
+  const counts = query.data?.counts ?? {};
   // 수동 개입 필요: 접수/매칭중/만료 상태이며 AI 후보가 없는 요청
   const needsAction = rows.filter(
     (r) => ["open", "matching", "expired"].includes(r.status) && r.candidate_count === 0
@@ -156,6 +157,9 @@ export default function MatchingPage() {
             onClick={() => setStatus(t.key)}
           >
             {t.label}
+            {counts[t.key || "all"] != null && (
+              <span className="ml-1.5 font-en text-[11px] opacity-70">{counts[t.key || "all"]}</span>
+            )}
           </Button>
         ))}
       </div>
