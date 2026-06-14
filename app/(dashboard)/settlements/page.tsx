@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { operationsApi } from "@/lib/api/operations";
+import { getApiErrorMessage } from "@/lib/api/client";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -62,6 +64,8 @@ const PIPELINE: {
 
 export default function SettlementsPage() {
   const [status, setStatus] = useState("");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const qc = useQueryClient();
 
   const query = useQuery({
     queryKey: ["admin", "settlements", status],
@@ -74,6 +78,42 @@ export default function SettlementsPage() {
 
   // 현재 로드된 정산 건들을 단계별로 집계 (실데이터 기반)
   const byStatus = (key: string) => rows.filter((r) => r.status === key);
+
+  // 일괄 확정: draft 상태인 행만 선택 가능
+  const draftRows = rows.filter((r) => r.status === "draft");
+  const allDraftSelected =
+    draftRows.length > 0 && draftRows.every((r) => selected.has(r.id));
+
+  const toggleOne = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelected((prev) => {
+      // 현재 목록의 draft 행이 모두 선택돼 있으면 해제, 아니면 전체 선택
+      const allSelected =
+        draftRows.length > 0 && draftRows.every((r) => prev.has(r.id));
+      return allSelected ? new Set() : new Set(draftRows.map((r) => r.id));
+    });
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  const bulkConfirm = useMutation({
+    mutationFn: (ids: number[]) => operationsApi.bulkConfirmSettlements(ids),
+    onSuccess: (res) => {
+      const { message, confirmed } = res.data;
+      toast.success(message ?? `${confirmed}건 확정했습니다.`);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["admin", "settlements"] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
 
   return (
     <div className="p-8">
@@ -193,9 +233,47 @@ export default function SettlementsPage() {
             총 {total}건
           </span>
         </div>
+
+        {/* 일괄 작업 바: 1건 이상 선택 시에만 표시 */}
+        {selected.size > 0 && (
+          <div className="px-6 py-3 flex items-center gap-3 border-b border-warm-100 bg-brand-50/60">
+            <span className="text-sm font-bold text-warm-800">
+              {selected.size}건 선택
+            </span>
+            <div className="flex-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+            >
+              선택 해제
+            </Button>
+            <Button
+              variant="brand"
+              size="sm"
+              disabled={bulkConfirm.isPending}
+              onClick={() => bulkConfirm.mutate(Array.from(selected))}
+            >
+              <FileCheck className="w-4 h-4" />
+              일괄 확정
+            </Button>
+          </div>
+        )}
+
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  aria-label="전체선택"
+                  title="작성중 정산 전체선택"
+                  className="h-4 w-4 align-middle accent-brand-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                  checked={allDraftSelected}
+                  disabled={draftRows.length === 0}
+                  onChange={toggleAll}
+                />
+              </TableHead>
               <TableHead>인력</TableHead>
               <TableHead className="text-right">세전</TableHead>
               <TableHead className="text-right">원천징수 (3.3%)</TableHead>
@@ -207,14 +285,14 @@ export default function SettlementsPage() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {!query.isLoading && rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
                   정산 내역이 없습니다
                 </TableCell>
               </TableRow>
@@ -226,8 +304,19 @@ export default function SettlementsPage() {
                 dot: "bg-warm-400",
               };
               const filed = st.hometax_filing_no != null;
+              const selectable = st.status === "draft";
               return (
                 <TableRow key={st.id}>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      aria-label={selectable ? "정산 선택" : undefined}
+                      className="h-4 w-4 align-middle accent-brand-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                      checked={selectable && selected.has(st.id)}
+                      disabled={!selectable}
+                      onChange={() => selectable && toggleOne(st.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-brand-500 text-white flex items-center justify-center text-sm font-bold shrink-0">

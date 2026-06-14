@@ -19,6 +19,9 @@ export interface CsReview {
   comment: string | null;
   tags: string[];
   is_negative: boolean;
+  /** 관리자 답글 — 없으면 null */
+  admin_reply: string | null;
+  replied_at: string | null;
   created_at: string;
 }
 
@@ -61,6 +64,10 @@ export const csApi = {
     });
     return { data: data.data ?? [], meta: data.meta as Paginated<CsReview>["meta"] };
   },
+
+  /** 후기에 관리자 답글 저장 */
+  replyReview: (id: number, reply: string) =>
+    api.post(`/v1/admin/cs/reviews/${id}/reply`, { reply }),
 
   async chatbotSessions(params?: {
     status?: "open" | "closed";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   MessageCircle,
   Star,
@@ -21,8 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { KpiCard } from "@/components/domain/kpi-card";
-import { csApi } from "@/lib/api/cs";
-import { formatTimeAgo, cn } from "@/lib/utils";
+import { csApi, type CsReview } from "@/lib/api/cs";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { formatDate, formatTimeAgo, cn } from "@/lib/utils";
 
 function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   const dim = size === "md" ? "w-4 h-4" : "w-3.5 h-3.5";
@@ -58,6 +60,31 @@ function avatarBg(name: string) {
 export default function CsPage() {
   const [tab, setTab] = useState<"reviews" | "chatbot">("reviews");
   const [onlyNegative, setOnlyNegative] = useState(false);
+  // 인라인 답글 에디터 — 열려있는 후기 id와 입력 텍스트
+  const [replyingId, setReplyingId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const qc = useQueryClient();
+
+  const replyMutation = useMutation({
+    mutationFn: (vars: { id: number; reply: string }) =>
+      csApi.replyReview(vars.id, vars.reply),
+    onSuccess: () => {
+      toast.success("답글을 저장했습니다.");
+      setReplyingId(null);
+      setReplyText("");
+      qc.invalidateQueries({ queryKey: ["admin", "cs", "reviews", onlyNegative] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
+  function openReply(r: CsReview) {
+    setReplyingId(r.id);
+    setReplyText(r.admin_reply ?? "");
+  }
+  function cancelReply() {
+    setReplyingId(null);
+    setReplyText("");
+  }
 
   const statsQuery = useQuery({
     queryKey: ["admin", "cs", "stats"],
@@ -289,6 +316,27 @@ export default function CsPage() {
                     <p className="text-[13.5px] text-warm-700 mt-1.5 leading-relaxed line-clamp-2">
                       {r.comment || "-"}
                     </p>
+
+                    {/* 기존 관리자 답글 */}
+                    {r.admin_reply != null && (
+                      <div className="mt-2.5 rounded-md border-l-[3px] border-brand-500 bg-brand-50 px-3 py-2">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <Reply className="w-3 h-3 text-brand-600" />
+                          <span className="text-[11px] font-bold text-brand-700">
+                            관리자 답글
+                          </span>
+                          {r.replied_at && (
+                            <span className="ml-auto text-[10.5px] text-warm-400">
+                              {formatDate(r.replied_at)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[12.5px] text-warm-700 leading-relaxed whitespace-pre-wrap">
+                          {r.admin_reply}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 mt-2.5">
                       {r.tags.map((t) => (
                         <Badge
@@ -300,6 +348,10 @@ export default function CsPage() {
                         </Badge>
                       ))}
                       <button
+                        type="button"
+                        onClick={() =>
+                          replyingId === r.id ? cancelReply() : openReply(r)
+                        }
                         className={cn(
                           "ml-auto h-[30px] px-3 rounded-md text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap transition-colors",
                           r.is_negative
@@ -308,9 +360,53 @@ export default function CsPage() {
                         )}
                       >
                         <Reply className="w-3.5 h-3.5" />
-                        {r.is_negative ? "대응" : "답글"}
+                        {r.admin_reply != null
+                          ? "답글 수정"
+                          : r.is_negative
+                          ? "대응"
+                          : "답글"}
                       </button>
                     </div>
+
+                    {/* 인라인 답글 에디터 */}
+                    {replyingId === r.id && (
+                      <div className="mt-2.5 rounded-md border border-warm-200 bg-warm-50 p-2.5">
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          rows={3}
+                          placeholder="고객 후기에 대한 답글을 입력하세요"
+                          className="w-full resize-y rounded-md border border-warm-200 bg-white px-3 py-2 text-[13px] text-warm-700 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                        />
+                        <div className="flex items-center justify-end gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={cancelReply}
+                            disabled={replyMutation.isPending}
+                          >
+                            취소
+                          </Button>
+                          <Button
+                            variant="brand"
+                            size="sm"
+                            disabled={
+                              replyText.trim().length === 0 ||
+                              replyMutation.isPending
+                            }
+                            onClick={() =>
+                              replyMutation.mutate({
+                                id: r.id,
+                                reply: replyText.trim(),
+                              })
+                            }
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                            저장
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

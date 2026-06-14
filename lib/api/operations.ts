@@ -176,4 +176,11 @@ export const operationsApi = {
     );
     return { ...unwrap(data), summary: data.summary };
   },
+
+  /** 정산서 일괄 확정 (draft → confirmed). 반환: {confirmed, skipped} */
+  bulkConfirmSettlements: (ids: number[]) =>
+    api.post<{ success: boolean; message: string; confirmed: number; skipped: number }>(
+      "/v1/admin/settlements/bulk-confirm",
+      { ids }
+    ),
 };
