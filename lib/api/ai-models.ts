@@ -28,6 +28,14 @@ export interface AiModelDetail extends AiModel {
     avg_latency_ms: number;
     max_latency_ms: number;
   };
+  // 최근 추천 결과 검수 이력(매칭 모델만 채워짐, 그 외 빈 배열). BE 2.5.
+  recent_review_history?: Array<{
+    request_id: number;
+    senior_name: string;
+    candidate_count: number;
+    status: "approved" | "intervened";
+    reviewed_at: string | null;
+  }>;
 }
 
 export const aiModelsApi = {

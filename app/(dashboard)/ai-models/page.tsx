@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -26,13 +27,15 @@ import { aiModelsApi, type AiModel } from "@/lib/api/ai-models";
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { ModelInsights } from "./_components/model-insights";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
+// DB의 실제 model_name 값 기준(예: 'matching-recommender'). [[careand-aimodel-name-mismatch]]
 const MODEL_NAME_KO: Record<string, string> = {
-  matching: "매칭 추천",
-  stt: "음성 STT",
-  llm: "일지 LLM",
-  anomaly: "이상징후 탐지",
-  forecast: "수요 예측",
+  "matching-recommender": "매칭 추천",
+  "anomaly-detector": "이상징후 탐지",
+  "demand-forecast": "수요 예측",
+  "rag-chatbot": "RAG 챗봇",
+  "voice-summary-llm": "음성 요약 LLM",
 };
 
 const SLOW_LATENCY_MS = 1000;
@@ -55,6 +58,10 @@ function accuracyColor(accuracy: number) {
 export default function AiModelsPage() {
   const queryClient = useQueryClient();
 
+  // 파괴적 액션은 confirm 다이얼로그를 거친다(INV-6). 대상 모델을 보관.
+  const [promoteTarget, setPromoteTarget] = useState<AiModel | null>(null);
+  const [rollbackTarget, setRollbackTarget] = useState<AiModel | null>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "ai-models"],
     queryFn: aiModelsApi.list,
@@ -65,6 +72,17 @@ export default function AiModelsPage() {
     onSuccess: (data) => {
       toast.success(data.message);
       queryClient.invalidateQueries({ queryKey: ["admin", "ai-models"] });
+      setPromoteTarget(null);
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+
+  const rollbackMutation = useMutation({
+    mutationFn: aiModelsApi.rollback,
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["admin", "ai-models"] });
+      setRollbackTarget(null);
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -84,6 +102,10 @@ export default function AiModelsPage() {
 
   const models = data?.data ?? [];
   const summary = data?.summary;
+  // 매칭 모델 판별은 실제 model_name('matching-recommender') 기준으로 includes 매칭.
+  const matchingModel = models.find(
+    (m) => m.model_name.includes("matching") && m.status === "active"
+  );
 
   // 헬스 요약 (실데이터 기반 계산)
   const avgAccuracy =
@@ -297,29 +319,45 @@ export default function AiModelsPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {model.status === "shadow" ? (
-                        <Button
-                          size="sm"
-                          variant="brand"
-                          onClick={() => promoteMutation.mutate(model.id)}
-                          disabled={promoteMutation.isPending}
-                        >
-                          승격 ↑
-                        </Button>
-                      ) : model.model_name === "matching" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => auditMutation.mutate(model.id)}
-                          disabled={auditMutation.isPending}
-                        >
-                          감사 실행
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="outline">
-                          상세 →
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-1.5">
+                        {model.status === "shadow" && (
+                          <Button
+                            size="sm"
+                            variant="brand"
+                            onClick={() => setPromoteTarget(model)}
+                            disabled={promoteMutation.isPending}
+                          >
+                            승격 ↑
+                          </Button>
+                        )}
+                        {model.status === "active" && (
+                          <>
+                            {model.model_name.includes("matching") && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => auditMutation.mutate(model.id)}
+                                disabled={auditMutation.isPending}
+                              >
+                                감사 실행
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setRollbackTarget(model)}
+                              disabled={rollbackMutation.isPending}
+                            >
+                              롤백 ↓
+                            </Button>
+                          </>
+                        )}
+                        {model.status === "deprecated" && (
+                          <Button size="sm" variant="outline">
+                            상세 →
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -330,15 +368,54 @@ export default function AiModelsPage() {
       </Card>
 
       {/* 편향성 감사 + 검수 (매칭 모델 자세히) */}
-      {models.find((m) => m.model_name === "matching" && m.status === "active") && (
-        <ModelInsights
-          modelId={
-            models.find(
-              (m) => m.model_name === "matching" && m.status === "active"
-            )!.id
-          }
-        />
-      )}
+      {matchingModel && <ModelInsights modelId={matchingModel.id} />}
+
+      {/* 승격 확인 (INV-6) — shadow → active, 기존 active는 deprecated */}
+      <ConfirmDialog
+        open={promoteTarget !== null}
+        onOpenChange={(o) => {
+          if (!o) setPromoteTarget(null);
+        }}
+        loading={promoteMutation.isPending}
+        tone="brand"
+        title="모델 승격"
+        description="섀도우 모델을 운영(active)에 투입합니다."
+        target={
+          promoteTarget
+            ? `${MODEL_NAME_KO[promoteTarget.model_name] ?? promoteTarget.model_name} · ${promoteTarget.model_name}-${promoteTarget.version}`
+            : null
+        }
+        impact="현재 운영 중인 같은 종류의 모델은 자동으로 폐기(deprecated)되고, 이 모델이 실제 추천·처리에 사용됩니다."
+        reversible
+        reverseHint="승격 후 '롤백'으로 이전 버전을 되돌릴 수 있습니다."
+        confirmLabel="승격"
+        onConfirm={() => {
+          if (promoteTarget) promoteMutation.mutate(promoteTarget.id);
+        }}
+      />
+
+      {/* 롤백 확인 (INV-6) — active → deprecated, 직전 버전을 active */}
+      <ConfirmDialog
+        open={rollbackTarget !== null}
+        onOpenChange={(o) => {
+          if (!o) setRollbackTarget(null);
+        }}
+        loading={rollbackMutation.isPending}
+        tone="danger"
+        title="모델 롤백"
+        description="운영 중인 모델을 직전 버전으로 되돌립니다."
+        target={
+          rollbackTarget
+            ? `${MODEL_NAME_KO[rollbackTarget.model_name] ?? rollbackTarget.model_name} · ${rollbackTarget.model_name}-${rollbackTarget.version}`
+            : null
+        }
+        impact="이 모델은 폐기(deprecated)되고 직전 버전이 운영(active)으로 전환됩니다. 되돌릴 직전 버전이 없으면 실패합니다."
+        reversible={false}
+        confirmLabel="롤백"
+        onConfirm={() => {
+          if (rollbackTarget) rollbackMutation.mutate(rollbackTarget.id);
+        }}
+      />
     </div>
   );
 }

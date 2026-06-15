@@ -18,6 +18,7 @@ export function ModelInsights({ modelId }: Props) {
   if (isLoading || !detail?.data) return null;
 
   const { bias_report } = detail.data;
+  const reviewHistory = detail.data.recent_review_history ?? [];
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -98,7 +99,7 @@ export function ModelInsights({ modelId }: Props) {
         )}
       </Card>
 
-      {/* 최근 추천 결과 검수 (mock) */}
+      {/* 최근 추천 결과 검수 (실데이터 — BE 2.5 recent_review_history) */}
       <Card className="p-6">
         <div className="flex justify-between items-start mb-5">
           <div>
@@ -106,7 +107,7 @@ export function ModelInsights({ modelId }: Props) {
               최근 추천 결과 검수
             </h3>
             <p className="text-[11px] text-warm-500 mt-0.5">
-              관리자 수동 검토 이력
+              최근 매칭 추천·배정 이력
             </p>
           </div>
           <span className="text-[11px] font-semibold text-brand-600 px-2.5 py-0.5 bg-brand-50 rounded-full">
@@ -114,42 +115,43 @@ export function ModelInsights({ modelId }: Props) {
           </span>
         </div>
 
-        <div className="space-y-3">
-          {[
-            { id: "30142", senior: "홍어머님", count: 5, status: "approved" },
-            { id: "30141", senior: "김아버님", count: 3, status: "intervened" },
-            { id: "30140", senior: "박할머님", count: 5, status: "approved" },
-            { id: "30139", senior: "이아버님", count: 4, status: "approved" },
-            { id: "30138", senior: "최할머님", count: 5, status: "approved" },
-          ].map((row, idx) => (
-            <div
-              key={row.id}
-              className={cn(
-                "flex justify-between items-center py-2 text-sm",
-                idx > 0 && "border-t border-warm-100 pt-3"
-              )}
-            >
-              <div>
-                <div className="font-en font-semibold text-warm-800">
-                  request #{row.id}
-                </div>
-                <div className="text-[11px] text-warm-500 mt-0.5">
-                  {row.senior} · {row.count}명 추천
-                </div>
-              </div>
-              <span
+        {reviewHistory.length > 0 ? (
+          <div className="space-y-3">
+            {reviewHistory.map((row, idx) => (
+              <div
+                key={row.request_id}
                 className={cn(
-                  "text-[11px] px-2.5 py-0.5 rounded-full font-semibold",
-                  row.status === "approved"
-                    ? "bg-brand-50 text-brand-600"
-                    : "bg-warn-bg text-warn"
+                  "flex justify-between items-center py-2 text-sm",
+                  idx > 0 && "border-t border-warm-100 pt-3"
                 )}
               >
-                {row.status === "approved" ? "승인" : "관리자 개입"}
-              </span>
-            </div>
-          ))}
-        </div>
+                <div>
+                  <div className="font-en font-semibold text-warm-800">
+                    request #{row.request_id}
+                  </div>
+                  <div className="text-[11px] text-warm-500 mt-0.5">
+                    {row.senior_name} · {row.candidate_count}명 추천
+                    {row.reviewed_at && ` · ${formatTimeAgo(row.reviewed_at)}`}
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    "text-[11px] px-2.5 py-0.5 rounded-full font-semibold",
+                    row.status === "approved"
+                      ? "bg-brand-50 text-brand-600"
+                      : "bg-warn-bg text-warn"
+                  )}
+                >
+                  {row.status === "approved" ? "승인" : "관리자 개입"}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-warm-500 text-sm">
+            최근 추천 결과 검수 이력이 없습니다.
+          </div>
+        )}
       </Card>
     </div>
   );

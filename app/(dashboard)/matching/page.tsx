@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { operationsApi } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -65,6 +66,14 @@ export default function MatchingPage() {
   const [domain, setDomain] = useState("");
   const [assignTo, setAssignTo] = useState<number | null>(null);
   const [selectedCg, setSelectedCg] = useState<number | "">("");
+  // 수동 배정은 확정 즉시 매칭 계약을 생성하므로 confirm을 거친다(INV-6).
+  const [confirmAssign, setConfirmAssign] = useState<{
+    requestId: number;
+    cgId: number;
+    seniorName: string;
+    caregiverName: string;
+    domain: string;
+  } | null>(null);
   const [now, setNow] = useState(new Date());
   const qc = useQueryClient();
 
@@ -95,6 +104,7 @@ export default function MatchingPage() {
       toast.success("수동 매칭이 완료되었습니다.");
       setAssignTo(null);
       setSelectedCg("");
+      setConfirmAssign(null);
       qc.invalidateQueries({ queryKey: ["admin", "matching"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -304,7 +314,21 @@ export default function MatchingPage() {
                             size="sm"
                             variant="primary"
                             disabled={!selectedCg || assign.isPending}
-                            onClick={() => selectedCg && assign.mutate({ requestId: row.id, cgId: Number(selectedCg) })}
+                            onClick={() => {
+                              if (!selectedCg) return;
+                              const cg = caregivers.data?.data.find(
+                                (c) => c.id === Number(selectedCg)
+                              );
+                              setConfirmAssign({
+                                requestId: row.id,
+                                cgId: Number(selectedCg),
+                                seniorName: row.senior_name,
+                                caregiverName: cg?.name ?? `인력 #${selectedCg}`,
+                                domain:
+                                  DOMAIN_LABEL[row.service_domain] ??
+                                  row.service_domain,
+                              });
+                            }}
                           >
                             배정 확정
                           </Button>
@@ -334,6 +358,40 @@ export default function MatchingPage() {
           </div>
         )}
       </Card>
+
+      {/* 수동 매칭 배정 확인 (INV-6) — manualAssign은 confirmed 계약을 즉시 생성하고
+          admin에 취소 경로가 없으므로 reversible=false로 강조 */}
+      <ConfirmDialog
+        open={confirmAssign !== null}
+        onOpenChange={(o) => {
+          if (!o && !assign.isPending) setConfirmAssign(null);
+        }}
+        loading={assign.isPending}
+        tone="brand"
+        title="수동 매칭 배정"
+        description="이 요청에 선택한 활성 인력을 직접 배정합니다."
+        target={
+          confirmAssign ? (
+            <>
+              요청 #{confirmAssign.requestId} · {confirmAssign.seniorName} (
+              {confirmAssign.domain})
+              <span className="mt-0.5 block font-normal text-warm-500">
+                배정 인력: {confirmAssign.caregiverName}
+              </span>
+            </>
+          ) : null
+        }
+        impact="확정 즉시 매칭 계약(confirmed)이 생성되고 요청이 '매칭됨' 상태로 전환됩니다."
+        reversible={false}
+        confirmLabel="배정 확정"
+        onConfirm={() => {
+          if (confirmAssign)
+            assign.mutate({
+              requestId: confirmAssign.requestId,
+              cgId: confirmAssign.cgId,
+            });
+        }}
+      />
     </div>
   );
 }

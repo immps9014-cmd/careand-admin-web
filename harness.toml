@@ -1,0 +1,37 @@
+# Harness v4 Configuration
+# Edit this file, then run `harness sync` to generate CC plugin files.
+
+[project]
+name = "careand-admin-web"
+version = "0.1.0"
+description = "Care& 관리자 웹 (운영 대시보드). Next.js 14 App Router + TS, basePath /admin. ※라이브 서비스 — 배포는 careand-deploy admin(root)로만."
+
+[agent]
+# default = "security-reviewer"
+
+[env]
+CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"
+
+[safety.permissions]
+deny = [
+  "Bash(sudo:*)",
+  "Bash(careand-deploy:*)",
+]
+ask = [
+  "Bash(rm -r:*)",
+  "Bash(git push --force:*)",
+  "Bash(git reset --hard:*)",
+]
+
+# Optional R03 break-glass. TOML only; YAML does not support this list.
+# [[safety.guardrail.protectedPathAskList]]
+# path = ".env"
+# reason = "customer deploy env update"
+
+[safety.sandbox]
+failIfUnavailable = false
+
+[safety.sandbox.filesystem]
+# denyRead = [".env", "secrets/**"]
+# allowRead = [".env.example"]
+

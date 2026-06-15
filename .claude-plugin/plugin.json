@@ -1,0 +1,8 @@
+{
+  "name": "careand-admin-web",
+  "version": "0.1.0",
+  "description": "Care& 관리자 웹 (운영 대시보드). Next.js 14 App Router + TS, basePath /admin. ※라이브 서비스 — 배포는 careand-deploy admin(root)로만.",
+  "skills": [
+    "./skills/"
+  ]
+}

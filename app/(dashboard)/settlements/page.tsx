@@ -124,10 +124,15 @@ export default function SettlementsPage() {
             주간 정산 처리 + 홈택스 원천징수(3.3%) 신고
           </p>
         </div>
-        <Button variant="primary" size="md">
-          <FileCheck className="w-4 h-4" />
-          홈택스 일괄 신고
-        </Button>
+        {/* 홈택스 신고 API 미연동 — 동작 없는 버튼 노출 금지(INV-8).
+            연동(Phase 3.1)까지 비활성 + "준비중" 명시 표기 */}
+        <span title="홈택스 신고 API 연동은 준비 중입니다 (Phase 3 예정)">
+          <Button variant="primary" size="md" disabled aria-disabled="true">
+            <FileCheck className="w-4 h-4" />
+            홈택스 일괄 신고
+            <span className="ml-1 text-[10px] font-bold">(준비중)</span>
+          </Button>
+        </span>
       </div>
 
       {/* 정산 요약 (실데이터) — 총 실지급 강조, 원천징수 차감 강조 */}
