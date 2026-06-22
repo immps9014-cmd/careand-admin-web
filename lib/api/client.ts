@@ -85,7 +85,7 @@ api.interceptors.response.use(
         // 갱신 실패 → 로그아웃
         authStore.getState().logout();
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          window.location.href = "/admin/login";
         }
         return Promise.reject(refreshError);
       } finally {
