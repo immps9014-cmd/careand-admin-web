@@ -39,26 +39,26 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-warm-100 to-warm-200 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-brand-50 to-warm-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center font-en font-extrabold text-white text-xl shadow-md">
+          <div className="inline-flex flex-col items-center gap-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-3xl flex items-center justify-center font-en font-extrabold text-white text-3xl shadow-lg">
               C
             </div>
-            <div className="text-left">
+            <div>
               <div className="font-en font-extrabold text-2xl text-warm-800 tracking-tight leading-none">
                 Care&
               </div>
-              <div className="text-xs text-warm-500 mt-1">관리자 콘솔</div>
+              <div className="text-xs text-warm-500 mt-1.5">관리자 콘솔</div>
             </div>
           </div>
         </div>
 
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl">로그인</CardTitle>
+            <CardTitle className="text-xl">관리자 로그인</CardTitle>
             <CardDescription>등록된 관리자 계정으로 로그인하세요.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,15 +107,6 @@ export default function LoginPage() {
                 {loginMutation.isPending ? "로그인 중..." : "로그인"}
               </Button>
             </form>
-
-            <div className="mt-6 pt-6 border-t border-warm-100 text-center">
-              <p className="text-xs text-warm-500">
-                계정이 없으신가요?{" "}
-                <a href="mailto:admin@careand.co.kr" className="text-brand-600 font-semibold hover:underline">
-                  관리자 문의
-                </a>
-              </p>
-            </div>
           </CardContent>
         </Card>
 
