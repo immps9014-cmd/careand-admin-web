@@ -95,7 +95,7 @@ export default function CareMonitoringPage() {
     refetchInterval: 30_000,
   });
   const ackM = useMutation({
-    mutationFn: (v: { id: number; msg: string }) => dashboardApi.acknowledgeAlert(v.id),
+    mutationFn: (v: { id: number; msg: string; note?: string }) => dashboardApi.acknowledgeAlert(v.id, v.note),
     onSuccess: (_d, v) => { toast.success(v.msg); qc.invalidateQueries({ queryKey: ["admin", "monitoring"] }); },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -417,18 +417,18 @@ export default function CareMonitoringPage() {
                     ) : (
                       <div className="flex gap-2.5 px-6 py-4 border-t border-warm-100 bg-warm-50/60">
                         <Button variant="brand" size="sm" disabled={ackM.isPending}
-                          onClick={() => ackM.mutate({ id: selected.id, msg: "대응 시작 — 담당 돌봄전문가 긴급 방문 배정으로 기록했습니다." })}>
+                          onClick={() => ackM.mutate({ id: selected.id, msg: "대응 시작 — 담당 돌봄전문가 긴급 방문 배정으로 기록했습니다.", note: "담당 돌봄전문가 긴급 방문 배정" })}>
                           <UserPlus className="w-4 h-4" />
                           담당 돌봄전문가 긴급 방문 배정
                         </Button>
                         <Button variant="outline" size="sm" disabled={ackM.isPending}
-                          onClick={() => ackM.mutate({ id: selected.id, msg: "보호자 알림 대응으로 기록했습니다." })}>
+                          onClick={() => ackM.mutate({ id: selected.id, msg: "보호자 알림 대응으로 기록했습니다.", note: "보호자 알림 대응" })}>
                           <Bell className="w-4 h-4" />
                           보호자 알림
                         </Button>
                         {tier === "crit" && (
                           <Button variant="danger" size="sm" disabled={ackM.isPending}
-                            onClick={() => ackM.mutate({ id: selected.id, msg: "119·의료 연계 안내를 기록했습니다." })}>
+                            onClick={() => ackM.mutate({ id: selected.id, msg: "119·의료 연계 안내를 기록했습니다.", note: "119·의료 연계 안내" })}>
                             <AlertTriangle className="w-4 h-4" />
                             119 / 의료 연계
                           </Button>

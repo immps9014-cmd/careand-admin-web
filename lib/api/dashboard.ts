@@ -83,7 +83,8 @@ export const dashboardApi = {
     const { data } = await api.get("/v1/admin/monitoring/alerts", { params });
     return data;
   },
-  acknowledgeAlert: (id: number) => api.post(`/v1/admin/monitoring/alerts/${id}/acknowledge`),
+  acknowledgeAlert: (id: number, actionNote?: string) =>
+    api.post(`/v1/admin/monitoring/alerts/${id}/acknowledge`, actionNote ? { action_note: actionNote } : {}),
   resolveAlert: (id: number, note: string) =>
     api.post(`/v1/admin/monitoring/alerts/${id}/resolve`, { resolution_note: note }),
 
