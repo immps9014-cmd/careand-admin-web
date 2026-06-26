@@ -10,19 +10,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ===== Care& Brand · Purple Violet =====
+        // ===== Care& Brand · Green Emerald =====
         brand: {
-          50: "#F5F3FF",
-          100: "#EDE9FE",
-          200: "#DDD6FE",
-          300: "#C4B5FD",
-          400: "#A78BFA",
-          500: "#7C3AED", // Primary
-          600: "#6D28D9",
-          700: "#5B21B6",
-          800: "#4C1D95",
-          900: "#2E1065",
-          DEFAULT: "#7C3AED",
+          50: "#ECFDF5",
+          100: "#D1FAE5",
+          200: "#A7F3D0",
+          300: "#6EE7B7",
+          400: "#34D399",
+          500: "#10B981", // Primary
+          600: "#059669",
+          700: "#047857",
+          800: "#065F46",
+          900: "#064E3B",
+          DEFAULT: "#10B981",
         },
         // ===== Care& Neutral (Slate) =====
         warm: {
@@ -54,7 +54,7 @@ const config: Config = {
         background: "#F8FAFC",
         foreground: "#1E293B",
         primary: {
-          DEFAULT: "#7C3AED",
+          DEFAULT: "#10B981",
           foreground: "#FFFFFF",
         },
         secondary: {
@@ -66,8 +66,8 @@ const config: Config = {
           foreground: "#64748B",
         },
         accent: {
-          DEFAULT: "#EDE9FE",
-          foreground: "#5B21B6",
+          DEFAULT: "#D1FAE5",
+          foreground: "#047857",
         },
         destructive: {
           DEFAULT: "#EF4444",
@@ -75,7 +75,7 @@ const config: Config = {
         },
         border: "#E2E8F0",
         input: "#E2E8F0",
-        ring: "#7C3AED",
+        ring: "#10B981",
         card: {
           DEFAULT: "#FFFFFF",
           foreground: "#1E293B",
@@ -113,10 +113,10 @@ const config: Config = {
         "2xl": "28px",
       },
       boxShadow: {
-        sm: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(124,58,237,0.04)",
-        card: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(124,58,237,0.06)",
-        md: "0 4px 16px rgba(124,58,237,0.10)",
-        lg: "0 12px 40px rgba(124,58,237,0.15)",
+        sm: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(16,185,129,0.04)",
+        card: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(16,185,129,0.06)",
+        md: "0 4px 16px rgba(16,185,129,0.10)",
+        lg: "0 12px 40px rgba(16,185,129,0.15)",
       },
       keyframes: {
         "fade-in": {

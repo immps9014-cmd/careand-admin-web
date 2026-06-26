@@ -76,6 +76,17 @@ export const dashboardApi = {
     return data;
   },
 
+  async monitoringAlerts(params?: { status?: string; severity?: string; page?: number }): Promise<{
+    data: RecentAlert[];
+    meta: { total: number; current_page: number; last_page: number; per_page: number; status_total: number; by_severity: Record<string, number> };
+  }> {
+    const { data } = await api.get("/v1/admin/monitoring/alerts", { params });
+    return data;
+  },
+  acknowledgeAlert: (id: number) => api.post(`/v1/admin/monitoring/alerts/${id}/acknowledge`),
+  resolveAlert: (id: number, note: string) =>
+    api.post(`/v1/admin/monitoring/alerts/${id}/resolve`, { resolution_note: note }),
+
   async recentAlerts(): Promise<{ data: RecentAlert[] }> {
     const { data } = await api.get("/v1/admin/dashboard/recent-alerts");
     return data;

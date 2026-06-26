@@ -1,12 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Activity,
   ShieldCheck,
-  ListFilter,
   PhoneCall,
   UserPlus,
   Bell,
@@ -15,6 +14,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { dashboardApi, type RecentAlert } from "@/lib/api/dashboard";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { toast } from "sonner";
 import { ko, cn } from "@/lib/utils";
 
 const SEVERITIES = [
@@ -72,6 +73,8 @@ const TIER_STYLE: Record<
 
 export default function CareMonitoringPage() {
   const [severity, setSeverity] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("unresolved");
+  const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -79,25 +82,41 @@ export default function CareMonitoringPage() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => { setPage(1); }, [severity, statusFilter]);
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "dashboard", "alerts"],
-    queryFn: dashboardApi.recentAlerts,
+    queryKey: ["admin", "monitoring", statusFilter, severity, page],
+    queryFn: () =>
+      dashboardApi.monitoringAlerts({
+        status: statusFilter === "all" ? undefined : statusFilter,
+        severity: severity === "all" ? undefined : severity,
+        page,
+      }),
     refetchInterval: 30_000,
   });
+  const ackM = useMutation({
+    mutationFn: (v: { id: number; msg: string }) => dashboardApi.acknowledgeAlert(v.id),
+    onSuccess: (_d, v) => { toast.success(v.msg); qc.invalidateQueries({ queryKey: ["admin", "monitoring"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const resolveM = useMutation({
+    mutationFn: (v: { id: number; note: string }) => dashboardApi.resolveAlert(v.id, v.note),
+    onSuccess: () => { toast.success("해결 처리되었습니다."); qc.invalidateQueries({ queryKey: ["admin", "monitoring"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
 
-  const all = data?.data ?? [];
-  const filtered = all.filter(
-    (a) => severity === "all" || a.severity === severity
-  );
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const bySev: Record<string, number> = meta?.by_severity ?? { critical: 0, high: 0, mid: 0, low: 0 };
+  const statusTotal = meta?.status_total ?? 0;
 
-  const countBy = (key: string) =>
-    key === "all" ? all.length : all.filter((a) => a.severity === key).length;
-  const critCount = countBy("critical");
-  const highCount = countBy("high");
-  const midCount = countBy("mid");
+  const countBy = (key: string) => (key === "all" ? statusTotal : bySev[key] ?? 0);
+  const critCount = bySev.critical ?? 0;
+  const highCount = bySev.high ?? 0;
+  const midCount = bySev.mid ?? 0;
 
   const selected =
-    filtered.find((a) => a.id === selectedId) ?? filtered[0] ?? null;
+    rows.find((a) => a.id === selectedId) ?? rows[0] ?? null;
 
   return (
     <div className="p-8">
@@ -154,7 +173,7 @@ export default function CareMonitoringPage() {
         <div className="rounded-xl p-4 shadow-card border border-warm-200/60 bg-white flex items-center gap-3">
           <ShieldCheck className="w-5 h-5 text-brand-500 flex-none" />
           <div>
-            <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{all.length}</div>
+            <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{statusTotal}</div>
             <div className="text-xs font-semibold text-warm-500 mt-1.5">전체 활성 알림</div>
             <div className="text-[11px] text-warm-400 mt-0.5">실시간 집계</div>
           </div>
@@ -188,16 +207,22 @@ export default function CareMonitoringPage() {
           ))}
         </div>
         <div className="flex-1" />
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-warm-600 bg-white border border-warm-200 rounded-md hover:border-warm-300">
-          <ListFilter className="w-3.5 h-3.5" />
-          정렬: 위험도순
-        </button>
+        <span className="text-xs font-bold text-warm-400 mr-2">상태</span>
+        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+          {[{ k: "unresolved", l: "미해결" }, { k: "resolved", l: "처리완료" }, { k: "all", l: "전체" }].map((o) => (
+            <button key={o.k} onClick={() => setStatusFilter(o.k)}
+              className={cn("px-3 py-1.5 text-sm font-semibold rounded transition-colors",
+                statusFilter === o.k ? "bg-white text-warm-800 shadow-sm" : "text-warm-600 hover:text-warm-800")}>
+              {o.l}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Console: list + detail */}
       {isLoading ? (
         <Card className="p-12 text-center text-warm-500 text-sm">로딩 중...</Card>
-      ) : filtered.length === 0 ? (
+      ) : rows.length === 0 ? (
         <Card className="p-12 text-center text-warm-500 text-sm">
           조건에 맞는 이상징후가 없습니다 ✓
         </Card>
@@ -205,7 +230,7 @@ export default function CareMonitoringPage() {
         <div className="grid grid-cols-[380px_1fr] gap-5 items-start">
           {/* List */}
           <div className="flex flex-col gap-2.5">
-            {filtered.map((alert) => {
+            {rows.map((alert) => {
               const tier = tierOf(alert.severity);
               const s = TIER_STYLE[tier];
               const isSel = selected?.id === alert.id;
@@ -363,7 +388,7 @@ export default function CareMonitoringPage() {
                             AI 권장
                           </div>
                           <div className="text-xs text-warm-600 mt-2 leading-relaxed">
-                            {riskName} 위험 신호가 감지되었습니다. 담당 케어 인력의 즉시 방문 및
+                            {riskName} 위험 신호가 감지되었습니다. 담당 케어 돌봄전문가의 즉시 방문 및
                             보호자 연락을 권장합니다.
                           </div>
                         </div>
@@ -373,7 +398,7 @@ export default function CareMonitoringPage() {
                             케어
                           </div>
                           <div>
-                            <div className="text-sm font-bold text-warm-800">담당 케어 인력</div>
+                            <div className="text-sm font-bold text-warm-800">담당 케어 돌봄전문가</div>
                             <div className="text-[11px] text-warm-400 mt-0.5">배정 정보 연동 예정</div>
                           </div>
                           <button className="ml-auto inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-warm-200 bg-white text-xs font-bold text-warm-600 hover:border-warm-300">
@@ -385,31 +410,59 @@ export default function CareMonitoringPage() {
                     </div>
 
                     {/* Detail actions */}
-                    <div className="flex gap-2.5 px-6 py-4 border-t border-warm-100 bg-warm-50/60">
-                      <Button variant="brand" size="sm">
-                        <UserPlus className="w-4 h-4" />
-                        담당 인력 긴급 방문 배정
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Bell className="w-4 h-4" />
-                        보호자 알림
-                      </Button>
-                      {tier === "crit" && (
-                        <Button variant="danger" size="sm">
-                          <AlertTriangle className="w-4 h-4" />
-                          119 / 의료 연계
+                    {["resolved", "dismissed"].includes(selected.status) ? (
+                      <div className="px-6 py-4 border-t border-warm-100 bg-warm-50/60 text-sm text-warm-500 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-brand-500" /> 처리 완료된 알림입니다.
+                      </div>
+                    ) : (
+                      <div className="flex gap-2.5 px-6 py-4 border-t border-warm-100 bg-warm-50/60">
+                        <Button variant="brand" size="sm" disabled={ackM.isPending}
+                          onClick={() => ackM.mutate({ id: selected.id, msg: "대응 시작 — 담당 돌봄전문가 긴급 방문 배정으로 기록했습니다." })}>
+                          <UserPlus className="w-4 h-4" />
+                          담당 돌봄전문가 긴급 방문 배정
                         </Button>
-                      )}
-                      <Button variant="outline" size="sm" className="ml-auto">
-                        <CheckCircle2 className="w-4 h-4" />
-                        처리 완료
-                      </Button>
-                    </div>
+                        <Button variant="outline" size="sm" disabled={ackM.isPending}
+                          onClick={() => ackM.mutate({ id: selected.id, msg: "보호자 알림 대응으로 기록했습니다." })}>
+                          <Bell className="w-4 h-4" />
+                          보호자 알림
+                        </Button>
+                        {tier === "crit" && (
+                          <Button variant="danger" size="sm" disabled={ackM.isPending}
+                            onClick={() => ackM.mutate({ id: selected.id, msg: "119·의료 연계 안내를 기록했습니다." })}>
+                            <AlertTriangle className="w-4 h-4" />
+                            119 / 의료 연계
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" className="ml-auto" disabled={resolveM.isPending}
+                          onClick={() => {
+                            const note = window.prompt("처리 내용을 입력하세요:", "현장 확인 후 조치 완료");
+                            if (note && note.trim()) resolveM.mutate({ id: selected.id, note: note.trim() });
+                          }}>
+                          <CheckCircle2 className="w-4 h-4" />
+                          처리 완료
+                        </Button>
+                      </div>
+                    )}
                   </>
                 );
               })()}
             </Card>
           )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {meta && meta.last_page > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+            이전
+          </Button>
+          <span className="text-sm font-semibold text-warm-600">
+            {meta.current_page} / {meta.last_page} 페이지 · 총 {meta.total}건
+          </span>
+          <Button variant="outline" size="sm" disabled={page >= meta.last_page} onClick={() => setPage((p) => p + 1)}>
+            다음
+          </Button>
         </div>
       )}
     </div>

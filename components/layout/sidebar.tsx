@@ -17,6 +17,7 @@ import {
   MessageCircle,
   ShieldCheck,
   Users,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
@@ -37,10 +38,12 @@ const MAIN_NAV: NavItem[] = [
 ];
 
 const OPS_NAV: NavItem[] = [
-  { href: "/caregiver-approval", label: "인력 자격검증", icon: ShieldCheck },
+  { href: "/caregiver-approval", label: "돌봄전문가 자격검증", icon: ShieldCheck },
   { href: "/contracts", label: "계약·일정", icon: CalendarClock },
+  { href: "/care-sessions", label: "케어 진행 현황", icon: Activity },
   { href: "/care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
   { href: "/announcements", label: "공지·푸시", icon: Megaphone },
+  { href: "/workflow", label: "업무흐름도", icon: Workflow },
 ];
 
 const AI_NAV: NavItem[] = [

@@ -13,8 +13,8 @@ import { cn, formatKRW, ko } from "@/lib/utils";
 import { HourlyRequestsChart } from "./_components/hourly-requests-chart";
 
 const DOMAIN_CARDS = [
-  { key: "senior", label: "시니어 돌봄" },
-  { key: "nursing", label: "병원 간병" },
+  { key: "senior", label: "요양보호" },
+  { key: "nursing", label: "간병" },
   { key: "housekeeping", label: "가사" },
   { key: "postpartum", label: "산후" },
 ];
@@ -36,9 +36,9 @@ function getSeverityLevel(s: string) {
   return "관찰";
 }
 function getRegionStatus(row: { status: string; supply_rate_pct: number }) {
-  if (row.supply_rate_pct > 150) return { label: "인력 여유", cls: "text-info" };
+  if (row.supply_rate_pct > 150) return { label: "돌봄전문가 여유", cls: "text-info" };
   if (row.status === "good") return { label: "적정", cls: "text-brand-600" };
-  if (row.status === "warning") return { label: "인력 부족", cls: "text-warn" };
+  if (row.status === "warning") return { label: "돌봄전문가 부족", cls: "text-warn" };
   return { label: "심각 부족", cls: "text-danger" };
 }
 function getRegionBarColor(row: { status: string; supply_rate_pct: number }) {
@@ -81,7 +81,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         <KpiCard variant="alert" label="미해결 위험 알림" value={kpi?.high_alerts_unresolved ?? 0} icon={AlertTriangle} subLabel={alertSubLabel} cta="즉시 확인" />
-        <KpiCard label="검수 대기 인력" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
+        <KpiCard label="검수 대기 돌봄전문가" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
         <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
         <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined} />
       </div>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
             <TableRow>
               <TableHead>지역</TableHead>
               <TableHead className="text-right">예측 수요</TableHead>
-              <TableHead className="text-right">대기 인력</TableHead>
+              <TableHead className="text-right">대기 돌봄전문가</TableHead>
               <TableHead className="text-right">충족률</TableHead>
               <TableHead>상태</TableHead>
             </TableRow>

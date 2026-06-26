@@ -1,8 +1,9 @@
 "use client";
+import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, CalendarDays, List } from "lucide-react";
+import { CalendarClock, CalendarDays, List, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,14 +47,6 @@ const VISIT_STYLE: Record<string, { border: string; bg: string; text: string; do
   no_show: { border: "border-l-danger", bg: "bg-white", text: "text-danger", dot: "bg-danger" },
 };
 
-const DOMAIN_LABEL: Record<string, string> = {
-  senior: "시니어",
-  postpartum: "산후",
-  nursing: "간병",
-  companion: "동행",
-  housekeeping: "가사",
-};
-
 // 도메인 배지 색 (매칭 페이지와 동일 규칙)
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
   senior: "brand", nursing: "info", housekeeping: "success", postpartum: "warn", companion: "outline",
@@ -69,6 +62,7 @@ function timeLabel(iso: string) {
 export default function ContractsPage() {
   const [status, setStatus] = useState("");
   const [view, setView] = useState<"board" | "list">("board");
+  const [detailReqId, setDetailReqId] = useState<number | null>(null);
 
   const query = useQuery({
     queryKey: ["admin", "contracts", status],
@@ -201,8 +195,9 @@ export default function ContractsPage() {
                       return (
                         <div
                           key={v.id}
+                          onClick={() => setDetailReqId(v.request_id)}
                           className={cn(
-                            "rounded-lg border border-warm-100 border-l-[3px] p-2.5 transition-shadow hover:shadow-card",
+                            "rounded-lg border border-warm-100 border-l-[3px] p-2.5 transition-shadow hover:shadow-card cursor-pointer",
                             st.border,
                             st.bg,
                             v.status === "cancelled" && "opacity-70"
@@ -245,7 +240,7 @@ export default function ContractsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>계약 ID</TableHead>
-                <TableHead>인력</TableHead>
+                <TableHead>돌봄전문가</TableHead>
                 <TableHead>대상자</TableHead>
                 <TableHead>도메인</TableHead>
                 <TableHead>일정</TableHead>
@@ -271,7 +266,7 @@ export default function ContractsPage() {
               {rows.map((c) => {
                 const pill = STATUS_PILL[c.status] ?? { cls: "bg-warm-100 text-warm-600", dot: "bg-warm-400", label: c.status };
                 return (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} onClick={() => setDetailReqId(c.request_id)} className="cursor-pointer hover:bg-warm-50/60">
                     <TableCell className="font-en font-semibold text-warm-500">#{c.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -280,7 +275,7 @@ export default function ContractsPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="font-semibold text-warm-800 truncate">{c.caregiver_name}</div>
-                          <div className="text-[11px] text-warm-400">담당 케어 인력</div>
+                          <div className="text-[11px] text-warm-400">담당 케어 돌봄전문가</div>
                         </div>
                       </div>
                     </TableCell>
@@ -320,6 +315,87 @@ export default function ContractsPage() {
           )}
         </Card>
       )}
+
+      {detailReqId != null && (
+        <ContractDetailModal requestId={detailReqId} onClose={() => setDetailReqId(null)} />
+      )}
+    </div>
+  );
+}
+
+function CDRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-warm-100 last:border-0">
+      <span className="text-xs font-semibold text-warm-500 flex-none pt-0.5">{label}</span>
+      <span className="text-sm text-warm-800 text-right min-w-0">{children}</span>
+    </div>
+  );
+}
+
+function ContractDetailModal({ requestId, onClose }: { requestId: number; onClose: () => void }) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["admin", "contract-detail", requestId],
+    queryFn: () => operationsApi.matchingRequestDetail(requestId),
+  });
+  const back = useRef(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-warm-900/40 backdrop-blur-[1px]"
+        onMouseDown={(e) => { back.current = e.target === e.currentTarget; }}
+        onClick={(e) => { if (back.current && e.target === e.currentTarget) onClose(); }}
+      />
+      <div className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg">
+        <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-base font-bold text-warm-800">계약 상세 {data && <span className="font-en text-warm-400">#{data.id}</span>}</h2>
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6">
+          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isError && <div className="py-10 text-center text-danger text-sm">상세를 불러오지 못했습니다.</div>}
+          {data && (
+            <>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg font-extrabold flex-none">{data.recipient_name?.[0] ?? "?"}</div>
+                <div className="min-w-0">
+                  <div className="text-lg font-extrabold text-warm-800 truncate">{data.recipient_name}{data.guardian_name ? ` (${data.guardian_name})` : ""}</div>
+                  <div className="text-xs text-warm-500 mt-0.5">{DOMAIN_LABEL[data.service_domain] ?? data.service_domain}</div>
+                </div>
+                <span className={cn("ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full flex-none", STATUS_PILL[data.status]?.cls ?? "bg-warm-100 text-warm-600")}>
+                  {STATUS_PILL[data.status]?.label ?? data.status}
+                </span>
+              </div>
+
+              <div className="rounded-lg border border-warm-100 bg-warm-50/60 px-4 mb-4">
+                <CDRow label="일정">{data.scheduled_start ? formatDateTime(data.scheduled_start) : "-"} · {data.duration_min}분</CDRow>
+                <CDRow label="대상자(보호자)">{data.recipient_name}{data.guardian_name ? ` (${data.guardian_name})` : ""}</CDRow>
+                <CDRow label="대상자 정보">{(data.senior?.gender === "M" ? "남성" : data.senior?.gender === "F" ? "여성" : "-")}{data.senior?.care_grade ? ` · ${data.senior.care_grade}` : ""}</CDRow>
+                <CDRow label="주소">{data.address?.address || data.address?.label || "-"}</CDRow>
+                {data.special_request && <CDRow label="요청사항">{data.special_request}</CDRow>}
+                <CDRow label="신청일"><span className="font-en">{formatDateTime(data.created_at)}</span></CDRow>
+              </div>
+
+              {data.matched_caregiver ? (
+                <div className="rounded-lg border border-brand-200 bg-brand-50/50 px-4 py-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-bold text-warm-800">담당 돌봄전문가: {data.matched_caregiver.name}</span>
+                    {data.matched_caregiver.estimated_amount != null && (
+                      <span className="ml-auto font-en text-warm-600 text-xs">예상 {data.matched_caregiver.estimated_amount.toLocaleString()}원</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-warm-500 mt-1">
+                    일정: {data.matched_caregiver.scheduled_start ? formatDateTime(data.matched_caregiver.scheduled_start) : "-"}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-warm-100 bg-warm-50 px-4 py-3 mb-4 text-sm text-warm-500">아직 담당 돌봄전문가가 배정되지 않았습니다.</div>
+              )}
+
+              <p className="text-[11px] text-warm-400">담당자·일정 변경은 <b>매칭관리 → 매칭됨 → 매칭 변경</b>에서 하실 수 있어요.</p>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

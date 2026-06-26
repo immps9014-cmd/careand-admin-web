@@ -59,8 +59,8 @@ function StatRow({
 }
 
 const DOMAIN_SLICES = [
-  { key: "senior", name: "시니어 돌봄", color: "#7C3AED" },
-  { key: "nursing", name: "병원 간병", color: "#3B82F6" },
+  { key: "senior", name: "요양보호", color: "#10B981" },
+  { key: "nursing", name: "간병", color: "#3B82F6" },
   { key: "housekeeping", name: "가사", color: "#22C55E" },
   { key: "postpartum", name: "산후", color: "#F59E0B" },
 ];
@@ -144,9 +144,9 @@ export default function ReportsPage() {
             <StatRow label="오늘 매칭" value={`${kpi?.matches_today ?? 0}건`} />
             <StatRow label="진행중 매칭" value={`${kpi?.matches_in_progress ?? 0}건`} />
             <StatRow label="주간 매출" value={formatKRW(kpi?.revenue_this_week ?? 0)} />
-            <StatRow label="활성 인력" value={`${kpi?.active_caregivers ?? 0}명`} />
+            <StatRow label="활성 돌봄전문가" value={`${kpi?.active_caregivers ?? 0}명`} />
             <StatRow
-              label="승인 대기 인력"
+              label="승인 대기 돌봄전문가"
               value={`${kpi?.pending_caregivers ?? 0}명`}
               tone={kpi && kpi.pending_caregivers > 0 ? "warn" : undefined}
             />
@@ -164,8 +164,8 @@ export default function ReportsPage() {
                 ["주간 매출", kpi.revenue_this_week],
                 ["활성 사용자", kpi.active_users],
                 ["활성 어르신", kpi.active_seniors],
-                ["활성 인력", kpi.active_caregivers],
-                ["승인 대기 인력", kpi.pending_caregivers],
+                ["활성 돌봄전문가", kpi.active_caregivers],
+                ["승인 대기 돌봄전문가", kpi.pending_caregivers],
                 ["미해결 고위험 알림", kpi.high_alerts_unresolved],
               ])
             }

@@ -55,7 +55,7 @@ export function ModelInsights({ modelId }: Props) {
                   <BiasBar
                     key={`g-${key}`}
                     label={
-                      key === "M" ? "남성 인력" : key === "F" ? "여성 인력" : key
+                      key === "M" ? "남성 돌봄전문가" : key === "F" ? "여성 돌봄전문가" : key
                     }
                     value={value}
                     maxValue={Math.max(...Object.values(bias_report.gender_distribution))}

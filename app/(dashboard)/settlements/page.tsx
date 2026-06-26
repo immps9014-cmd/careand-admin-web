@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { KpiCard } from "@/components/domain/kpi-card";
-import { cn, formatKRW } from "@/lib/utils";
+import { cn, formatKRW, formatDateTime } from "@/lib/utils";
 import {
   Users,
   Coins,
@@ -27,6 +27,7 @@ import {
   Clock,
   CircleSlash,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { operationsApi } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -65,6 +66,7 @@ const PIPELINE: {
 export default function SettlementsPage() {
   const [status, setStatus] = useState("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [detailId, setDetailId] = useState<number | null>(null);
   const qc = useQueryClient();
 
   const query = useQuery({
@@ -138,7 +140,7 @@ export default function SettlementsPage() {
       {/* 정산 요약 (실데이터) — 총 실지급 강조, 원천징수 차감 강조 */}
       <div className="grid grid-cols-4 gap-4 mb-5">
         <KpiCard
-          label="정산 인력"
+          label="정산 돌봄전문가"
           value={s ? `${s.caregivers}명` : "-"}
           icon={Users}
           subLabel="이번 주 정산 대상"
@@ -161,7 +163,7 @@ export default function SettlementsPage() {
           label="총 실지급"
           value={s ? formatKRW(s.net_amount) : "-"}
           icon={Wallet}
-          subLabel="인력에게 지급될 순액"
+          subLabel="돌봄전문가에게 지급될 순액"
         />
       </div>
 
@@ -279,7 +281,7 @@ export default function SettlementsPage() {
                   onChange={toggleAll}
                 />
               </TableHead>
-              <TableHead>인력</TableHead>
+              <TableHead>돌봄전문가</TableHead>
               <TableHead className="text-right">세전</TableHead>
               <TableHead className="text-right">원천징수 (3.3%)</TableHead>
               <TableHead className="text-right">실지급</TableHead>
@@ -311,7 +313,7 @@ export default function SettlementsPage() {
               const filed = st.hometax_filing_no != null;
               const selectable = st.status === "draft";
               return (
-                <TableRow key={st.id}>
+                <TableRow key={st.id} onClick={() => setDetailId(st.id)} className="cursor-pointer hover:bg-warm-50">
                   <TableCell>
                     <input
                       type="checkbox"
@@ -319,6 +321,7 @@ export default function SettlementsPage() {
                       className="h-4 w-4 align-middle accent-brand-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
                       checked={selectable && selected.has(st.id)}
                       disabled={!selectable}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => selectable && toggleOne(st.id)}
                     />
                   </TableCell>
@@ -375,6 +378,96 @@ export default function SettlementsPage() {
           </TableBody>
         </Table>
       </Card>
+
+      {detailId != null && <SettlementDetailModal id={detailId} onClose={() => setDetailId(null)} />}
+    </div>
+  );
+}
+
+
+/* ===== 정산 상세 모달 ===== */
+function SDRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2 border-b border-warm-100 last:border-0">
+      <span className="text-xs font-semibold text-warm-500 flex-none pt-0.5">{label}</span>
+      <span className="text-sm text-warm-800 text-right min-w-0 break-all">{children}</span>
+    </div>
+  );
+}
+
+function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["admin", "settlement-detail", id],
+    queryFn: () => operationsApi.settlementDetail(id),
+  });
+  const stBadge = data ? (STATUS_BADGE[data.status] ?? { variant: "outline" as const, label: data.status, dot: "bg-warm-400" }) : null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-warm-900/40 backdrop-blur-[1px]" />
+      <div className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-base font-bold text-warm-800">정산 상세 {data && <span className="font-en text-warm-400">#{data.id}</span>}</h2>
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6">
+          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isError && <div className="py-10 text-center text-danger text-sm">상세를 불러오지 못했습니다.</div>}
+          {data && (
+            <>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold flex-none">{data.caregiver_name?.[0] ?? "?"}</div>
+                <div className="min-w-0">
+                  <div className="text-base font-extrabold text-warm-800 truncate">{data.caregiver_name}</div>
+                  <div className="font-en text-xs text-warm-500 mt-0.5">{data.period_start} ~ {data.period_end}</div>
+                </div>
+                {stBadge && (
+                  <Badge variant={stBadge.variant} className="ml-auto">
+                    <span className={cn("w-1.5 h-1.5 rounded-full", stBadge.dot)} />{stBadge.label}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="rounded-lg border border-warm-100 bg-warm-50 p-3 text-center">
+                  <div className="text-[11px] text-warm-500">세전</div>
+                  <div className="font-en font-bold text-warm-800 mt-1">{formatKRW(data.gross_amount)}</div>
+                </div>
+                <div className="rounded-lg border border-warm-100 bg-warm-50 p-3 text-center">
+                  <div className="text-[11px] text-warm-500">원천징수 3.3%</div>
+                  <div className="font-en font-bold text-danger mt-1">−{formatKRW(data.withholding_tax)}</div>
+                </div>
+                <div className="rounded-lg border border-brand-200 bg-brand-50 p-3 text-center">
+                  <div className="text-[11px] text-brand-700">실지급</div>
+                  <div className="font-en font-extrabold text-brand-700 mt-1">{formatKRW(data.net_amount)}</div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-warm-100 px-4 mb-4">
+                <SDRow label="홈택스 신고번호">{data.hometax_filing_no || "미신고"}</SDRow>
+                <SDRow label="이체 ID">{data.bank_tx_id || "-"}</SDRow>
+                <SDRow label="확정일">{data.confirmed_at ? formatDateTime(data.confirmed_at) : "-"}</SDRow>
+                <SDRow label="지급일">{data.paid_at ? formatDateTime(data.paid_at) : "-"}</SDRow>
+                <SDRow label="생성일">{formatDateTime(data.created_at)}</SDRow>
+              </div>
+
+              <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2">정산 항목 {data.items.length}건</div>
+              {data.items.length === 0 ? (
+                <div className="text-sm text-warm-400 py-4 text-center bg-warm-50 rounded-lg">세부 항목 내역이 없습니다</div>
+              ) : (
+                <div className="space-y-1.5">
+                  {data.items.map((it) => (
+                    <div key={it.id} className="flex items-center gap-3 border border-warm-100 rounded-lg px-3 py-2 text-sm">
+                      <span className="font-en text-warm-600 flex-none">{it.scheduled_start ? formatDateTime(it.scheduled_start) : `세션 #${it.session_id ?? "-"}`}</span>
+                      <span className="text-warm-400 text-xs">{it.hours}h × {formatKRW(it.hourly_rate)}</span>
+                      <span className="ml-auto font-en font-bold text-warm-800">{formatKRW(it.amount + it.surcharge)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

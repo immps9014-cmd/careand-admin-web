@@ -23,7 +23,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 const TARGETS: { key: "all" | "guardian" | "caregiver"; label: string }[] = [
   { key: "all", label: "전체" },
   { key: "guardian", label: "보호자" },
-  { key: "caregiver", label: "인력" },
+  { key: "caregiver", label: "돌봄전문가" },
 ];
 
 // 발송 채널 — 현재 백엔드는 앱 푸시로 발송됩니다(시각 표시용)
@@ -66,7 +66,7 @@ export default function AnnouncementsPage() {
           공지 · 푸시 알림
         </h1>
         <p className="text-sm text-warm-500 mt-1">
-          보호자·인력 앱에 공지/푸시 알림을 발송하고 발송 이력·읽음률을 관리합니다
+          보호자·돌봄전문가 앱에 공지/푸시 알림을 발송하고 발송 이력·읽음률을 관리합니다
         </p>
       </div>
 

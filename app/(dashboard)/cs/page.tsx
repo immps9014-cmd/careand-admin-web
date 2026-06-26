@@ -121,7 +121,7 @@ export default function CsPage() {
           후기 · CS 관리
         </h1>
         <p className="text-sm text-warm-500 mt-1">
-          보호자·인력의 후기와 CS 챗봇 상담을 조회하고, 부정 후기에 대응합니다
+          보호자·돌봄전문가의 후기와 CS 챗봇 상담을 조회하고, 부정 후기에 대응합니다
         </p>
       </div>
 
@@ -307,7 +307,7 @@ export default function CsPage() {
                         {r.reviewer_name}
                       </span>
                       <Badge variant="outline" className="px-2 py-0 text-[10px]">
-                        {r.reviewer_role === "guardian" ? "보호자" : "인력"}
+                        {r.reviewer_role === "guardian" ? "보호자" : "돌봄전문가"}
                       </Badge>
                       <span className="ml-auto text-[11px] text-warm-400 whitespace-nowrap">
                         {formatTimeAgo(r.created_at)}

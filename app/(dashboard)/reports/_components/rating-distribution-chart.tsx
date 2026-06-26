@@ -24,7 +24,7 @@ const BAR_COLOR = (rating: string) => {
   const r = Number(rating);
   if (r <= 2) return "#EF4444"; // danger
   if (r === 3) return "#F59E0B"; // warn
-  return "#7C3AED"; // brand
+  return "#10B981"; // brand
 };
 
 export function RatingDistributionChart({ data }: Props) {
@@ -54,7 +54,7 @@ export function RatingDistributionChart({ data }: Props) {
               border: "1px solid #E2E8F0",
               borderRadius: 8,
               fontSize: 12,
-              boxShadow: "0 4px 12px rgba(124,58,237,0.08)",
+              boxShadow: "0 4px 12px rgba(16,185,129,0.08)",
             }}
             labelFormatter={(label) => `★${label}`}
             formatter={(value: number) => [`${value}건`, "후기"]}

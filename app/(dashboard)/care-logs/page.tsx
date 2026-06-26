@@ -1,4 +1,5 @@
 "use client";
+import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,14 +34,6 @@ const REVIEW_BADGE: Record<string, { variant: "warn" | "success" | "danger"; lab
   rejected: { variant: "danger", label: "반려" },
 };
 
-const DOMAIN_LABEL: Record<string, string> = {
-  senior: "시니어",
-  postpartum: "산후",
-  nursing: "간병",
-  companion: "동행",
-  housekeeping: "가사",
-};
-
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
   senior: "brand",
   nursing: "info",
@@ -70,6 +63,12 @@ export default function CareLogsPage() {
   const query = useQuery({
     queryKey: ["admin", "care-logs", reviewStatus],
     queryFn: () => operationsApi.careLogs({ review_status: reviewStatus }),
+  });
+
+  const detail = useQuery({
+    queryKey: ["admin", "care-log-detail", selectedId],
+    queryFn: () => operationsApi.careLogDetail(selectedId as number),
+    enabled: selectedId != null,
   });
 
   const approve = useMutation({
@@ -232,7 +231,7 @@ export default function CareLogsPage() {
                   <div className="mt-1.5 text-[13.5px] font-bold text-warm-800 truncate">
                     {log.caregiver_name}
                     <span className="text-warm-400 font-normal mx-1.5">→</span>
-                    {log.senior_name}
+                    {log.senior_name}{log.guardian_name ? ` (${log.guardian_name})` : ""}
                   </div>
                   <div className="mt-1 text-[11px] text-warm-500 flex items-center gap-1.5">
                     <span className={cn("font-en font-bold", flagged && "text-danger")}>
@@ -272,7 +271,7 @@ export default function CareLogsPage() {
                   <div className="text-base font-extrabold text-warm-800 flex items-center gap-2">
                     {selected.caregiver_name}
                     <span className="text-warm-400 font-normal">→</span>
-                    {selected.senior_name}
+                    {selected.senior_name}{selected.guardian_name ? ` (${selected.guardian_name})` : ""}
                     {isQualityFlagged(selected) && (
                       <span className="text-[10px] font-extrabold text-white bg-danger rounded px-1.5 py-0.5">
                         시간 0분
@@ -302,8 +301,8 @@ export default function CareLogsPage() {
                   </div>
                   <div className="rounded-xl border border-warm-100 overflow-hidden">
                     {[
-                      { label: "인력", value: selected.caregiver_name },
-                      { label: "대상자", value: selected.senior_name },
+                      { label: "돌봄전문가", value: selected.caregiver_name },
+                      { label: "대상자(보호자)", value: `${selected.senior_name}${selected.guardian_name ? ` (${selected.guardian_name})` : ""}` },
                       {
                         label: "서비스 도메인",
                         value: DOMAIN_LABEL[selected.service_domain] ?? selected.service_domain ?? "-",
@@ -357,6 +356,41 @@ export default function CareLogsPage() {
                       승인하세요.
                     </div>
                   )}
+
+                  {/* AI 일지 본문 (검수 대상) */}
+                  <div className="mt-4">
+                    <div className="text-[11px] font-extrabold text-warm-400 tracking-wide uppercase mb-2">AI 일지 내용</div>
+                    {detail.isLoading ? (
+                      <div className="text-xs text-warm-400 py-3">불러오는 중…</div>
+                    ) : detail.data && (detail.data.guardian_version || detail.data.transcript) ? (
+                      <div className="space-y-3">
+                        <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
+                          <div className="text-[11px] font-bold text-brand-700 mb-1">보호자용 요약 (승인 시 발송)</div>
+                          <p className="text-[13px] text-warm-800 whitespace-pre-wrap leading-relaxed">{detail.data.guardian_version || "—"}</p>
+                        </div>
+                        {detail.data.medical_version && (
+                          <div className="rounded-xl border border-warm-100 p-3">
+                            <div className="text-[11px] font-bold text-warm-500 mb-1">의료·돌봄용 요약</div>
+                            <p className="text-[13px] text-warm-700 whitespace-pre-wrap leading-relaxed">{detail.data.medical_version}</p>
+                          </div>
+                        )}
+                        {detail.data.transcript && (
+                          <div className="rounded-xl border border-warm-100 p-3">
+                            <div className="text-[11px] font-bold text-warm-500 mb-1">
+                              음성 전사 원문{detail.data.voice_duration_sec ? ` · ${detail.data.voice_duration_sec}초` : ""}
+                            </div>
+                            <p className="text-[13px] text-warm-600 whitespace-pre-wrap leading-relaxed">{detail.data.transcript}</p>
+                          </div>
+                        )}
+                        <div className="text-[11px] text-warm-400">
+                          AI 신뢰도 {detail.data.confidence != null ? `${Math.round(detail.data.confidence * 100)}%` : "—"}
+                          {detail.data.llm_model ? ` · ${detail.data.llm_model}` : ""}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-warm-400 py-3 bg-warm-50 rounded-lg px-3">아직 생성된 AI 일지가 없습니다.</div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 우측: 자동 품질 점검 + 검수 결정 */}
@@ -398,7 +432,7 @@ export default function CareLogsPage() {
                     <div className="text-[13px] font-bold text-warm-800 mb-2">검수 결정</div>
                     <div className="flex items-center gap-1.5 text-[11px] text-warm-500 mb-3">
                       <Bell className="w-3.5 h-3.5" />
-                      승인 시 보호자({selected.senior_name} 가족) 앱으로 발송됩니다
+                      승인 시 보호자({selected.guardian_name || `${selected.senior_name} 가족`}) 앱으로 발송됩니다
                     </div>
 
                     {selected.review_status === "pending" ? (

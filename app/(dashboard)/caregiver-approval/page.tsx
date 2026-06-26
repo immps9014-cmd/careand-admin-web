@@ -1,4 +1,5 @@
 "use client";
+import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,10 +40,6 @@ const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "o
   leave: { variant: "outline", label: "휴직" },
 };
 
-const DOMAIN_LABEL: Record<string, string> = {
-  senior: "시니어", postpartum: "산후", nursing: "간병", housekeeping: "가사",
-};
-
 // 아바타 배경 (도메인 기반, 첫 도메인 사용)
 const AVATAR_BG: Record<string, string> = {
   senior: "bg-brand-500", nursing: "bg-info", housekeeping: "bg-brand-600",
@@ -71,7 +68,7 @@ export default function CaregiverApprovalPage() {
   const approve = useMutation({
     mutationFn: (id: number) => operationsApi.approveCaregiver(id),
     onSuccess: () => {
-      toast.success("인력을 승인했습니다.");
+      toast.success("돌봄전문가를 승인했습니다.");
       qc.invalidateQueries({ queryKey: ["admin", "caregivers"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -81,7 +78,7 @@ export default function CaregiverApprovalPage() {
     mutationFn: ({ id, reason }: { id: number; reason: string }) =>
       operationsApi.rejectCaregiver(id, reason),
     onSuccess: () => {
-      toast.success("인력을 반려했습니다.");
+      toast.success("돌봄전문가를 반려했습니다.");
       qc.invalidateQueries({ queryKey: ["admin", "caregivers"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -113,9 +110,9 @@ export default function CaregiverApprovalPage() {
     <div className="p-8">
       {/* 헤더 */}
       <div className="mb-7">
-        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">인력 자격 검증</h1>
+        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">돌봄전문가 자격 검증</h1>
         <p className="text-sm text-warm-500 mt-1">
-          신규 인력의 자격증·서류를 검토하고 승인·반려합니다. 시니어 케어는 성범죄경력 회신서 확인이 필수입니다 (1차년도 수동 검증).
+          신규 돌봄전문가의 자격증·서류를 검토하고 승인·반려합니다. 시니어 케어는 성범죄경력 회신서 확인이 필수입니다 (1차년도 수동 검증).
         </p>
       </div>
 
@@ -124,7 +121,7 @@ export default function CaregiverApprovalPage() {
         <KpiCard variant="brand" label="승인 대기" value={status === "pending" ? total : "—"} icon={Clock} />
         <KpiCard label="검토 대상 (현재 탭)" value={total} icon={ShieldCheck} iconColor="info" />
         <KpiCard label="필수 서류 항목" value={DOC_CHECKLIST.filter((d) => d.required).length} icon={FileWarning} iconColor="warn" subLabel="신분증·자격증·성범죄경력·건강진단서" />
-        <KpiCard label="누적 검증 인력" value={total} icon={CheckCircle2} iconColor="brand" subLabel="현재 탭 기준" />
+        <KpiCard label="누적 검증 돌봄전문가" value={total} icon={CheckCircle2} iconColor="brand" subLabel="현재 탭 기준" />
       </div>
 
       {/* 탭 */}
@@ -148,7 +145,7 @@ export default function CaregiverApprovalPage() {
           <div className="flex items-center justify-between px-1 mb-0.5">
             <h2 className="text-sm font-bold text-warm-700 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-brand-500" />
-              인력 목록
+              돌봄전문가 목록
             </h2>
             <span className="font-en text-[11px] text-warm-500 px-2.5 py-1 bg-warm-100 rounded-full">{total}명</span>
           </div>
@@ -157,7 +154,7 @@ export default function CaregiverApprovalPage() {
             <Card className="p-6 text-center text-warm-400 text-sm">불러오는 중…</Card>
           )}
           {!query.isLoading && rows.length === 0 && (
-            <Card className="p-6 text-center text-warm-400 text-sm">해당 상태의 인력이 없습니다</Card>
+            <Card className="p-6 text-center text-warm-400 text-sm">해당 상태의 돌봄전문가가 없습니다</Card>
           )}
 
           {rows.map((c) => {
@@ -198,7 +195,7 @@ export default function CaregiverApprovalPage() {
         <Card className="overflow-hidden">
           {!selected ? (
             <div className="p-12 text-center text-warm-400 text-sm">
-              왼쪽 목록에서 인력을 선택하면 검토 상세가 표시됩니다.
+              왼쪽 목록에서 돌봄전문가를 선택하면 검토 상세가 표시됩니다.
             </div>
           ) : (
             <>
@@ -327,7 +324,7 @@ export default function CaregiverApprovalPage() {
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-warm-500">
                         <CheckCircle2 className="w-4 h-4 text-brand-500" />
-                        이미 검토 완료된 인력입니다 ·
+                        이미 검토 완료된 돌봄전문가입니다 ·
                         <span className="inline-flex items-center gap-1 font-semibold text-warm-600">
                           <Star className="w-3 h-3 text-warn" />
                           {selected.rating_avg.toFixed(1)} · {selected.completed_sessions}회
