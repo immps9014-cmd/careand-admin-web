@@ -146,7 +146,7 @@ export default function CareMonitoringPage() {
         <div className="relative overflow-hidden rounded-xl p-4 shadow-card bg-gradient-to-br from-danger to-[#C2334A] text-white flex items-center gap-3">
           <div>
             <div className="font-en text-3xl font-extrabold leading-none">{critCount}</div>
-            <div className="text-xs font-semibold text-white/90 mt-1.5">긴급 (90+)</div>
+            <div className="text-xs font-semibold text-white/90 mt-1.5">긴급 (80+)</div>
             <div className="text-[11px] text-white/70 mt-0.5">즉시 대응 필요</div>
           </div>
           <AlertTriangle className="w-16 h-16 absolute -right-3 -bottom-3 opacity-15" />
@@ -156,7 +156,7 @@ export default function CareMonitoringPage() {
           <span className="w-2.5 h-2.5 rounded-full bg-warn flex-none" />
           <div>
             <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{highCount}</div>
-            <div className="text-xs font-semibold text-warm-500 mt-1.5">높음 (80–89)</div>
+            <div className="text-xs font-semibold text-warm-500 mt-1.5">높음 (60–79)</div>
             <div className="text-[11px] text-warm-400 mt-0.5">관찰 강화 필요</div>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function CareMonitoringPage() {
           <span className="w-2.5 h-2.5 rounded-full bg-info flex-none" />
           <div>
             <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{midCount}</div>
-            <div className="text-xs font-semibold text-warm-500 mt-1.5">중간 (60–79)</div>
+            <div className="text-xs font-semibold text-warm-500 mt-1.5">중간 (40–59)</div>
             <div className="text-[11px] text-warm-400 mt-0.5">정상 범위</div>
           </div>
         </div>
