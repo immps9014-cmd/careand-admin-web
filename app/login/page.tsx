@@ -39,7 +39,15 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-brand-50 to-warm-100 flex items-center justify-center p-4">
+    <div className="relative h-screen overflow-hidden bg-gradient-to-br from-brand-50 to-warm-100 flex items-center justify-center p-4">
+      {/* 공개 웹(/www)으로 돌아가기 — basePath(/admin) 바깥이라 일반 a 태그 */}
+      <a
+        href="/www"
+        className="absolute top-4 left-4 inline-flex items-center gap-0.5 text-sm font-semibold text-warm-600 hover:text-brand-600"
+        aria-label="Care& 홈으로 돌아가기"
+      >
+        ← 홈으로
+      </a>
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
