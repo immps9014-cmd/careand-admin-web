@@ -9,6 +9,7 @@ import {
   Heart,
   HardHat,
   Building2,
+  Sparkles,
   Plus,
   Filter,
   ArrowDownUp,
@@ -81,6 +82,7 @@ const ROLE_BADGE: Record<
   { variant: "warn" | "success" | "danger" | "info" | "outline"; label: string }
 > = {
   guardian: { variant: "info", label: "보호자" },
+  housekeeping: { variant: "info", label: "가사요청자" },
   caregiver: { variant: "success", label: "돌봄전문가" },
   organization: { variant: "warn", label: "기관" },
   admin: { variant: "danger", label: "운영자" },
@@ -97,10 +99,16 @@ const STATUS_BADGE: Record<
 
 const ROLE_AVATAR: Record<string, string> = {
   guardian: "bg-info",
+  housekeeping: "bg-info",
   caregiver: "bg-brand-500",
   organization: "bg-warn",
   admin: "bg-warm-600",
 };
+
+/** 행/뱃지 표시용 유효 역할 키 — 가사요청자는 guardian이지만 intent로 구분 */
+function effectiveRole(m: { role: string; intent?: string | null }): string {
+  return m.role === "guardian" && m.intent === "housekeeping" ? "housekeeping" : m.role;
+}
 
 // 돌봄전문가 자격검증 상태 (caregiver_status)
 const CG_VERIFY: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
@@ -141,11 +149,12 @@ function MembersPageInner() {
   const s = query.data?.summary;
   const total = query.data?.meta?.total ?? 0;
   const roleTotal =
-    (s?.guardian ?? 0) + (s?.caregiver ?? 0) + (s?.organization ?? 0) + (s?.admin ?? 0);
+    (s?.guardian ?? 0) + (s?.housekeeping ?? 0) + (s?.caregiver ?? 0) + (s?.organization ?? 0) + (s?.admin ?? 0);
 
   const TABS: { key: string; label: string; count: number }[] = [
     { key: "", label: "전체", count: roleTotal },
     { key: "guardian", label: "보호자", count: s?.guardian ?? 0 },
+    { key: "housekeeping", label: "가사요청자", count: s?.housekeeping ?? 0 },
     { key: "caregiver", label: "돌봄전문가", count: s?.caregiver ?? 0 },
     { key: "organization", label: "기관", count: s?.organization ?? 0 },
     { key: "admin", label: "운영자", count: s?.admin ?? 0 },
@@ -168,11 +177,17 @@ function MembersPageInner() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <KpiCard
           label="보호자"
           value={s?.guardian ?? 0}
           icon={Heart}
+          iconColor="info"
+        />
+        <KpiCard
+          label="가사요청자"
+          value={s?.housekeeping ?? 0}
+          icon={Sparkles}
           iconColor="info"
         />
         <KpiCard
@@ -280,6 +295,7 @@ function MembersPageInner() {
             )}
             {query.data?.data.map((m) => {
               const status = STATUS_BADGE[m.status] ?? STATUS_BADGE.active;
+              const er = effectiveRole(m);
               return (
                 <TableRow key={m.id}>
                   <TableCell>
@@ -287,7 +303,7 @@ function MembersPageInner() {
                       <div
                         className={cn(
                           "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0",
-                          ROLE_AVATAR[m.role] ?? "bg-warm-500"
+                          ROLE_AVATAR[er] ?? "bg-warm-500"
                         )}
                       >
                         {m.name?.charAt(0) ?? "?"}
@@ -303,8 +319,8 @@ function MembersPageInner() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ROLE_BADGE[m.role]?.variant ?? "outline"}>
-                      {ROLE_BADGE[m.role]?.label ?? m.role}
+                    <Badge variant={ROLE_BADGE[er]?.variant ?? "outline"}>
+                      {ROLE_BADGE[er]?.label ?? m.role}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -319,7 +335,7 @@ function MembersPageInner() {
                         <span className="text-warm-300 text-xs">미등록</span>
                       )
                     ) : (
-                      <span className="text-warm-600 text-sm">{ROLE_BADGE[m.role]?.label ?? m.role}</span>
+                      <span className="text-warm-600 text-sm">{ROLE_BADGE[er]?.label ?? m.role}</span>
                     )}
                   </TableCell>
                   <TableCell>

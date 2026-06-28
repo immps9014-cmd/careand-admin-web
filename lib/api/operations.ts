@@ -141,6 +141,8 @@ export interface Member {
   email: string | null;
   phone: string | null;
   role: "guardian" | "caregiver" | "organization" | "admin";
+  /** 보호자(guardian) 가입 의도 — care=보호자, housekeeping=가사요청자. 비-보호자은 null */
+  intent?: "care" | "housekeeping" | null;
   status: "active" | "suspended" | "withdrawn";
   /** 돌봄전문가(caregiver) 행의 자격검증 상태 — 비-돌봄전문가은 null */
   caregiver_status?: "pending" | "active" | "suspended" | "leave" | "rejected" | null;
@@ -150,6 +152,8 @@ export interface Member {
 }
 export interface MemberSummary {
   guardian: number;
+  /** 가사요청자 (role=guardian + intent=housekeeping) */
+  housekeeping: number;
   caregiver: number;
   organization: number;
   admin: number;
