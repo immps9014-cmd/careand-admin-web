@@ -38,12 +38,12 @@ const STATUS_PILL: Record<string, { cls: string; dot: string; label: string }> =
 
 // 도메인 배지 색상 (mockup: dom-senior=purple, dom-nursing=info, dom-house=ok)
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand", nursing: "info", housekeeping: "success", postpartum: "warn", companion: "outline",
+  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", companion: "outline",
 };
 
 // 아바타 배경 (도메인 기반)
 const AVATAR_BG: Record<string, string> = {
-  senior: "bg-brand-500", nursing: "bg-info", housekeeping: "bg-brand-600",
+  senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
   postpartum: "bg-warn", companion: "bg-warm-500",
 };
 
@@ -54,7 +54,7 @@ const DOMAIN_TABS = [
   { key: "", label: "전체 도메인" },
   { key: "senior", label: "요양보호" },
   { key: "nursing", label: "간병" },
-  { key: "housekeeping", label: "가사" },
+  { key: "living_support", label: "생활지원" },
 ];
 
 export default function MatchingPage() {

@@ -42,7 +42,7 @@ const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "o
 
 // 아바타 배경 (도메인 기반, 첫 도메인 사용)
 const AVATAR_BG: Record<string, string> = {
-  senior: "bg-brand-500", nursing: "bg-info", housekeeping: "bg-brand-600",
+  senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
   postpartum: "bg-warn",
 };
 

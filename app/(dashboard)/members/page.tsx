@@ -75,7 +75,7 @@ const ORG_TYPE: Record<string, string> = {
 const ORG_TYPE_OPTIONS = Object.keys(ORG_TYPE);
 
 // 돌봄전문가 직군(service_domains) 편집 옵션
-const CG_DOMAIN_OPTIONS = ["senior", "nursing", "housekeeping", "postpartum"];
+const CG_DOMAIN_OPTIONS = ["senior", "nursing", "living_support", "postpartum"];
 
 const ROLE_BADGE: Record<
   string,
@@ -817,7 +817,7 @@ const ADD_ROLES: { key: string; label: string; role: CreateMemberInput["role"]; 
   { key: "guardian", label: "보호자", role: "guardian" },
   { key: "caregiver:senior", label: "돌봄전문가(요양보호)", role: "caregiver", domain: "senior" },
   { key: "caregiver:nursing", label: "돌봄전문가(간병)", role: "caregiver", domain: "nursing" },
-  { key: "caregiver:housekeeping", label: "돌봄전문가(가사)", role: "caregiver", domain: "housekeeping" },
+  { key: "caregiver:living_support", label: "돌봄전문가(생활지원)", role: "caregiver", domain: "living_support" },
   { key: "organization", label: "기관", role: "organization" },
   { key: "admin", label: "운영자", role: "admin" },
 ];

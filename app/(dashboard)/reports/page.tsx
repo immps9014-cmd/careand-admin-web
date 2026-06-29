@@ -61,7 +61,7 @@ function StatRow({
 const DOMAIN_SLICES = [
   { key: "senior", name: "요양보호", color: "#10B981" },
   { key: "nursing", name: "간병", color: "#3B82F6" },
-  { key: "housekeeping", name: "가사", color: "#22C55E" },
+  { key: "living_support", name: "생활지원", color: "#22C55E" },
   { key: "postpartum", name: "산후", color: "#F59E0B" },
 ];
 

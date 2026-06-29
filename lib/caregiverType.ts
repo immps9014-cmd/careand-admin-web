@@ -8,6 +8,7 @@ export const DOMAIN_LABEL: Record<string, string> = {
   senior: "요양보호",
   nursing: "간병",
   housekeeping: "가사",
+  living_support: "생활지원",
   postpartum: "산후",
   companion: "동행",
   care: "간병",

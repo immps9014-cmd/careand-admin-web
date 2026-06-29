@@ -37,7 +37,7 @@ const REVIEW_BADGE: Record<string, { variant: "warn" | "success" | "danger"; lab
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
   senior: "brand",
   nursing: "info",
-  housekeeping: "success",
+  living_support: "success",
   postpartum: "warn",
   companion: "outline",
 };
@@ -45,7 +45,7 @@ const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outl
 const AVATAR_BG: Record<string, string> = {
   senior: "bg-brand-500",
   nursing: "bg-info",
-  housekeeping: "bg-brand-600",
+  living_support: "bg-brand-600",
   postpartum: "bg-warn",
   companion: "bg-warm-500",
 };
