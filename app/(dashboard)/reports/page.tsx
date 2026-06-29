@@ -63,6 +63,7 @@ const DOMAIN_SLICES = [
   { key: "nursing", name: "간병", color: "#3B82F6" },
   { key: "living_support", name: "생활지원", color: "#22C55E" },
   { key: "postpartum", name: "산후", color: "#F59E0B" },
+  { key: "childcare", name: "아이돌봄", color: "#3B82F6" },
 ];
 
 function fmtLatency(ms: number) {

@@ -38,13 +38,13 @@ const STATUS_PILL: Record<string, { cls: string; dot: string; label: string }> =
 
 // 도메인 배지 색상 (mockup: dom-senior=purple, dom-nursing=info, dom-house=ok)
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", companion: "outline",
+  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", childcare: "info", companion: "outline",
 };
 
 // 아바타 배경 (도메인 기반)
 const AVATAR_BG: Record<string, string> = {
   senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
-  postpartum: "bg-warn", companion: "bg-warm-500",
+  postpartum: "bg-warn", childcare: "bg-info", companion: "bg-warm-500",
 };
 
 const MODE_LABEL = (mode: string) =>

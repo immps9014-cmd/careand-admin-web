@@ -44,6 +44,7 @@ const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "o
 const AVATAR_BG: Record<string, string> = {
   senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
   postpartum: "bg-warn",
+  childcare: "bg-info",
 };
 
 // 1차년도 수동 검증 — 제출 서류 체크리스트 (정적 안내, 자동 진위검증 미연동)

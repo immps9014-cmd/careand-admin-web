@@ -10,6 +10,7 @@ export const DOMAIN_LABEL: Record<string, string> = {
   housekeeping: "가사",
   living_support: "생활지원",
   postpartum: "산후",
+  childcare: "아이돌봄",
   companion: "동행",
   care: "간병",
 };
