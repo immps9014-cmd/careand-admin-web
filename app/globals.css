@@ -1,5 +1,18 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* 폰트 self-host (외부 CDN 의존 제거). 파일은 public/fonts/, basePath(/admin) 하에 /admin/fonts/* 로 서빙. */
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("/admin/fonts/PretendardVariable.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("/admin/fonts/PlusJakartaSans-latin.woff2") format("woff2-variations");
+}
 
 @tailwind base;
 @tailwind components;
