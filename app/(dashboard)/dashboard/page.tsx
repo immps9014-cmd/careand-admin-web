@@ -18,6 +18,7 @@ const DOMAIN_CARDS = [
   { key: "living_support", label: "생활지원" },
   { key: "postpartum", label: "산후" },
   { key: "childcare", label: "아이돌봄" },
+  { key: "mental_care", label: "마음돌봄" },
 ];
 
 const RISK_DESC: Record<string, string> = {

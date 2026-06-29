@@ -75,7 +75,7 @@ const ORG_TYPE: Record<string, string> = {
 const ORG_TYPE_OPTIONS = Object.keys(ORG_TYPE);
 
 // 돌봄전문가 직군(service_domains) 편집 옵션
-const CG_DOMAIN_OPTIONS = ["senior", "nursing", "living_support", "postpartum", "childcare"];
+const CG_DOMAIN_OPTIONS = ["senior", "nursing", "living_support", "postpartum", "childcare", "mental_care"];
 
 const ROLE_BADGE: Record<
   string,

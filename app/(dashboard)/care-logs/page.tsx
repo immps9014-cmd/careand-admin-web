@@ -40,6 +40,7 @@ const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outl
   living_support: "success",
   postpartum: "warn",
   childcare: "info",
+  mental_care: "outline",
   companion: "outline",
 };
 
@@ -49,6 +50,7 @@ const AVATAR_BG: Record<string, string> = {
   living_support: "bg-brand-600",
   postpartum: "bg-warn",
   childcare: "bg-info",
+  mental_care: "bg-warm-400",
   companion: "bg-warm-500",
 };
 

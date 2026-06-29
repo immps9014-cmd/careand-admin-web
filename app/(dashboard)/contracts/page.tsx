@@ -49,7 +49,7 @@ const VISIT_STYLE: Record<string, { border: string; bg: string; text: string; do
 
 // 도메인 배지 색 (매칭 페이지와 동일 규칙)
 const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", childcare: "info", companion: "outline",
+  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", childcare: "info", mental_care: "outline", companion: "outline",
 };
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
