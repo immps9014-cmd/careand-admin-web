@@ -48,6 +48,16 @@ const AVATAR_BG: Record<string, string> = {
   mental_care: "bg-warm-400",
 };
 
+// 도메인별 인정 자격증 종류 (백엔드 config/service_domains.php qualification.accepted_types 미러).
+// 상담(mental_care) 등 manual 검증 도메인에서 제출 자격종류가 인정 범위인지 담당자가 확인하는 보조.
+const DOMAIN_CREDENTIALS: Record<string, string[]> = {
+  senior: ["요양보호사"],
+  nursing: ["요양보호사", "간호조무사", "간병사", "간호사"],
+  postpartum: ["산후관리사", "간호사", "간호조무사"],
+  childcare: ["아이돌보미", "보육교사", "유치원정교사", "베이비시터"],
+  mental_care: ["상담심리사", "임상심리사", "정신건강임상심리사", "청소년상담사", "전문상담교사", "정신건강사회복지사", "사회복지사"],
+};
+
 // 1차년도 수동 검증 — 제출 서류 체크리스트 (정적 안내, 자동 진위검증 미연동)
 const DOC_CHECKLIST: { label: string; required: boolean }[] = [
   { label: "신분증", required: true },
@@ -222,6 +232,12 @@ export default function CaregiverApprovalPage() {
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <IdCard className="w-3.5 h-3.5" />자격증 <span className="font-en text-warm-700 font-semibold">{selected.license_no || "미제출"}</span>
+                      {selected.license_type && (
+                        <span className="ml-1 text-[11px] font-bold text-brand-700 bg-brand-50 border border-brand-200 rounded px-1.5 py-px">{selected.license_type}</span>
+                      )}
+                      {selected.license_verified && (
+                        <BadgeCheck className="w-3.5 h-3.5 text-brand-500" />
+                      )}
                     </span>
                     <span>신청일 <span className="font-en">{formatDate(selected.created_at)}</span></span>
                   </div>
@@ -287,11 +303,49 @@ export default function CaregiverApprovalPage() {
                 {/* 우: 검증 안내 + 결정 */}
                 <div className="space-y-4">
                   <div>
-                    <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2.5">자동 진위 검증</div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-info-bg text-info rounded-lg px-3 py-2.5">
-                      <AlertTriangle className="w-4 h-4 flex-none" />
-                      1차년도는 외부 진위조회 미연동 — 담당자 수동 검증으로 처리합니다.
-                    </div>
+                    <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2.5">자격 검증</div>
+                    {(() => {
+                      const dom = firstDomain(selected);
+                      const accepted = DOMAIN_CREDENTIALS[dom];
+                      const type = selected.license_type;
+                      const matched = !!type && !!accepted && accepted.includes(type);
+                      return (
+                        <div className="space-y-2">
+                          {dom === "senior" ? (
+                            <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-info-bg text-info rounded-lg px-3 py-2.5">
+                              <AlertTriangle className="w-4 h-4 flex-none" />
+                              요양보호 도메인 — 보건복지부 자동 진위확인 대상.
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-info-bg text-info rounded-lg px-3 py-2.5">
+                              <AlertTriangle className="w-4 h-4 flex-none" />
+                              담당자 수동 자격 검증 도메인 (외부 자동조회 미적용).
+                            </div>
+                          )}
+                          {accepted && (
+                            <div className="text-[11px] text-warm-500 leading-relaxed">
+                              <span className="font-bold text-warm-600">인정 자격:</span> {accepted.join(", ")}
+                            </div>
+                          )}
+                          {accepted && (
+                            type ? (
+                              <div className={cn(
+                                "flex items-center gap-1.5 text-[11.5px] font-bold rounded-lg px-3 py-2",
+                                matched ? "text-brand-700 bg-brand-50" : "text-danger bg-danger-bg"
+                              )}>
+                                {matched ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                제출 자격종류 「{type}」 — {matched ? "인정 범위 내" : "인정 목록과 불일치, 확인 필요"}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-warn rounded-lg px-3 py-2 bg-warn/10">
+                                <AlertTriangle className="w-3.5 h-3.5" />
+                                자격종류 미제출 — 자격증 원본 확인 필요
+                              </div>
+                            )
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="border border-warm-100 rounded-xl p-4 bg-warm-50">

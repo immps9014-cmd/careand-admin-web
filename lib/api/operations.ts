@@ -11,6 +11,8 @@ export interface AdminCaregiver {
   service_domains: string;
   status: "pending" | "active" | "suspended" | "rejected" | "leave";
   license_no: string | null;
+  license_type: string | null;
+  license_verified: boolean;
   career_track: string;
   rating_avg: number;
   completed_sessions: number;
