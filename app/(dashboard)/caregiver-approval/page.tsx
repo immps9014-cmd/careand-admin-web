@@ -139,7 +139,7 @@ export default function CaregiverApprovalPage() {
       </div>
 
       {/* SLA / 현황 요약 */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard variant="brand" label="승인 대기" value={status === "pending" ? total : "—"} icon={Clock} />
         <KpiCard label="검토 대상 (현재 탭)" value={total} icon={ShieldCheck} iconColor="info" />
         <KpiCard label="필수 서류 항목" value={DOC_CHECKLIST.filter((d) => d.required).length} icon={FileWarning} iconColor="warn" subLabel="신분증·자격증·성범죄경력·건강진단서" />

@@ -129,7 +129,7 @@ export default function CareLogsPage() {
       </div>
 
       {/* 요약 스트립 */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
           variant="brand"
           label={`${TABS.find((t) => t.key === reviewStatus)?.label ?? "검수"} 건수`}

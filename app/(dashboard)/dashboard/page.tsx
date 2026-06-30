@@ -81,7 +81,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard variant="alert" label="미해결 위험 알림" value={kpi?.high_alerts_unresolved ?? 0} icon={AlertTriangle} subLabel={alertSubLabel} cta="즉시 확인" />
         <KpiCard label="검수 대기 돌봄전문가" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
         <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <h2 className="text-base font-bold text-warm-800">도메인별 현황</h2>
             <span className="text-[11px] text-warm-400">진행중 매칭 · 주간 요청 · 주간 매출</span>
           </div>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {DOMAIN_CARDS.map((d) => {
               const v = kpi?.by_domain?.[d.key];
               return (

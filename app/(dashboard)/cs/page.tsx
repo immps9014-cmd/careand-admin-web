@@ -126,7 +126,7 @@ export default function CsPage() {
       </div>
 
       {/* 요약 KPI */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
           label="전체 후기"
           value={stats?.reviews_total ?? 0}

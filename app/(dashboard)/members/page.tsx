@@ -177,7 +177,7 @@ function MembersPageInner() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard
           label="보호자"
           value={s?.guardian ?? 0}

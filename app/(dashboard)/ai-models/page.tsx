@@ -139,7 +139,7 @@ export default function AiModelsPage() {
       </div>
 
       {/* 모델 헬스 요약 KPI */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard
           label="운영중 (active)"
           value={summary?.active ?? 0}

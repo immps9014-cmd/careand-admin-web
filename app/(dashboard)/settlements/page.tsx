@@ -138,7 +138,7 @@ export default function SettlementsPage() {
       </div>
 
       {/* 정산 요약 (실데이터) — 총 실지급 강조, 원천징수 차감 강조 */}
-      <div className="grid grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <KpiCard
           label="정산 돌봄전문가"
           value={s ? `${s.caregivers}명` : "-"}
