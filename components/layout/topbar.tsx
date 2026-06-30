@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, LogOut, Search, Settings } from "lucide-react";
+import { Bell, LogOut, Menu, Search, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/store";
@@ -17,7 +17,7 @@ const SEVERITY_META: Record<RecentAlert["severity"], { label: string; dot: strin
   low: { label: "낮음", dot: "bg-warm-400", text: "text-warm-500" },
 };
 
-export function Topbar() {
+export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const router = useRouter();
   const logout = useAuth((s) => s.logout);
 
@@ -58,17 +58,26 @@ export function Topbar() {
   const recent = (alertsQuery.data?.data ?? []).slice(0, 5);
 
   return (
-    <header className="h-16 bg-white border-b border-warm-100 flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
-      {/* 검색 */}
-      <form onSubmit={submitSearch} className="relative w-96 max-w-md">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400 pointer-events-none" />
-        <Input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="회원 이름·이메일 검색 후 Enter"
-          className="pl-10 bg-warm-50 border-warm-200 placeholder:text-warm-400"
-        />
-      </form>
+    <header className="h-16 bg-white border-b border-warm-100 flex items-center justify-between gap-3 px-4 lg:px-8 sticky top-0 z-10 shadow-sm">
+      {/* 햄버거 (모바일/태블릿) + 검색 */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <button
+          onClick={onMenuClick}
+          aria-label="메뉴 열기"
+          className="shrink-0 p-2 -ml-2 text-warm-600 hover:text-brand-600 lg:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <form onSubmit={submitSearch} className="relative w-full max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400 pointer-events-none" />
+          <Input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder="회원 이름·이메일 검색 후 Enter"
+            className="pl-10 bg-warm-50 border-warm-200 placeholder:text-warm-400"
+          />
+        </form>
+      </div>
 
       {/* 액션 */}
       <div className="flex items-center gap-2">

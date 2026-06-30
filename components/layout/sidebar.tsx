@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Users,
   Workflow,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
@@ -52,12 +53,19 @@ const AI_NAV: NavItem[] = [
   { href: "/reports", label: "리포트", icon: BarChart3 },
 ];
 
-export function Sidebar() {
+export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const user = useAuth((s) => s.user);
 
   return (
-    <aside className="w-60 bg-white border-r border-warm-200 flex flex-col">
+    <aside
+      className={cn(
+        "w-60 bg-white border-r border-warm-200 flex flex-col",
+        // 모바일: 오프캔버스(슬라이드) / 데스크톱: 고정 표시
+        "fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0",
+        open ? "translate-x-0" : "-translate-x-full"
+      )}
+    >
       {/* 로고 */}
       <div className="px-6 py-5 border-b border-warm-100 flex items-center gap-2.5">
         <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center font-en font-extrabold text-white text-base shadow-md">
@@ -71,16 +79,23 @@ export function Sidebar() {
             관리자 콘솔
           </div>
         </div>
+        <button
+          onClick={onClose}
+          aria-label="메뉴 닫기"
+          className="ml-auto -mr-2 p-2 text-warm-400 hover:text-warm-700 lg:hidden"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* 메인 메뉴 */}
-      <NavSection title="메인" items={MAIN_NAV} pathname={pathname} />
+      <NavSection title="메인" items={MAIN_NAV} pathname={pathname} onNavigate={onClose} />
 
       {/* 운영 관리 */}
-      <NavSection title="운영 관리" items={OPS_NAV} pathname={pathname} />
+      <NavSection title="운영 관리" items={OPS_NAV} pathname={pathname} onNavigate={onClose} />
 
       {/* AI 운영 */}
-      <NavSection title="AI 운영" items={AI_NAV} pathname={pathname} />
+      <NavSection title="AI 운영" items={AI_NAV} pathname={pathname} onNavigate={onClose} />
 
       {/* 사용자 */}
       <div className="mt-auto px-6 py-4 border-t border-warm-100 flex items-center gap-3">
@@ -112,10 +127,12 @@ function NavSection({
   title,
   items,
   pathname,
+  onNavigate,
 }: {
   title: string;
   items: NavItem[];
   pathname: string;
+  onNavigate?: () => void;
 }) {
   return (
     <div className="pt-4 pb-2">
@@ -130,6 +147,7 @@ function NavSection({
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-6 py-2.5 text-sm font-medium border-l-[3px] transition-all",
                 isActive
