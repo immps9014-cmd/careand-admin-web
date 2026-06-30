@@ -41,6 +41,9 @@
     ".next.build/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "app.bak_*",
+    "**/*.bak",
+    "**/*.bak.*"
   ]
 }
