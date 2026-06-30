@@ -49,13 +49,23 @@ const AVATAR_BG: Record<string, string> = {
 };
 
 // 도메인별 인정 자격증 종류 (백엔드 config/service_domains.php qualification.accepted_types 미러).
-// 상담(mental_care) 등 manual 검증 도메인에서 제출 자격종류가 인정 범위인지 담당자가 확인하는 보조.
+// 제출 자격종류가 도메인 인정 범위인지 담당자가 확인하는 보조.
 const DOMAIN_CREDENTIALS: Record<string, string[]> = {
   senior: ["요양보호사"],
   nursing: ["요양보호사", "간호조무사", "간병사", "간호사"],
   postpartum: ["산후관리사", "간호사", "간호조무사"],
   childcare: ["아이돌보미", "보육교사", "유치원정교사", "베이비시터"],
   mental_care: ["상담심리사", "임상심리사", "정신건강임상심리사", "청소년상담사", "전문상담교사", "정신건강사회복지사", "사회복지사"],
+};
+
+// 자격증 종류 → 자동 진위조회 발급기관 (백엔드 CredentialVerifier::TYPE_AUTHORITY 미러).
+// 매핑에 있으면 외부 자동조회 대상, 없으면(상담 계열 등) 관리자 수동 검증.
+const TYPE_AUTHORITY: Record<string, string> = {
+  요양보호사: "보건복지부",
+  간호조무사: "보건복지부",
+  간호사: "한국보건의료인국가시험원",
+  산후관리사: "민간자격정보서비스",
+  간병사: "민간자격정보서비스",
 };
 
 // 1차년도 수동 검증 — 제출 서류 체크리스트 (정적 안내, 자동 진위검증 미연동)
@@ -309,24 +319,51 @@ export default function CaregiverApprovalPage() {
                       const accepted = DOMAIN_CREDENTIALS[dom];
                       const type = selected.license_type;
                       const matched = !!type && !!accepted && accepted.includes(type);
+                      const authority = type ? TYPE_AUTHORITY[type] : undefined; // 있으면 자동조회 대상
+                      const rejected = selected.status === "rejected";
                       return (
                         <div className="space-y-2">
-                          {dom === "senior" ? (
-                            <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-info-bg text-info rounded-lg px-3 py-2.5">
-                              <AlertTriangle className="w-4 h-4 flex-none" />
-                              요양보호 도메인 — 보건복지부 자동 진위확인 대상.
+                          {/* 진위조회 경로: 자동(기관) vs 수동 */}
+                          {authority ? (
+                            <div className="flex items-center gap-2 text-xs font-semibold text-info bg-info-bg rounded-lg px-3 py-2.5">
+                              <ShieldCheck className="w-4 h-4 flex-none" />
+                              {authority} 자동 진위조회 대상
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-info-bg text-info rounded-lg px-3 py-2.5">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-warm-600 bg-warm-100 rounded-lg px-3 py-2.5">
                               <AlertTriangle className="w-4 h-4 flex-none" />
-                              담당자 수동 자격 검증 도메인 (외부 자동조회 미적용).
+                              자동조회 미지원 — 담당자 수동 자격 검증
                             </div>
                           )}
+
+                          {/* 자동조회 결과 상태 */}
+                          {authority && (
+                            selected.license_verified ? (
+                              <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-brand-700 bg-brand-50 rounded-lg px-3 py-2">
+                                <BadgeCheck className="w-3.5 h-3.5" />
+                                {authority} 진위확인 완료
+                              </div>
+                            ) : rejected ? (
+                              <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-danger bg-danger-bg rounded-lg px-3 py-2">
+                                <XCircle className="w-3.5 h-3.5" />
+                                {authority} 진위확인 실패 — 반려 처리됨
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-warn bg-warn/10 rounded-lg px-3 py-2">
+                                <AlertTriangle className="w-3.5 h-3.5" />
+                                진위확인 미완 — 자격증 원본 확인 권장
+                              </div>
+                            )
+                          )}
+
+                          {/* 도메인 인정 자격 목록 */}
                           {accepted && (
                             <div className="text-[11px] text-warm-500 leading-relaxed">
                               <span className="font-bold text-warm-600">인정 자격:</span> {accepted.join(", ")}
                             </div>
                           )}
+
+                          {/* 제출 자격종류 ↔ 도메인 인정범위 대조 */}
                           {accepted && (
                             type ? (
                               <div className={cn(
