@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
+import { ChunkReloader } from "@/components/chunk-reloader";
 
 export const metadata: Metadata = {
   title: {
@@ -23,6 +24,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-right" richColors />
         </Providers>
+        <ChunkReloader />
       </body>
     </html>
   );
