@@ -10,32 +10,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ===== Care& Brand · Green Emerald =====
+        // ===== Care& Brand · Warm Care (Coral/Terracotta) =====
         brand: {
-          50: "#ECFDF5",
-          100: "#D1FAE5",
-          200: "#A7F3D0",
-          300: "#6EE7B7",
-          400: "#34D399",
-          500: "#10B981", // Primary
-          600: "#059669",
-          700: "#047857",
-          800: "#065F46",
-          900: "#064E3B",
-          DEFAULT: "#10B981",
+          50: "#FDF4F1",
+          100: "#FAE3DB",
+          200: "#F5C9BA",
+          300: "#EDA48C",
+          400: "#E27E5F",
+          500: "#D5603E", // Primary
+          600: "#B94C2E",
+          700: "#973E27",
+          800: "#763223",
+          900: "#58271C",
+          DEFAULT: "#D5603E",
         },
-        // ===== Care& Neutral (Slate) =====
+        // ===== Care& Neutral (Warm Gray) =====
         warm: {
-          50: "#F8FAFC",
-          100: "#F1F5F9",
-          200: "#E2E8F0",
-          300: "#CBD5E1",
-          400: "#94A3B8",
-          500: "#64748B",
-          600: "#475569",
-          700: "#334155",
-          800: "#1E293B",
-          900: "#0F172A",
+          50: "#F7F6F4",
+          100: "#EFEDEA",
+          200: "#E2DFDA",
+          300: "#CBC6BE",
+          400: "#9C968C",
+          500: "#6B655C",
+          600: "#4E4941",
+          700: "#35312B",
+          800: "#211E1A",
+          900: "#121010",
         },
         // ===== Semantic =====
         danger: {
@@ -51,38 +51,38 @@ const config: Config = {
           bg: "#EFF6FF",
         },
         // ===== shadcn/ui 호환 =====
-        background: "#F8FAFC",
-        foreground: "#1E293B",
+        background: "#F7F6F4",
+        foreground: "#211E1A",
         primary: {
-          DEFAULT: "#10B981",
+          DEFAULT: "#D5603E",
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#1E293B",
+          DEFAULT: "#EFEDEA",
+          foreground: "#211E1A",
         },
         muted: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#64748B",
+          DEFAULT: "#EFEDEA",
+          foreground: "#6B655C",
         },
         accent: {
-          DEFAULT: "#D1FAE5",
-          foreground: "#047857",
+          DEFAULT: "#FAE3DB",
+          foreground: "#973E27",
         },
         destructive: {
           DEFAULT: "#EF4444",
           foreground: "#FFFFFF",
         },
-        border: "#E2E8F0",
-        input: "#E2E8F0",
-        ring: "#10B981",
+        border: "#E2DFDA",
+        input: "#E2DFDA",
+        ring: "#D5603E",
         card: {
           DEFAULT: "#FFFFFF",
-          foreground: "#1E293B",
+          foreground: "#211E1A",
         },
         popover: {
           DEFAULT: "#FFFFFF",
-          foreground: "#1E293B",
+          foreground: "#211E1A",
         },
       },
       fontFamily: {
