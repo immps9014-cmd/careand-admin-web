@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Megaphone, Send, Bell, Smartphone, MessageSquare, Mail } from "lucide-react";
+import {
+  Megaphone,
+  Send,
+  Bell,
+  Smartphone,
+  MessageSquare,
+  Mail,
+  Users,
+  User,
+  Search,
+  X,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,12 +27,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { operationsApi } from "@/lib/api/operations";
+import { operationsApi, type AnnouncementRecipient } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 
+type Mode = "group" | "direct";
+
 const TARGETS: { key: "all" | "guardian" | "caregiver"; label: string }[] = [
   { key: "all", label: "전체" },
+  { key: "guardian", label: "보호자" },
+  { key: "caregiver", label: "돌봄전문가" },
+];
+
+// 개인 검색 시 역할 필터
+const ROLE_FILTERS: { key: "" | "guardian" | "caregiver"; label: string }[] = [
+  { key: "", label: "전체" },
   { key: "guardian", label: "보호자" },
   { key: "caregiver", label: "돌봄전문가" },
 ];
@@ -33,10 +53,22 @@ const CHANNELS = [
   { key: "email", label: "이메일", icon: Mail },
 ];
 
+function roleLabel(r: AnnouncementRecipient): string {
+  if (r.role === "caregiver") return "돌봄전문가";
+  return r.intent === "housekeeping" ? "가사요청자" : "보호자";
+}
+
 export default function AnnouncementsPage() {
+  const [mode, setMode] = useState<Mode>("group");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [target, setTarget] = useState<"all" | "guardian" | "caregiver">("all");
+
+  // 개인 지정 발송 상태
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"" | "guardian" | "caregiver">("");
+  const [selected, setSelected] = useState<AnnouncementRecipient | null>(null);
+
   const qc = useQueryClient();
 
   const query = useQuery({
@@ -44,19 +76,60 @@ export default function AnnouncementsPage() {
     queryFn: () => operationsApi.announcements(),
   });
 
-  const send = useMutation({
+  // 검색어가 있을 때만 대상 조회 (선택 완료 시엔 조회 중단)
+  const kw = search.trim();
+  const recipientsQuery = useQuery({
+    queryKey: ["admin", "announcement-recipients", kw, roleFilter],
+    queryFn: () =>
+      operationsApi.searchRecipients({
+        q: kw,
+        ...(roleFilter ? { role: roleFilter } : {}),
+      }),
+    enabled: mode === "direct" && kw.length >= 1 && !selected,
+  });
+
+  const resetForm = () => {
+    setTitle("");
+    setBody("");
+  };
+
+  const sendGroup = useMutation({
     mutationFn: () => operationsApi.broadcast({ title, body, target }),
     onSuccess: (res) => {
       toast.success(res.data?.message ?? "공지를 발송했습니다.");
-      setTitle("");
-      setBody("");
+      resetForm();
       qc.invalidateQueries({ queryKey: ["admin", "announcements"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
-  const canSend = title.trim().length > 0 && body.trim().length > 0 && !send.isPending;
+  const sendDirect = useMutation({
+    mutationFn: () =>
+      operationsApi.sendDirect({ user_id: selected!.id, title, body }),
+    onSuccess: (res) => {
+      toast.success(res.data?.message ?? "메시지를 발송했습니다.");
+      resetForm();
+      qc.invalidateQueries({ queryKey: ["admin", "announcements"] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
+  const isPending = sendGroup.isPending || sendDirect.isPending;
+  const contentFilled = title.trim().length > 0 && body.trim().length > 0;
+  const canSend =
+    contentFilled && !isPending && (mode === "group" || selected !== null);
+
   const targetLabel = TARGETS.find((t) => t.key === target)?.label ?? "전체";
+  // 미리보기 뱃지 라벨
+  const previewLabel = useMemo(() => {
+    if (mode === "direct") return selected ? `${selected.name} 님` : "개인 지정";
+    return `${targetLabel} 대상`;
+  }, [mode, selected, targetLabel]);
+
+  const handleSend = () => {
+    if (mode === "direct") sendDirect.mutate();
+    else sendGroup.mutate();
+  };
 
   return (
     <div className="p-8">
@@ -77,6 +150,36 @@ export default function AnnouncementsPage() {
             <Megaphone className="w-4 h-4 text-brand-500" />
             새 공지 발송
           </h2>
+
+          {/* 발송 방식 — 그룹 / 개인 지정 */}
+          <label className="block text-xs font-semibold text-warm-600 mb-2">발송 방식</label>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {(
+              [
+                { key: "group", label: "그룹 발송", icon: Users },
+                { key: "direct", label: "개인 지정", icon: User },
+              ] as { key: Mode; label: string; icon: typeof Users }[]
+            ).map((m) => {
+              const Icon = m.icon;
+              const on = mode === m.key;
+              return (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setMode(m.key)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2.5 text-xs font-bold transition-colors",
+                    on
+                      ? "border-brand-400 bg-brand-50 text-brand-600"
+                      : "border-warm-200 bg-white text-warm-400 hover:border-warm-300"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* 발송 채널 (시각 표시용) */}
           <label className="block text-xs font-semibold text-warm-600 mb-2">발송 채널</label>
@@ -101,27 +204,135 @@ export default function AnnouncementsPage() {
             })}
           </div>
 
-          {/* 수신 대상 */}
-          <label className="block text-xs font-semibold text-warm-600 mb-2">수신 대상</label>
-          <div className="flex gap-2 mb-4">
-            {TARGETS.map((t) => (
-              <Button
-                key={t.key}
-                variant={target === t.key ? "primary" : "outline"}
-                size="sm"
-                className="flex-1"
-                onClick={() => setTarget(t.key)}
-              >
-                {t.label}
-              </Button>
-            ))}
-          </div>
+          {/* === 그룹 발송: 수신 대상 === */}
+          {mode === "group" && (
+            <>
+              <label className="block text-xs font-semibold text-warm-600 mb-2">수신 대상</label>
+              <div className="flex gap-2 mb-4">
+                {TARGETS.map((t) => (
+                  <Button
+                    key={t.key}
+                    variant={target === t.key ? "primary" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setTarget(t.key)}
+                  >
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* === 개인 지정: 대상 검색 === */}
+          {mode === "direct" && (
+            <>
+              <label className="block text-xs font-semibold text-warm-600 mb-2">
+                수신자 검색
+              </label>
+
+              {selected ? (
+                /* 선택된 대상 카드 */
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 py-2.5 mb-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-warm-800 truncate">
+                        {selected.name}
+                      </span>
+                      <Badge variant="success">{roleLabel(selected)}</Badge>
+                    </div>
+                    <div className="text-[11px] text-warm-500 truncate mt-0.5">
+                      {selected.phone || selected.email || `#${selected.id}`}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="대상 해제"
+                    onClick={() => setSelected(null)}
+                    className="flex-none rounded-md p-1 text-warm-400 hover:bg-warm-100 hover:text-warm-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* 역할 필터 */}
+                  <div className="flex gap-2 mb-2">
+                    {ROLE_FILTERS.map((r) => (
+                      <Button
+                        key={r.key || "all"}
+                        variant={roleFilter === r.key ? "primary" : "outline"}
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setRoleFilter(r.key)}
+                      >
+                        {r.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* 검색 입력 */}
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400 pointer-events-none" />
+                    <Input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="이름·이메일·연락처 검색"
+                      className="pl-9"
+                    />
+                  </div>
+
+                  {/* 검색 결과 */}
+                  <div className="mb-4 max-h-[240px] overflow-y-auto rounded-lg border border-warm-200 divide-y divide-warm-100">
+                    {kw.length < 1 && (
+                      <div className="px-3 py-6 text-center text-xs text-warm-400">
+                        보낼 대상의 이름/연락처를 검색하세요
+                      </div>
+                    )}
+                    {kw.length >= 1 && recipientsQuery.isLoading && (
+                      <div className="px-3 py-6 text-center text-xs text-warm-400">
+                        검색 중…
+                      </div>
+                    )}
+                    {kw.length >= 1 &&
+                      !recipientsQuery.isLoading &&
+                      (recipientsQuery.data?.length ?? 0) === 0 && (
+                        <div className="px-3 py-6 text-center text-xs text-warm-400">
+                          검색 결과가 없습니다
+                        </div>
+                      )}
+                    {recipientsQuery.data?.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setSelected(r)}
+                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left hover:bg-warm-50 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-warm-800 truncate">
+                              {r.name}
+                            </span>
+                            <Badge variant="outline">{roleLabel(r)}</Badge>
+                          </div>
+                          <div className="text-[11px] text-warm-500 truncate mt-0.5">
+                            {r.phone || r.email || `#${r.id}`}
+                          </div>
+                        </div>
+                        <Send className="w-3.5 h-3.5 flex-none text-warm-300" />
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
 
           <label className="block text-xs font-semibold text-warm-600 mb-2">제목</label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="공지 제목"
+            placeholder={mode === "direct" ? "메시지 제목" : "공지 제목"}
             maxLength={200}
             className="mb-4"
           />
@@ -130,7 +341,7 @@ export default function AnnouncementsPage() {
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="공지 내용을 입력하세요"
+            placeholder={mode === "direct" ? "메시지 내용을 입력하세요" : "공지 내용을 입력하세요"}
             maxLength={2000}
             rows={5}
             className="w-full rounded-lg border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus-visible:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-500/20 mb-4 resize-none leading-relaxed"
@@ -139,19 +350,29 @@ export default function AnnouncementsPage() {
           {/* 발송 추정 안내 */}
           <div className="flex items-center gap-2 rounded-lg bg-info-bg text-info px-3 py-2.5 text-xs font-semibold mb-4">
             <Bell className="w-4 h-4 flex-none" />
-            <span>
-              앱 푸시 · <b className="font-extrabold">{targetLabel}</b> 대상에게 즉시 발송됩니다
-            </span>
+            {mode === "direct" ? (
+              <span>
+                앱 푸시 ·{" "}
+                <b className="font-extrabold">
+                  {selected ? `${selected.name} 님` : "지정한 개인"}
+                </b>
+                에게만 발송됩니다
+              </span>
+            ) : (
+              <span>
+                앱 푸시 · <b className="font-extrabold">{targetLabel}</b> 대상에게 즉시 발송됩니다
+              </span>
+            )}
           </div>
 
           <Button
             variant="primary"
             className="w-full"
             disabled={!canSend}
-            onClick={() => send.mutate()}
+            onClick={handleSend}
           >
             <Send className="w-4 h-4" />
-            {send.isPending ? "발송 중…" : "즉시 발송"}
+            {isPending ? "발송 중…" : "즉시 발송"}
           </Button>
         </Card>
 
@@ -191,7 +412,14 @@ export default function AnnouncementsPage() {
                 {query.data?.data.map((a, i) => (
                   <TableRow key={i}>
                     <TableCell>
-                      <div className="font-bold text-warm-800">{a.title}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-warm-800">{a.title}</span>
+                        {a.is_direct ? (
+                          <Badge variant="brand">개인</Badge>
+                        ) : (
+                          <Badge variant="outline">그룹</Badge>
+                        )}
+                      </div>
                       <div className="text-xs text-warm-500 max-w-[280px] truncate mt-0.5">
                         {a.body}
                       </div>
@@ -233,13 +461,13 @@ export default function AnnouncementsPage() {
                   Care& · 지금
                 </div>
                 <div className="text-sm font-bold text-warm-800 mt-2">
-                  {title.trim() || "공지 제목"}
+                  {title.trim() || (mode === "direct" ? "메시지 제목" : "공지 제목")}
                 </div>
                 <div className="text-xs text-warm-600 mt-1 leading-relaxed whitespace-pre-line break-words">
-                  {body.trim() || "공지 내용을 입력하세요"}
+                  {body.trim() || (mode === "direct" ? "메시지 내용을 입력하세요" : "공지 내용을 입력하세요")}
                 </div>
                 <div className="mt-2.5">
-                  <Badge variant="success">{targetLabel} 대상</Badge>
+                  <Badge variant="success">{previewLabel}</Badge>
                 </div>
               </div>
             </div>
