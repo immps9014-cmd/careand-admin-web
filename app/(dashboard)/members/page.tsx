@@ -10,6 +10,7 @@ import {
   HardHat,
   Building2,
   Sparkles,
+  Baby,
   Plus,
   Filter,
   ArrowDownUp,
@@ -83,6 +84,7 @@ const ROLE_BADGE: Record<
 > = {
   guardian: { variant: "info", label: "보호자" },
   housekeeping: { variant: "info", label: "가사요청자" },
+  postpartum: { variant: "info", label: "산모요청자" },
   caregiver: { variant: "success", label: "돌봄전문가" },
   organization: { variant: "warn", label: "기관" },
   admin: { variant: "danger", label: "운영자" },
@@ -100,14 +102,16 @@ const STATUS_BADGE: Record<
 const ROLE_AVATAR: Record<string, string> = {
   guardian: "bg-info",
   housekeeping: "bg-info",
+  postpartum: "bg-info",
   caregiver: "bg-brand-500",
   organization: "bg-warn",
   admin: "bg-warm-600",
 };
 
-/** 행/뱃지 표시용 유효 역할 키 — 가사요청자는 guardian이지만 intent로 구분 */
+/** 행/뱃지 표시용 유효 역할 키 — 가사·산모요청자는 guardian이지만 intent로 구분 */
 function effectiveRole(m: { role: string; intent?: string | null }): string {
-  return m.role === "guardian" && m.intent === "housekeeping" ? "housekeeping" : m.role;
+  if (m.role === "guardian" && (m.intent === "housekeeping" || m.intent === "postpartum")) return m.intent;
+  return m.role;
 }
 
 // 돌봄전문가 자격검증 상태 (caregiver_status)
@@ -149,12 +153,13 @@ function MembersPageInner() {
   const s = query.data?.summary;
   const total = query.data?.meta?.total ?? 0;
   const roleTotal =
-    (s?.guardian ?? 0) + (s?.housekeeping ?? 0) + (s?.caregiver ?? 0) + (s?.organization ?? 0) + (s?.admin ?? 0);
+    (s?.guardian ?? 0) + (s?.housekeeping ?? 0) + (s?.postpartum ?? 0) + (s?.caregiver ?? 0) + (s?.organization ?? 0) + (s?.admin ?? 0);
 
   const TABS: { key: string; label: string; count: number }[] = [
     { key: "", label: "전체", count: roleTotal },
     { key: "guardian", label: "보호자", count: s?.guardian ?? 0 },
     { key: "housekeeping", label: "가사요청자", count: s?.housekeeping ?? 0 },
+    { key: "postpartum", label: "산모요청자", count: s?.postpartum ?? 0 },
     { key: "caregiver", label: "돌봄전문가", count: s?.caregiver ?? 0 },
     { key: "organization", label: "기관", count: s?.organization ?? 0 },
     { key: "admin", label: "운영자", count: s?.admin ?? 0 },
@@ -177,7 +182,7 @@ function MembersPageInner() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <KpiCard
           label="보호자"
           value={s?.guardian ?? 0}
@@ -188,6 +193,12 @@ function MembersPageInner() {
           label="가사요청자"
           value={s?.housekeeping ?? 0}
           icon={Sparkles}
+          iconColor="info"
+        />
+        <KpiCard
+          label="산모요청자"
+          value={s?.postpartum ?? 0}
+          icon={Baby}
           iconColor="info"
         />
         <KpiCard

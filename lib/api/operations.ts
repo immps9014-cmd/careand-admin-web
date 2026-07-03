@@ -91,6 +91,21 @@ export interface Announcement {
   read_count: number;
   read_rate: number;
   sent_at: string;
+  /** 개인 지정(1인) 발송이면 true — 그룹 공지는 false */
+  is_direct: boolean;
+}
+
+/** 개인 지정 발송 대상 검색 결과 */
+export interface AnnouncementRecipient {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: "guardian" | "caregiver";
+  /** 보호자 가입 의도(care|housekeeping|postpartum). 돌봄전문가은 null */
+  intent: "care" | "housekeeping" | "postpartum" | null;
+  /** 돌봄전문가 직군. 보호자은 null */
+  service_domains: string | null;
 }
 
 /* ===== #18 매칭 모니터링 ===== */
@@ -143,8 +158,8 @@ export interface Member {
   email: string | null;
   phone: string | null;
   role: "guardian" | "caregiver" | "organization" | "admin";
-  /** 보호자(guardian) 가입 의도 — care=보호자, housekeeping=가사요청자. 비-보호자은 null */
-  intent?: "care" | "housekeeping" | null;
+  /** 보호자(guardian) 가입 의도 — care=보호자, housekeeping=가사요청자, postpartum=산모요청자. 비-보호자은 null */
+  intent?: "care" | "housekeeping" | "postpartum" | null;
   status: "active" | "suspended" | "withdrawn";
   /** 돌봄전문가(caregiver) 행의 자격검증 상태 — 비-돌봄전문가은 null */
   caregiver_status?: "pending" | "active" | "suspended" | "leave" | "rejected" | null;
@@ -156,6 +171,8 @@ export interface MemberSummary {
   guardian: number;
   /** 가사요청자 (role=guardian + intent=housekeeping) */
   housekeeping: number;
+  /** 산모요청자 (role=guardian + intent=postpartum) */
+  postpartum: number;
   caregiver: number;
   organization: number;
   admin: number;
@@ -316,6 +333,20 @@ export const operationsApi = {
   },
   broadcast: (payload: { title: string; body: string; target: "all" | "guardian" | "caregiver" }) =>
     api.post("/v1/admin/announcements", payload),
+  // 개인 지정 발송 — 보호자/돌봄전문가 검색
+  async searchRecipients(params: { q: string; role?: "guardian" | "caregiver" }): Promise<AnnouncementRecipient[]> {
+    const { data } = await api.get<ApiResponse<AnnouncementRecipient[]>>(
+      "/v1/admin/announcements/recipients",
+      { params },
+    );
+    return data.data ?? [];
+  },
+  // 개인 지정 발송 — 지정 1인에게만 푸시
+  sendDirect: (payload: { user_id: number; title: string; body: string }) =>
+    api.post<ApiResponse<{ recipients: number; user_id: number }>>(
+      "/v1/admin/announcements/direct",
+      payload,
+    ),
 
   // #18
   async matchingRequests(params?: { status?: string; domain?: string; page?: number }): Promise<Paginated<MatchingRequest> & { counts: Record<string, number> }> {
