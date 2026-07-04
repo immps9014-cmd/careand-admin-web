@@ -363,6 +363,9 @@ function MembersPageInner() {
                   </TableCell>
                   <TableCell className="text-warm-500 font-en text-xs">
                     {formatDate(m.created_at)}
+                    {m.withdrawn_at && (
+                      <span className="block text-danger font-sans">탈퇴 {formatDate(m.withdrawn_at)}</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span
@@ -543,6 +546,9 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                 <DRow label="역할"><Badge variant={ROLE_BADGE[data.role]?.variant ?? "outline"}>{ROLE_BADGE[data.role]?.label ?? data.role}</Badge></DRow>
                 <DRow label="계정 상태">{data.status}</DRow>
                 <DRow label="가입일"><span className="font-en">{formatDate(data.created_at)}</span></DRow>
+                {data.withdrawn_at && (
+                  <DRow label="탈퇴일"><span className="font-en text-danger">{formatDate(data.withdrawn_at)}</span></DRow>
+                )}
               </div>
 
               {/* 돌봄전문가 자격정보 */}
@@ -1072,16 +1078,17 @@ function RowMenu({ m, onDetail }: { m: Member; onDetail: () => void }) {
         <div className="fixed z-50 w-44 rounded-lg border border-warm-200 bg-white shadow-lg py-1 text-left"
           style={{ top: pos.top, right: pos.right }} onClick={(e) => e.stopPropagation()}>
           <MenuItem onClick={() => { setOpen(false); onDetail(); }}>상세 보기</MenuItem>
-          <div className="my-1 border-t border-warm-100" />
-          {m.status !== "suspended" ? (
-            <MenuItem onClick={() => act("suspended", `${m.name} 회원을 정지하시겠습니까?`)}>정지</MenuItem>
-          ) : (
-            <MenuItem onClick={() => act("active")}>정지 해제 (활성화)</MenuItem>
-          )}
-          {m.status !== "withdrawn" ? (
-            <MenuItem danger onClick={() => act("withdrawn", `${m.name} 회원을 탈퇴 처리하시겠습니까?`)}>탈퇴 처리</MenuItem>
-          ) : (
-            <MenuItem onClick={() => act("active")}>계정 활성화</MenuItem>
+          {/* 탈퇴(소프트삭제) 회원은 상태 변경 불가 — 상세 보기만 제공 */}
+          {m.status !== "withdrawn" && (
+            <>
+              <div className="my-1 border-t border-warm-100" />
+              {m.status !== "suspended" ? (
+                <MenuItem onClick={() => act("suspended", `${m.name} 회원을 정지하시겠습니까?`)}>정지</MenuItem>
+              ) : (
+                <MenuItem onClick={() => act("active")}>정지 해제 (활성화)</MenuItem>
+              )}
+              <MenuItem danger onClick={() => act("withdrawn", `${m.name} 회원을 탈퇴 처리하시겠습니까?`)}>탈퇴 처리</MenuItem>
+            </>
           )}
         </div>
       )}

@@ -166,6 +166,8 @@ export interface Member {
   /** 돌봄전문가 직군(senior/nursing/housekeeping) — 비-돌봄전문가은 null */
   service_domains?: string | null;
   created_at: string;
+  /** 탈퇴(소프트삭제) 일시 — 활성 회원은 null */
+  withdrawn_at?: string | null;
 }
 export interface MemberSummary {
   guardian: number;
@@ -176,6 +178,8 @@ export interface MemberSummary {
   caregiver: number;
   organization: number;
   admin: number;
+  /** 탈퇴 회원 수 */
+  withdrawn?: number;
 }
 
 export interface CaregiverDetail {
