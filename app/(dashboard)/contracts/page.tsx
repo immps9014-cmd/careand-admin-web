@@ -3,7 +3,7 @@ import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, CalendarDays, List, X } from "lucide-react";
+import { CalendarClock, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, List, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,10 +59,23 @@ function timeLabel(iso: string) {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+// M/D (예: 7/6) — 방문 카드/컬럼 헤더 날짜 표기
+function dateLabel(iso: string | Date) {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 export default function ContractsPage() {
   const [status, setStatus] = useState("");
-  const [view, setView] = useState<"board" | "list">("board");
+  const [view, setView] = useState<"board" | "month" | "list">("board");
   const [detailReqId, setDetailReqId] = useState<number | null>(null);
+  // 월간 뷰 기준 달(1일 자정)
+  const [monthCursor, setMonthCursor] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
 
   const query = useQuery({
     queryKey: ["admin", "contracts", status],
@@ -91,6 +104,30 @@ export default function ContractsPage() {
     (byDow[dow] ??= []).push(c);
   }
   const todayDow = new Date().getDay();
+  // 이번 주 일요일(주 시작) — 요일 컬럼 헤더에 해당 날짜를 표기하기 위함
+  const weekStart = new Date();
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+  // 월간 뷰: 예약(방문)을 날짜별로 그룹화
+  const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  const byDate: Record<string, typeof rows> = {};
+  for (const c of rows) {
+    if (!c.scheduled_start) continue;
+    (byDate[dayKey(new Date(c.scheduled_start))] ??= []).push(c);
+  }
+  // 기준 달의 날짜 셀 배열(앞쪽 빈칸 포함, 일요일 시작)
+  const monthGridCells: (Date | null)[] = [];
+  const firstDow = monthCursor.getDay();
+  const daysInMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
+  for (let i = 0; i < firstDow; i++) monthGridCells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) monthGridCells.push(new Date(monthCursor.getFullYear(), monthCursor.getMonth(), day));
+  const shiftMonth = (delta: number) => {
+    const d = new Date(monthCursor);
+    d.setMonth(d.getMonth() + delta);
+    setMonthCursor(d);
+  };
+  const todayKey = dayKey(new Date());
 
   return (
     <div className="p-8">
@@ -114,6 +151,16 @@ export default function ContractsPage() {
           >
             <CalendarDays className="w-3.5 h-3.5" />
             주간 일정
+          </button>
+          <button
+            onClick={() => setView("month")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded transition-colors",
+              view === "month" ? "bg-brand-500 text-white" : "text-warm-500 hover:text-warm-700"
+            )}
+          >
+            <CalendarRange className="w-3.5 h-3.5" />
+            월간
           </button>
           <button
             onClick={() => setView("list")}
@@ -167,6 +214,8 @@ export default function ContractsPage() {
             );
             const isToday = dow === todayDow;
             const isSun = dow === 0;
+            const colDate = new Date(weekStart);
+            colDate.setDate(weekStart.getDate() + dow);
             return (
               <Card
                 key={dow}
@@ -179,6 +228,7 @@ export default function ContractsPage() {
                   <div className={cn("text-[11px] font-bold", isSun ? "text-danger" : "text-warm-400")}>{label}</div>
                   <div className="text-base font-extrabold text-warm-800 mt-0.5 flex items-center gap-1.5">
                     <span className={cn(isSun && "text-danger")}>{label}요일</span>
+                    <span className="font-en text-xs font-bold text-warm-400">{dateLabel(colDate)}</span>
                     {isToday && (
                       <span className="text-[9px] font-extrabold text-white bg-brand-500 rounded-full px-1.5 py-px">오늘</span>
                     )}
@@ -204,7 +254,7 @@ export default function ContractsPage() {
                           )}
                         >
                           <div className="font-en text-xs font-extrabold text-warm-800">
-                            {v.scheduled_start ? timeLabel(v.scheduled_start) : "-"}
+                            {v.scheduled_start ? `${dateLabel(v.scheduled_start)} ${timeLabel(v.scheduled_start)}` : "-"}
                           </div>
                           <div className={cn("text-[11px] font-semibold text-warm-600 mt-1 leading-snug", v.status === "cancelled" && "line-through text-warm-400")}>
                             {v.caregiver_name} → {v.senior_name}
@@ -222,6 +272,67 @@ export default function ContractsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* 월간 달력 뷰 — 예약(방문)만 표시, 클릭 시 상세 */}
+      {view === "month" && (
+        <Card className="p-4">
+          {/* 월 네비게이션 */}
+          <div className="flex items-center justify-between mb-3">
+            <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-md text-warm-500 hover:bg-warm-100" aria-label="이전 달">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="text-base font-extrabold text-warm-800 font-en">
+              {monthCursor.getFullYear()}. {String(monthCursor.getMonth() + 1).padStart(2, "0")}
+            </div>
+            <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-md text-warm-500 hover:bg-warm-100" aria-label="다음 달">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          {/* 요일 헤더 */}
+          <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+            {DOW.map((d, i) => (
+              <div key={d} className={cn("text-center text-[11px] font-bold py-1", i === 0 ? "text-danger" : i === 6 ? "text-info" : "text-warm-400")}>{d}</div>
+            ))}
+          </div>
+          {/* 날짜 그리드 */}
+          <div className="grid grid-cols-7 gap-1.5">
+            {monthGridCells.map((cell, idx) => {
+              if (!cell) return <div key={`e${idx}`} className="min-h-[92px]" />;
+              const visits = (byDate[dayKey(cell)] ?? []).slice().sort((a, b) =>
+                (a.scheduled_start ?? "").localeCompare(b.scheduled_start ?? "")
+              );
+              const isToday = dayKey(cell) === todayKey;
+              const cellDow = cell.getDay();
+              return (
+                <div key={dayKey(cell)} className={cn("min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1", isToday ? "border-brand-500 bg-brand-50/40" : "border-warm-100")}>
+                  <div className={cn("text-[11px] font-bold font-en", isToday ? "text-brand-600" : cellDow === 0 ? "text-danger" : cellDow === 6 ? "text-info" : "text-warm-500")}>
+                    {cell.getDate()}
+                  </div>
+                  {/* 예약만 표시 — 없는 날은 비움 */}
+                  {visits.slice(0, 3).map((v) => {
+                    const st = VISIT_STYLE[v.status] ?? VISIT_STYLE.confirmed;
+                    return (
+                      <button
+                        key={v.id}
+                        onClick={() => setDetailReqId(v.request_id)}
+                        className={cn("w-full text-left rounded border border-l-[3px] px-1.5 py-1 leading-tight hover:shadow-card transition-shadow cursor-pointer", st.border, st.bg, v.status === "cancelled" && "opacity-70")}
+                      >
+                        <span className="block font-en text-[10px] font-extrabold text-warm-800">{v.scheduled_start ? timeLabel(v.scheduled_start) : "-"}</span>
+                        <span className={cn("block text-[10px] font-semibold text-warm-600 truncate", v.status === "cancelled" && "line-through text-warm-400")}>{v.senior_name}</span>
+                      </button>
+                    );
+                  })}
+                  {visits.length > 3 && (
+                    <button onClick={() => setDetailReqId(visits[3].request_id)} className="text-[10px] font-bold text-warm-400 hover:text-warm-600 text-left px-1">
+                      +{visits.length - 3}건 더
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
 
       {/* 목록 뷰 */}
