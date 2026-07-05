@@ -1,7 +1,7 @@
 "use client";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, List, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -76,6 +76,13 @@ export default function ContractsPage() {
     d.setHours(0, 0, 0, 0);
     return d;
   });
+  // 월간 뷰 진입 시 오늘 셀로 자동 스크롤
+  const todayCellRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (view === "month" && todayCellRef.current) {
+      todayCellRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [view, monthCursor]);
 
   const query = useQuery({
     queryKey: ["admin", "contracts", status],
@@ -305,7 +312,7 @@ export default function ContractsPage() {
               const isToday = dayKey(cell) === todayKey;
               const cellDow = cell.getDay();
               return (
-                <div key={dayKey(cell)} className={cn("min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1", isToday ? "border-brand-500 bg-brand-50/40" : "border-warm-100")}>
+                <div key={dayKey(cell)} ref={isToday ? todayCellRef : undefined} className={cn("min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1", isToday ? "border-brand-500 bg-brand-50/40" : "border-warm-100")}>
                   <div className={cn("text-[11px] font-bold font-en", isToday ? "text-brand-600" : cellDow === 0 ? "text-danger" : cellDow === 6 ? "text-info" : "text-warm-500")}>
                     {cell.getDate()}
                   </div>
