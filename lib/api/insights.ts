@@ -22,7 +22,7 @@ export interface InsightCompare {
 }
 
 export interface InsightCard {
-  key: "signups" | "matching" | "revenue";
+  key: "signups" | "matching" | "revenue" | "regional_revenue" | "supply";
   title: string;
   icon: string;
   primary: InsightStat;

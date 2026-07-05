@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, FileDown, Sparkles, Users, ArrowRightLeft, DollarSign, Clock, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Search, FileDown, Sparkles, Users, ArrowRightLeft, DollarSign, Clock, TrendingUp, TrendingDown, Minus, MapPin, Gauge } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { insightsApi, type InsightCard, type InsightStat } from "@/lib/api/insights";
 import { cn } from "@/lib/utils";
@@ -12,15 +12,17 @@ const EXAMPLES = [
   "오늘 회원가입 현황",
   "오늘 매출 현황",
   "이번주 매칭 현황",
-  "이번달 전체 요약",
   "지난달 대비 매출 증감",
-  "최근 7일 신규가입",
+  "이번달 지역별 매출",
+  "지역별 공급률",
 ];
 
 const CARD_ICON: Record<string, typeof Users> = {
   signups: Users,
   matching: ArrowRightLeft,
   revenue: DollarSign,
+  regional_revenue: MapPin,
+  supply: Gauge,
 };
 
 function fmt(s: InsightStat): string {
@@ -254,7 +256,7 @@ function MetricCard({ card }: { card: InsightCard }) {
           <div className="space-y-1.5">
             {card.breakdown.rows.map((r) => (
               <div key={r.label} className="flex items-center gap-2.5">
-                <div className="w-16 shrink-0 text-[12px] font-medium text-warm-600">{r.label}</div>
+                <div className="w-24 shrink-0 truncate text-[12px] font-medium text-warm-600" title={r.label}>{r.label}</div>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-warm-100">
                   <div
                     className="h-full rounded-full bg-brand-400"
