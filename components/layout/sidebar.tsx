@@ -16,6 +16,7 @@ import {
   Megaphone,
   MessageCircle,
   ShieldCheck,
+  Sparkles,
   Users,
   Workflow,
   X,
@@ -48,6 +49,7 @@ const OPS_NAV: NavItem[] = [
 ];
 
 const AI_NAV: NavItem[] = [
+  { href: "/insights", label: "AI 인사이트 검색", icon: Sparkles },
   { href: "/ai-models", label: "AI 모델", icon: Brain },
   { href: "/cs", label: "CS / 분쟁", icon: MessageCircle },
   { href: "/reports", label: "리포트", icon: BarChart3 },
