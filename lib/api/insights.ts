@@ -12,6 +12,15 @@ export interface InsightBreakdown {
   rows: { label: string; value: number }[];
 }
 
+export interface InsightCompare {
+  period_label: string;
+  value: number;
+  unit: string;
+  delta: number;
+  delta_pct: number | null;
+  direction: "up" | "down" | "flat";
+}
+
 export interface InsightCard {
   key: "signups" | "matching" | "revenue";
   title: string;
@@ -19,6 +28,7 @@ export interface InsightCard {
   primary: InsightStat;
   stats: InsightStat[];
   breakdown: InsightBreakdown | null;
+  compare?: InsightCompare;
 }
 
 export interface InsightResult {

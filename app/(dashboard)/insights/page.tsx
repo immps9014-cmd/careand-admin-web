@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, FileDown, Sparkles, Users, ArrowRightLeft, DollarSign, Clock } from "lucide-react";
+import { Search, FileDown, Sparkles, Users, ArrowRightLeft, DollarSign, Clock, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { insightsApi, type InsightCard, type InsightStat } from "@/lib/api/insights";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ const EXAMPLES = [
   "오늘 매출 현황",
   "이번주 매칭 현황",
   "이번달 전체 요약",
-  "지난달 매출 현황",
+  "지난달 대비 매출 증감",
   "최근 7일 신규가입",
 ];
 
@@ -26,6 +26,32 @@ const CARD_ICON: Record<string, typeof Users> = {
 function fmt(s: InsightStat): string {
   const n = new Intl.NumberFormat("ko-KR").format(s.value);
   return s.unit === "원" ? `${n}원` : `${n}${s.unit}`;
+}
+
+function DeltaChip({ c }: { c: import("@/lib/api/insights").InsightCompare }) {
+  const up = c.direction === "up";
+  const down = c.direction === "down";
+  const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
+  const tone = up
+    ? "bg-brand-50 text-brand-700"
+    : down
+    ? "bg-danger-bg text-danger"
+    : "bg-warm-100 text-warm-500";
+  const sign = c.delta > 0 ? "+" : c.delta < 0 ? "−" : "±";
+  const amt = new Intl.NumberFormat("ko-KR").format(Math.abs(c.delta));
+  const pct = c.delta_pct !== null ? ` (${c.delta_pct > 0 ? "+" : c.delta_pct < 0 ? "−" : "±"}${Math.abs(c.delta_pct)}%)` : "";
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold tabular-nums", tone)}>
+        <Icon className="h-3.5 w-3.5" />
+        {sign}
+        {amt}
+        {c.unit}
+        {pct}
+      </span>
+      <span className="text-[11.5px] text-warm-400">{c.period_label} 대비</span>
+    </div>
+  );
 }
 
 export default function InsightsPage() {
@@ -206,6 +232,7 @@ function MetricCard({ card }: { card: InsightCard }) {
         <div className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-tight text-warm-900 tabular-nums">
           {fmt(card.primary)}
         </div>
+        {card.compare && <DeltaChip c={card.compare} />}
       </div>
 
       {/* 보조 지표 */}
