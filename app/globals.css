@@ -67,6 +67,18 @@
   }
 }
 
+/* ── 모션 최소화 사용자 설정 존중 (WCAG 2.3.3) ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── 인사이트 리포트 PDF 출력(브라우저 인쇄) ── */
 @media print {
   @page {

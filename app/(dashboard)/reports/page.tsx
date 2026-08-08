@@ -307,14 +307,14 @@ export default function ReportsPage() {
           <TableBody>
             {modelsQuery.isLoading && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {models?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                   등록된 모델이 없습니다
                 </TableCell>
               </TableRow>

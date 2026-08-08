@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -198,14 +198,14 @@ export default function SettlementsPage() {
               </div>
               <div className="mt-2 font-en text-2xl font-extrabold text-warm-800 leading-none tracking-tight">
                 {count}
-                <small className="text-[13px] font-bold text-warm-400 ml-0.5">건</small>
+                <small className="text-[13px] font-bold text-warm-500 ml-0.5">건</small>
               </div>
               <div className="mt-1.5 font-en text-[11.5px] text-warm-500">{moneyLabel}</div>
               {step.cur && (
                 <span className="absolute left-0 right-0 bottom-0 h-[3px] bg-brand-500" />
               )}
               {i !== PIPELINE.length - 1 && (
-                <span className="absolute -right-[9px] top-1/2 -translate-y-1/2 z-10 w-[18px] h-[18px] rounded-full bg-white border border-warm-200 flex items-center justify-center text-warm-400">
+                <span className="absolute -right-[9px] top-1/2 -translate-y-1/2 z-10 w-[18px] h-[18px] rounded-full bg-white border border-warm-200 flex items-center justify-center text-warm-500">
                   <ChevronRight className="w-3 h-3" />
                 </span>
               )}
@@ -292,14 +292,14 @@ export default function SettlementsPage() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-500 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {!query.isLoading && rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={7} className="text-center text-warm-500 py-10">
                   정산 내역이 없습니다
                 </TableCell>
               </TableRow>
@@ -313,7 +313,13 @@ export default function SettlementsPage() {
               const filed = st.hometax_filing_no != null;
               const selectable = st.status === "draft";
               return (
-                <TableRow key={st.id} onClick={() => setDetailId(st.id)} className="cursor-pointer hover:bg-warm-50">
+                <TableRow
+                  key={st.id}
+                  onClick={() => setDetailId(st.id)}
+                  onKeyDown={(e) => { if (e.key === "Enter") setDetailId(st.id); }}
+                  tabIndex={0}
+                  className="cursor-pointer hover:bg-warm-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500/40"
+                >
                   <TableCell>
                     <input
                       type="checkbox"
@@ -360,7 +366,7 @@ export default function SettlementsPage() {
                         신고대기
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warm-400">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-warm-500">
                         <CircleSlash className="w-3.5 h-3.5" />
                         미신고
                       </span>
@@ -396,6 +402,11 @@ function SDRow({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin", "settlement-detail", id],
     queryFn: () => operationsApi.settlementDetail(id),
@@ -404,13 +415,13 @@ function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => voi
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-warm-900/40 backdrop-blur-[1px]" />
-      <div className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-base font-bold text-warm-800">정산 상세 {data && <span className="font-en text-warm-400">#{data.id}</span>}</h2>
-          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
+          <h2 className="text-base font-bold text-warm-800">정산 상세 {data && <span className="font-en text-warm-500">#{data.id}</span>}</h2>
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-2 text-warm-500 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">
-          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isLoading && <div className="py-10 text-center text-warm-500 text-sm">불러오는 중…</div>}
           {isError && <div className="py-10 text-center text-danger text-sm">상세를 불러오지 못했습니다.</div>}
           {data && (
             <>
@@ -450,15 +461,15 @@ function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => voi
                 <SDRow label="생성일">{formatDateTime(data.created_at)}</SDRow>
               </div>
 
-              <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2">정산 항목 {data.items.length}건</div>
+              <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2">정산 항목 {data.items.length}건</div>
               {data.items.length === 0 ? (
-                <div className="text-sm text-warm-400 py-4 text-center bg-warm-50 rounded-lg">세부 항목 내역이 없습니다</div>
+                <div className="text-sm text-warm-500 py-4 text-center bg-warm-50 rounded-lg">세부 항목 내역이 없습니다</div>
               ) : (
                 <div className="space-y-1.5">
                   {data.items.map((it) => (
                     <div key={it.id} className="flex items-center gap-3 border border-warm-100 rounded-lg px-3 py-2 text-sm">
                       <span className="font-en text-warm-600 flex-none">{it.scheduled_start ? formatDateTime(it.scheduled_start) : `세션 #${it.session_id ?? "-"}`}</span>
-                      <span className="text-warm-400 text-xs">{it.hours}h × {formatKRW(it.hourly_rate)}</span>
+                      <span className="text-warm-500 text-xs">{it.hours}h × {formatKRW(it.hourly_rate)}</span>
                       <span className="ml-auto font-en font-bold text-warm-800">{formatKRW(it.amount + it.surcharge)}</span>
                     </div>
                   ))}

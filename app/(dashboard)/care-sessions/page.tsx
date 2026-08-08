@@ -95,10 +95,10 @@ export default function CareSessionsPage() {
           </TableHeader>
           <TableBody>
             {query.isLoading && (
-              <TableRow><TableCell colSpan={7} className="text-center text-warm-400 py-10">불러오는 중…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-warm-500 py-10">불러오는 중…</TableCell></TableRow>
             )}
             {!query.isLoading && rows.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-warm-400 py-10">진행 중인 케어가 없습니다</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-warm-500 py-10">진행 중인 케어가 없습니다</TableCell></TableRow>
             )}
             {rows.map((s) => {
               const st = STATUS[s.status] ?? STATUS.scheduled;
@@ -135,9 +135,9 @@ export default function CareSessionsPage() {
                         </Button>
                       </Link>
                     ) : s.status === "in_progress" ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-warm-400"><MapPin className="w-3.5 h-3.5" />케어 중</span>
+                      <span className="inline-flex items-center gap-1 text-xs text-warm-500"><MapPin className="w-3.5 h-3.5" />케어 중</span>
                     ) : (
-                      <span className="text-warm-300 text-xs">—</span>
+                      <span className="text-warm-500 text-xs">—</span>
                     )}
                   </TableCell>
                 </TableRow>

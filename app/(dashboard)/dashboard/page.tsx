@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRightLeft, Clock, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -50,6 +51,7 @@ function getRegionBarColor(row: { status: string; supply_rate_pct: number }) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -92,7 +94,7 @@ export default function DashboardPage() {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-base font-bold text-warm-800">도메인별 현황</h2>
-            <span className="text-[11px] text-warm-400">진행중 매칭 · 주간 요청 · 주간 매출</span>
+            <span className="text-[11px] text-warm-500">진행중 매칭 · 주간 요청 · 주간 매출</span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {DOMAIN_CARDS.map((d) => {
@@ -102,7 +104,7 @@ export default function DashboardPage() {
                   <div className="text-xs font-semibold text-warm-500 mb-2">{d.label}</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="font-en text-xl font-bold text-warm-800">{v?.matches_in_progress ?? 0}</span>
-                    <span className="text-[11px] text-warm-400">진행중</span>
+                    <span className="text-[11px] text-warm-500">진행중</span>
                   </div>
                   <div className="text-[11px] text-warm-500 mt-1.5">주간 요청 {v?.requests_this_week ?? 0}건 · {formatKRW(v?.revenue_this_week ?? 0)}</div>
                 </div>
@@ -155,7 +157,7 @@ export default function DashboardPage() {
                 긴급 위험 알림
                 {alertData.length > 0 && <Badge variant="danger" className="font-en">{alertData.length}</Badge>}
               </h2>
-              <span className="text-[11px] text-warm-400">위험도순</span>
+              <span className="text-[11px] text-warm-500">위험도순</span>
             </div>
             {alertData.length === 0 ? (
               <p className="text-sm text-warm-500 text-center py-8">긴급 알림이 없습니다 ✓</p>
@@ -174,13 +176,14 @@ export default function DashboardPage() {
                     score={alert.risk_score}
                     elapsed={tier !== "watch" ? `${alert.detected_ago} · 미처리` : alert.detected_ago}
                     action={tier === "crit" ? "배정" : "확인"}
+                    onClick={() => router.push("/care-monitoring")}
                   />
                 );
               })
             )}
             {alertData.length > 0 && (
               <div className="text-center pt-3">
-                <button className="text-xs font-bold text-brand-600 hover:underline">전체 알림 {alertData.length}건 보기 →</button>
+                <button type="button" onClick={() => router.push("/care-monitoring")} className="text-xs font-bold text-brand-600 hover:underline">전체 알림 {alertData.length}건 보기 →</button>
               </div>
             )}
           </CardContent>

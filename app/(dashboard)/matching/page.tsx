@@ -182,7 +182,7 @@ export default function MatchingPage() {
             {d.label}
           </Button>
         ))}
-        <div className="ml-auto flex items-center gap-2 h-8 px-3 rounded-md border border-warm-200 bg-white text-xs text-warm-400 select-none">
+        <div className="ml-auto flex items-center gap-2 h-8 px-3 rounded-md border border-warm-200 bg-white text-xs text-warm-500 select-none">
           <Search className="w-3.5 h-3.5" />
           요청 ID·대상자 검색
         </div>
@@ -218,12 +218,12 @@ export default function MatchingPage() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">불러오는 중…</TableCell>
+                <TableCell colSpan={7} className="text-center text-warm-500 py-10">불러오는 중…</TableCell>
               </TableRow>
             )}
             {!query.isLoading && rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-warm-400 py-10">매칭 요청이 없습니다</TableCell>
+                <TableCell colSpan={7} className="text-center text-warm-500 py-10">매칭 요청이 없습니다</TableCell>
               </TableRow>
             )}
             {rows.map((row) => {
@@ -233,7 +233,12 @@ export default function MatchingPage() {
               const pill = STATUS_PILL[row.status] ?? { cls: "bg-warm-100 text-warm-600", dot: "bg-warm-400", label: row.status };
               return (
                 <Fragment key={row.id}>
-                  <TableRow onClick={() => setDetailId(row.id)} className={cn("cursor-pointer hover:bg-warm-50", urgent && "bg-warn-bg/40 hover:bg-warn-bg/60")}>
+                  <TableRow
+                    onClick={() => setDetailId(row.id)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setDetailId(row.id); }}
+                    tabIndex={0}
+                    className={cn("cursor-pointer hover:bg-warm-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500/40", urgent && "bg-warn-bg/40 hover:bg-warn-bg/60")}
+                  >
                     <TableCell className="font-en font-semibold text-warm-700">#{row.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -242,7 +247,7 @@ export default function MatchingPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="font-semibold text-warm-800 truncate">{row.senior_name}{row.guardian_name ? ` (${row.guardian_name})` : ""}</div>
-                          <div className="text-[11px] text-warm-400">
+                          <div className="text-[11px] text-warm-500">
                             {DOMAIN_LABEL[row.service_domain] ?? row.service_domain} · {MODE_LABEL(row.mode)}
                           </div>
                         </div>
@@ -414,7 +419,7 @@ const RESP_LABEL: Record<string, { label: string; cls: string }> = {
   accepted: { label: "수락", cls: "bg-brand-50 text-brand-700" },
   selected: { label: "선정", cls: "bg-brand-50 text-brand-700" },
   rejected: { label: "거절", cls: "bg-danger-bg text-danger" },
-  expired: { label: "만료", cls: "bg-warm-100 text-warm-400" },
+  expired: { label: "만료", cls: "bg-warm-100 text-warm-500" },
 };
 
 function MDRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -429,6 +434,11 @@ function MDRow({ label, children }: { label: string; children: React.ReactNode }
 const toLocalDT = (s: string | null | undefined) => (s ? s.slice(0, 16).replace(" ", "T") : "");
 
 function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const qc = useQueryClient();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin", "matching-detail", id],
@@ -452,13 +462,13 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-warm-900/40 backdrop-blur-[1px]" />
-      <div className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-base font-bold text-warm-800">매칭 요청 상세 {data && <span className="font-en text-warm-400">#{data.id}</span>}</h2>
-          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
+          <h2 className="text-base font-bold text-warm-800">매칭 요청 상세 {data && <span className="font-en text-warm-500">#{data.id}</span>}</h2>
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-2 text-warm-500 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">
-          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isLoading && <div className="py-10 text-center text-warm-500 text-sm">불러오는 중…</div>}
           {isError && <div className="py-10 text-center text-danger text-sm">상세를 불러오지 못했습니다.</div>}
           {data && (
             <>
@@ -511,7 +521,7 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                         <select
                           value={edit.caregiverId}
                           onChange={(e) => setEdit({ ...edit, caregiverId: Number(e.target.value) })}
-                          className="w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none"
+                          className="w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                         >
                           {(caregivers.data?.data ?? []).map((c) => (
                             <option key={c.id} value={c.id}>
@@ -526,7 +536,7 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                           type="datetime-local"
                           value={edit.start}
                           onChange={(e) => setEdit({ ...edit, start: e.target.value })}
-                          className="w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none"
+                          className="w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                         />
                       </div>
                       <div className="flex justify-end gap-2 pt-0.5">
@@ -544,9 +554,9 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                 </div>
               )}
 
-              <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2">AI 추천 후보 {data.candidates.length}명</div>
+              <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2">AI 추천 후보 {data.candidates.length}명</div>
               {data.candidates.length === 0 ? (
-                <div className="text-sm text-warm-400 py-4 text-center bg-warm-50 rounded-lg">추천 후보가 없습니다</div>
+                <div className="text-sm text-warm-500 py-4 text-center bg-warm-50 rounded-lg">추천 후보가 없습니다</div>
               ) : (
                 <div className="space-y-2">
                   {data.candidates.map((c) => {

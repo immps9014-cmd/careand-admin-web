@@ -52,7 +52,7 @@ export interface ConfirmDialogProps {
 }
 
 const SLOT_LABEL =
-  "text-[11px] font-extrabold uppercase tracking-wide text-warm-400";
+  "text-[11px] font-extrabold uppercase tracking-wide text-warm-500";
 
 /**
  * 파괴적·비가역 관리자 액션 실행 전 확인 다이얼로그(spec.md INV-6).
@@ -160,7 +160,7 @@ export function ConfirmDialog({
                 type="button"
                 aria-label="닫기"
                 disabled={loading}
-                className="flex-none rounded-md p-1 text-warm-400 transition-colors hover:bg-warm-50 hover:text-warm-600 disabled:pointer-events-none disabled:opacity-40"
+                className="flex-none rounded-md p-2 text-warm-500 transition-colors hover:bg-warm-50 hover:text-warm-600 disabled:pointer-events-none disabled:opacity-40"
               >
                 <X className="h-4 w-4" />
               </button>

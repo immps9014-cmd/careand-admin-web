@@ -77,14 +77,14 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           <div className="font-en font-extrabold text-warm-900 text-base tracking-tight leading-none">
             Care&
           </div>
-          <div className="text-[11px] font-medium text-warm-400 mt-0.5">
+          <div className="text-[11px] font-medium text-warm-500 mt-0.5">
             관리자 콘솔
           </div>
         </div>
         <button
           onClick={onClose}
           aria-label="메뉴 닫기"
-          className="ml-auto -mr-2 p-2 text-warm-400 hover:text-warm-700 lg:hidden"
+          className="ml-auto -mr-2 p-2 text-warm-500 hover:text-warm-700 lg:hidden"
         >
           <X className="w-5 h-5" />
         </button>
@@ -138,7 +138,7 @@ function NavSection({
 }) {
   return (
     <div className="pt-4 pb-2">
-      <div className="px-6 pb-2 text-[10px] font-bold text-warm-400 uppercase tracking-widest">
+      <div className="px-6 pb-2 text-[10px] font-bold text-warm-500 uppercase tracking-widest">
         {title}
       </div>
       <nav>
@@ -160,7 +160,7 @@ function NavSection({
               <Icon
                 className={cn(
                   "w-[18px] h-[18px]",
-                  isActive ? "text-brand-500" : "text-warm-400"
+                  isActive ? "text-brand-500" : "text-warm-500"
                 )}
               />
               <span className="flex-1">{item.label}</span>

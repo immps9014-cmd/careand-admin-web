@@ -85,7 +85,7 @@ export default function SettingsPage() {
                   <span className="block text-sm font-semibold text-warm-800">{s.label}</span>
                   <span className="block text-xs text-warm-500">{s.desc}</span>
                 </span>
-                <ChevronRight className="w-4 h-4 text-warm-300 shrink-0" />
+                <ChevronRight className="w-4 h-4 text-warm-500 shrink-0" />
               </button>
             );
           })}

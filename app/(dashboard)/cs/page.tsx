@@ -239,7 +239,7 @@ export default function CsPage() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <div className="font-en w-5 text-right text-[11.5px] font-bold text-warm-400">
+                    <div className="font-en w-5 text-right text-[11.5px] font-bold text-warm-500">
                       {d.count}
                     </div>
                   </div>
@@ -279,10 +279,10 @@ export default function CsPage() {
 
             <div>
               {reviewsQuery.isLoading && (
-                <div className="text-center text-warm-400 py-12">불러오는 중…</div>
+                <div className="text-center text-warm-500 py-12">불러오는 중…</div>
               )}
               {!reviewsQuery.isLoading && reviewsQuery.data?.data.length === 0 && (
-                <div className="text-center text-warm-400 py-12">후기가 없습니다</div>
+                <div className="text-center text-warm-500 py-12">후기가 없습니다</div>
               )}
               {reviewsQuery.data?.data.map((r) => (
                 <div
@@ -309,7 +309,7 @@ export default function CsPage() {
                       <Badge variant="outline" className="px-2 py-0 text-[10px]">
                         {r.reviewer_role === "guardian" ? "보호자" : "돌봄전문가"}
                       </Badge>
-                      <span className="ml-auto text-[11px] text-warm-400 whitespace-nowrap">
+                      <span className="ml-auto text-[11px] text-warm-500 whitespace-nowrap">
                         {formatTimeAgo(r.created_at)}
                       </span>
                     </div>
@@ -326,7 +326,7 @@ export default function CsPage() {
                             관리자 답글
                           </span>
                           {r.replied_at && (
-                            <span className="ml-auto text-[10.5px] text-warm-400">
+                            <span className="ml-auto text-[10.5px] text-warm-500">
                               {formatDate(r.replied_at)}
                             </span>
                           )}
@@ -434,14 +434,14 @@ export default function CsPage() {
             <TableBody>
               {chatbotQuery.isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-warm-400 py-10">
+                  <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                     불러오는 중…
                   </TableCell>
                 </TableRow>
               )}
               {chatbotQuery.data?.data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-warm-400 py-10">
+                  <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                     상담 세션이 없습니다
                   </TableCell>
                 </TableRow>

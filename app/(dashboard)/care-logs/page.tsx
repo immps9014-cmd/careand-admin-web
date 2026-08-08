@@ -198,10 +198,10 @@ export default function CareLogsPage() {
           </div>
           <div className="flex flex-col gap-2.5 p-3 max-h-[640px] overflow-y-auto">
             {query.isLoading && (
-              <div className="text-center text-warm-400 py-10 text-sm">불러오는 중…</div>
+              <div className="text-center text-warm-500 py-10 text-sm">불러오는 중…</div>
             )}
             {!query.isLoading && rows.length === 0 && (
-              <div className="text-center text-warm-400 py-10 text-sm">
+              <div className="text-center text-warm-500 py-10 text-sm">
                 해당 상태의 일지가 없습니다
               </div>
             )}
@@ -222,7 +222,7 @@ export default function CareLogsPage() {
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-en text-[11.5px] font-bold text-warm-400">#{log.id}</span>
+                    <span className="font-en text-[11.5px] font-bold text-warm-500">#{log.id}</span>
                     <Badge variant={DOMAIN_BADGE[log.service_domain] ?? "outline"} className="text-[10px] px-2 py-0">
                       {DOMAIN_LABEL[log.service_domain] ?? log.service_domain ?? "-"}
                     </Badge>
@@ -234,7 +234,7 @@ export default function CareLogsPage() {
                   </div>
                   <div className="mt-1.5 text-[13.5px] font-bold text-warm-800 truncate">
                     {log.caregiver_name}
-                    <span className="text-warm-400 font-normal mx-1.5">→</span>
+                    <span className="text-warm-500 font-normal mx-1.5">→</span>
                     {log.senior_name}{log.guardian_name ? ` (${log.guardian_name})` : ""}
                   </div>
                   <div className="mt-1 text-[11px] text-warm-500 flex items-center gap-1.5">
@@ -253,8 +253,8 @@ export default function CareLogsPage() {
         {/* 우측: 상세 + 검수 결정 */}
         <Card className="overflow-hidden">
           {!selected ? (
-            <div className="flex flex-col items-center justify-center text-center text-warm-400 py-24">
-              <ClipboardCheck className="w-10 h-10 mb-3 text-warm-300" />
+            <div className="flex flex-col items-center justify-center text-center text-warm-500 py-24">
+              <ClipboardCheck className="w-10 h-10 mb-3 text-warm-500" />
               <p className="text-sm">
                 {query.isLoading ? "불러오는 중…" : "검수할 일지를 선택하세요"}
               </p>
@@ -274,7 +274,7 @@ export default function CareLogsPage() {
                 <div className="min-w-0">
                   <div className="text-base font-extrabold text-warm-800 flex items-center gap-2">
                     {selected.caregiver_name}
-                    <span className="text-warm-400 font-normal">→</span>
+                    <span className="text-warm-500 font-normal">→</span>
                     {selected.senior_name}{selected.guardian_name ? ` (${selected.guardian_name})` : ""}
                     {isQualityFlagged(selected) && (
                       <span className="text-[10px] font-extrabold text-white bg-danger rounded px-1.5 py-0.5">
@@ -293,14 +293,14 @@ export default function CareLogsPage() {
                     <Sparkles className="w-3.5 h-3.5" />
                     C:Writer 자동 생성
                   </div>
-                  <div className="text-[11px] text-warm-400 mt-1">발송 전 검수 필요</div>
+                  <div className="text-[11px] text-warm-500 mt-1">발송 전 검수 필요</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-[1.4fr_1fr] gap-6 p-6">
                 {/* 좌측: 세션 메타 */}
                 <div>
-                  <div className="text-[11px] font-extrabold text-warm-400 tracking-wide uppercase mb-3">
+                  <div className="text-[11px] font-extrabold text-warm-500 tracking-wide uppercase mb-3">
                     케어 세션 정보
                   </div>
                   <div className="rounded-xl border border-warm-100 overflow-hidden">
@@ -355,7 +355,7 @@ export default function CareLogsPage() {
                     </div>
                   ) : (
                     <div className="mt-3 flex items-center gap-2 text-xs text-warm-500 bg-warm-50 rounded-lg px-3 py-2.5">
-                      <Clock className="w-4 h-4 flex-none text-warm-400" />
+                      <Clock className="w-4 h-4 flex-none text-warm-500" />
                       케어시간 {selected.duration_min}분 · 자동 품질 점검 통과. 내용을 확인 후 발송을
                       승인하세요.
                     </div>
@@ -363,9 +363,9 @@ export default function CareLogsPage() {
 
                   {/* AI 일지 본문 (검수 대상) */}
                   <div className="mt-4">
-                    <div className="text-[11px] font-extrabold text-warm-400 tracking-wide uppercase mb-2">AI 일지 내용</div>
+                    <div className="text-[11px] font-extrabold text-warm-500 tracking-wide uppercase mb-2">AI 일지 내용</div>
                     {detail.isLoading ? (
-                      <div className="text-xs text-warm-400 py-3">불러오는 중…</div>
+                      <div className="text-xs text-warm-500 py-3">불러오는 중…</div>
                     ) : detail.data && (detail.data.guardian_version || detail.data.transcript) ? (
                       <div className="space-y-3">
                         <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
@@ -386,20 +386,20 @@ export default function CareLogsPage() {
                             <p className="text-[13px] text-warm-600 whitespace-pre-wrap leading-relaxed">{detail.data.transcript}</p>
                           </div>
                         )}
-                        <div className="text-[11px] text-warm-400">
+                        <div className="text-[11px] text-warm-500">
                           AI 신뢰도 {detail.data.confidence != null ? `${Math.round(detail.data.confidence * 100)}%` : "—"}
                           {detail.data.llm_model ? ` · ${detail.data.llm_model}` : ""}
                         </div>
                       </div>
                     ) : (
-                      <div className="text-xs text-warm-400 py-3 bg-warm-50 rounded-lg px-3">아직 생성된 AI 일지가 없습니다.</div>
+                      <div className="text-xs text-warm-500 py-3 bg-warm-50 rounded-lg px-3">아직 생성된 AI 일지가 없습니다.</div>
                     )}
                   </div>
                 </div>
 
                 {/* 우측: 자동 품질 점검 + 검수 결정 */}
                 <div>
-                  <div className="text-[11px] font-extrabold text-warm-400 tracking-wide uppercase mb-3">
+                  <div className="text-[11px] font-extrabold text-warm-500 tracking-wide uppercase mb-3">
                     AI 자동 품질 점검
                   </div>
                   <div className="flex flex-col gap-2">
@@ -465,7 +465,7 @@ export default function CareLogsPage() {
                         <Badge variant={REVIEW_BADGE[selected.review_status]?.variant ?? "warn"}>
                           {REVIEW_BADGE[selected.review_status]?.label ?? selected.review_status}
                         </Badge>
-                        <span className="text-[11px] text-warm-400">
+                        <span className="text-[11px] text-warm-500">
                           {selected.reviewed_at ? formatDateTime(selected.reviewed_at) : "—"}
                         </span>
                       </div>

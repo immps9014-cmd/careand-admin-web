@@ -69,12 +69,12 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <Menu className="w-5 h-5" />
         </button>
         <form onSubmit={submitSearch} className="relative w-full max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400 pointer-events-none" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-500 pointer-events-none" />
           <Input
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             placeholder="회원 이름·이메일 검색 후 Enter"
-            className="pl-10 bg-warm-50 border-warm-200 placeholder:text-warm-400"
+            className="pl-10 bg-warm-50 border-warm-200 placeholder:text-warm-500"
           />
         </form>
       </div>
@@ -107,9 +107,9 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
               <div className="max-h-80 overflow-y-auto">
                 {alertsQuery.isLoading ? (
-                  <div className="px-4 py-8 text-center text-sm text-warm-400">불러오는 중…</div>
+                  <div className="px-4 py-8 text-center text-sm text-warm-500">불러오는 중…</div>
                 ) : recent.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-sm text-warm-400">미해결 알림이 없습니다.</div>
+                  <div className="px-4 py-8 text-center text-sm text-warm-500">미해결 알림이 없습니다.</div>
                 ) : (
                   recent.map((a) => {
                     const sev = SEVERITY_META[a.severity] ?? SEVERITY_META.low;

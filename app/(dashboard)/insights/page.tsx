@@ -51,14 +51,14 @@ function DeltaChip({ c }: { c: import("@/lib/api/insights").InsightCompare }) {
         {c.unit}
         {pct}
       </span>
-      <span className="text-[11.5px] text-warm-400">{c.period_label} 대비</span>
+      <span className="text-[11.5px] text-warm-500">{c.period_label} 대비</span>
     </div>
   );
 }
 
 export default function InsightsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-warm-400">불러오는 중…</div>}>
+    <Suspense fallback={<div className="p-8 text-sm text-warm-500">불러오는 중…</div>}>
       <InsightsInner />
     </Suspense>
   );
@@ -110,12 +110,12 @@ function InsightsInner() {
           className="flex flex-col gap-3 sm:flex-row"
         >
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-warm-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-warm-500" />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="예) 오늘 매출 현황 / 이번주 매칭 현황 / 이번달 전체 요약"
-              className="w-full rounded-xl border border-warm-200 bg-warm-50/50 py-3 pl-11 pr-4 text-sm text-warm-800 outline-none transition-colors placeholder:text-warm-400 focus:border-brand-400 focus:bg-white"
+              className="w-full rounded-xl border border-warm-200 bg-warm-50/50 py-3 pl-11 pr-4 text-sm text-warm-800 outline-none transition-colors placeholder:text-warm-500 focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
           <button
@@ -141,7 +141,7 @@ function InsightsInner() {
 
       {/* 상태 */}
       {isFetching && (
-        <Card className="p-8 text-center text-sm text-warm-400 no-print">
+        <Card className="p-8 text-center text-sm text-warm-500 no-print">
           현황을 집계하는 중…
         </Card>
       )}
@@ -176,7 +176,7 @@ function InsightsInner() {
               <div className="mt-1.5 text-sm font-semibold text-warm-700">
                 “{data.query}” · <span className="text-brand-700">{data.period.label}</span>
               </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[11.5px] text-warm-400">
+              <div className="mt-0.5 flex items-center gap-1 text-[11.5px] text-warm-500">
                 <Clock className="h-3 w-3" />
                 생성 {new Date(data.generated_at).toLocaleString("ko-KR")}
               </div>
@@ -191,7 +191,7 @@ function InsightsInner() {
 
           {/* 요약 배너 */}
           <div className="rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-brand-500">요약</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-brand-600">요약</div>
             <p className="mt-1 text-[15px] font-semibold leading-relaxed text-warm-800">
               {data.summary}
             </p>
@@ -205,7 +205,7 @@ function InsightsInner() {
           </div>
 
           {data.cards.length === 0 && (
-            <Card className="p-8 text-center text-sm text-warm-400">
+            <Card className="p-8 text-center text-sm text-warm-500">
               해당 기간에 표시할 데이터가 없습니다.
             </Card>
           )}
@@ -230,7 +230,7 @@ function MetricCard({ card }: { card: InsightCard }) {
 
       {/* 대표 지표 */}
       <div className="mt-4">
-        <div className="text-[12px] font-medium text-warm-400">{card.primary.label}</div>
+        <div className="text-[12px] font-medium text-warm-500">{card.primary.label}</div>
         <div className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-tight text-warm-900 tabular-nums">
           {fmt(card.primary)}
         </div>
@@ -241,7 +241,7 @@ function MetricCard({ card }: { card: InsightCard }) {
       <div className="mt-4 grid grid-cols-3 gap-2">
         {card.stats.map((s) => (
           <div key={s.label} className="rounded-lg bg-warm-50 px-2.5 py-2">
-            <div className="truncate text-[11px] font-medium text-warm-400">{s.label}</div>
+            <div className="truncate text-[11px] font-medium text-warm-500">{s.label}</div>
             <div className="mt-0.5 text-[13.5px] font-bold text-warm-800 tabular-nums">{fmt(s)}</div>
           </div>
         ))}
@@ -250,7 +250,7 @@ function MetricCard({ card }: { card: InsightCard }) {
       {/* 도메인별 분해 */}
       {card.breakdown && card.breakdown.rows.length > 0 && (
         <div className="mt-4 border-t border-warm-100 pt-3">
-          <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-warm-400">
+          <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-warm-500">
             {card.breakdown.title}
           </div>
           <div className="space-y-1.5">

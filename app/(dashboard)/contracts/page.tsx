@@ -232,10 +232,10 @@ export default function ContractsPage() {
                 )}
               >
                 <div className={cn("px-3 py-2.5 border-b border-warm-100", isToday && "bg-brand-50/40")}>
-                  <div className={cn("text-[11px] font-bold", isSun ? "text-danger" : "text-warm-400")}>{label}</div>
+                  <div className={cn("text-[11px] font-bold", isSun ? "text-danger" : "text-warm-500")}>{label}</div>
                   <div className="text-base font-extrabold text-warm-800 mt-0.5 flex items-center gap-1.5">
                     <span className={cn(isSun && "text-danger")}>{label}요일</span>
-                    <span className="font-en text-xs font-bold text-warm-400">{dateLabel(colDate)}</span>
+                    <span className="font-en text-xs font-bold text-warm-500">{dateLabel(colDate)}</span>
                     {isToday && (
                       <span className="text-[9px] font-extrabold text-white bg-brand-500 rounded-full px-1.5 py-px">오늘</span>
                     )}
@@ -243,18 +243,21 @@ export default function ContractsPage() {
                 </div>
                 <div className="p-2 flex flex-col gap-2 flex-1">
                   {query.isLoading ? (
-                    <div className="flex-1 flex items-center justify-center text-[11px] text-warm-300">…</div>
+                    <div className="flex-1 flex items-center justify-center text-[11px] text-warm-500">…</div>
                   ) : visits.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center text-[11px] text-warm-300">일정 없음</div>
+                    <div className="flex-1 flex items-center justify-center text-[11px] text-warm-500">일정 없음</div>
                   ) : (
                     visits.map((v) => {
                       const st = VISIT_STYLE[v.status] ?? VISIT_STYLE.confirmed;
                       return (
                         <div
                           key={v.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setDetailReqId(v.request_id)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDetailReqId(v.request_id); } }}
                           className={cn(
-                            "rounded-lg border border-warm-100 border-l-[3px] p-2.5 transition-shadow hover:shadow-card cursor-pointer",
+                            "rounded-lg border border-warm-100 border-l-[3px] p-2.5 transition-shadow hover:shadow-card cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/40",
                             st.border,
                             st.bg,
                             v.status === "cancelled" && "opacity-70"
@@ -263,7 +266,7 @@ export default function ContractsPage() {
                           <div className="font-en text-xs font-extrabold text-warm-800">
                             {v.scheduled_start ? `${dateLabel(v.scheduled_start)} ${timeLabel(v.scheduled_start)}` : "-"}
                           </div>
-                          <div className={cn("text-[11px] font-semibold text-warm-600 mt-1 leading-snug", v.status === "cancelled" && "line-through text-warm-400")}>
+                          <div className={cn("text-[11px] font-semibold text-warm-600 mt-1 leading-snug", v.status === "cancelled" && "line-through text-warm-500")}>
                             {v.caregiver_name} → {v.senior_name}
                           </div>
                           <div className={cn("inline-flex items-center gap-1 text-[10px] font-bold mt-1.5", st.text)}>
@@ -299,7 +302,7 @@ export default function ContractsPage() {
           {/* 요일 헤더 */}
           <div className="grid grid-cols-7 gap-1.5 mb-1.5">
             {DOW.map((d, i) => (
-              <div key={d} className={cn("text-center text-[11px] font-bold py-1", i === 0 ? "text-danger" : i === 6 ? "text-info" : "text-warm-400")}>{d}</div>
+              <div key={d} className={cn("text-center text-[11px] font-bold py-1", i === 0 ? "text-danger" : i === 6 ? "text-info" : "text-warm-500")}>{d}</div>
             ))}
           </div>
           {/* 날짜 그리드 */}
@@ -326,12 +329,12 @@ export default function ContractsPage() {
                         className={cn("w-full text-left rounded border border-l-[3px] px-1.5 py-1 leading-tight hover:shadow-card transition-shadow cursor-pointer", st.border, st.bg, v.status === "cancelled" && "opacity-70")}
                       >
                         <span className="block font-en text-[10px] font-extrabold text-warm-800">{v.scheduled_start ? timeLabel(v.scheduled_start) : "-"}</span>
-                        <span className={cn("block text-[10px] font-semibold text-warm-600 truncate", v.status === "cancelled" && "line-through text-warm-400")}>{v.senior_name}</span>
+                        <span className={cn("block text-[10px] font-semibold text-warm-600 truncate", v.status === "cancelled" && "line-through text-warm-500")}>{v.senior_name}</span>
                       </button>
                     );
                   })}
                   {visits.length > 3 && (
-                    <button onClick={() => setDetailReqId(visits[3].request_id)} className="text-[10px] font-bold text-warm-400 hover:text-warm-600 text-left px-1">
+                    <button onClick={() => setDetailReqId(visits[3].request_id)} className="text-[10px] font-bold text-warm-500 hover:text-warm-600 text-left px-1">
                       +{visits.length - 3}건 더
                     </button>
                   )}
@@ -369,14 +372,14 @@ export default function ContractsPage() {
             <TableBody>
               {query.isLoading && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                  <TableCell colSpan={7} className="text-center text-warm-500 py-10">
                     불러오는 중…
                   </TableCell>
                 </TableRow>
               )}
               {!query.isLoading && rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-warm-400 py-10">
+                  <TableCell colSpan={7} className="text-center text-warm-500 py-10">
                     계약이 없습니다
                   </TableCell>
                 </TableRow>
@@ -384,7 +387,13 @@ export default function ContractsPage() {
               {rows.map((c) => {
                 const pill = STATUS_PILL[c.status] ?? { cls: "bg-warm-100 text-warm-600", dot: "bg-warm-400", label: c.status };
                 return (
-                  <TableRow key={c.id} onClick={() => setDetailReqId(c.request_id)} className="cursor-pointer hover:bg-warm-50/60">
+                  <TableRow
+                    key={c.id}
+                    onClick={() => setDetailReqId(c.request_id)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setDetailReqId(c.request_id); }}
+                    tabIndex={0}
+                    className="cursor-pointer hover:bg-warm-50/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500/40"
+                  >
                     <TableCell className="font-en font-semibold text-warm-500">#{c.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -393,7 +402,7 @@ export default function ContractsPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="font-semibold text-warm-800 truncate">{c.caregiver_name}</div>
-                          <div className="text-[11px] text-warm-400">담당 케어 돌봄전문가</div>
+                          <div className="text-[11px] text-warm-500">담당 케어 돌봄전문가</div>
                         </div>
                       </div>
                     </TableCell>
@@ -451,6 +460,11 @@ function CDRow({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ContractDetailModal({ requestId, onClose }: { requestId: number; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin", "contract-detail", requestId],
     queryFn: () => operationsApi.matchingRequestDetail(requestId),
@@ -463,13 +477,13 @@ function ContractDetailModal({ requestId, onClose }: { requestId: number; onClos
         onMouseDown={(e) => { back.current = e.target === e.currentTarget; }}
         onClick={(e) => { if (back.current && e.target === e.currentTarget) onClose(); }}
       />
-      <div className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg">
         <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-base font-bold text-warm-800">계약 상세 {data && <span className="font-en text-warm-400">#{data.id}</span>}</h2>
-          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
+          <h2 className="text-base font-bold text-warm-800">계약 상세 {data && <span className="font-en text-warm-500">#{data.id}</span>}</h2>
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-2 text-warm-500 hover:bg-warm-50 hover:text-warm-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">
-          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isLoading && <div className="py-10 text-center text-warm-500 text-sm">불러오는 중…</div>}
           {isError && <div className="py-10 text-center text-danger text-sm">상세를 불러오지 못했습니다.</div>}
           {data && (
             <>
@@ -509,7 +523,7 @@ function ContractDetailModal({ requestId, onClose }: { requestId: number; onClos
                 <div className="rounded-lg border border-warm-100 bg-warm-50 px-4 py-3 mb-4 text-sm text-warm-500">아직 담당 돌봄전문가가 배정되지 않았습니다.</div>
               )}
 
-              <p className="text-[11px] text-warm-400">담당자·일정 변경은 <b>매칭관리 → 매칭됨 → 매칭 변경</b>에서 하실 수 있어요.</p>
+              <p className="text-[11px] text-warm-500">담당자·일정 변경은 <b>매칭관리 → 매칭됨 → 매칭 변경</b>에서 하실 수 있어요.</p>
             </>
           )}
         </div>

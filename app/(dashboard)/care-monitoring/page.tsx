@@ -157,7 +157,7 @@ export default function CareMonitoringPage() {
           <div>
             <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{highCount}</div>
             <div className="text-xs font-semibold text-warm-500 mt-1.5">높음 (60–79)</div>
-            <div className="text-[11px] text-warm-400 mt-0.5">관찰 강화 필요</div>
+            <div className="text-[11px] text-warm-500 mt-0.5">관찰 강화 필요</div>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default function CareMonitoringPage() {
           <div>
             <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{midCount}</div>
             <div className="text-xs font-semibold text-warm-500 mt-1.5">중간 (40–59)</div>
-            <div className="text-[11px] text-warm-400 mt-0.5">정상 범위</div>
+            <div className="text-[11px] text-warm-500 mt-0.5">정상 범위</div>
           </div>
         </div>
 
@@ -175,7 +175,7 @@ export default function CareMonitoringPage() {
           <div>
             <div className="font-en text-3xl font-extrabold leading-none text-warm-800">{statusTotal}</div>
             <div className="text-xs font-semibold text-warm-500 mt-1.5">전체 활성 알림</div>
-            <div className="text-[11px] text-warm-400 mt-0.5">실시간 집계</div>
+            <div className="text-[11px] text-warm-500 mt-0.5">실시간 집계</div>
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@ export default function CareMonitoringPage() {
           ))}
         </div>
         <div className="flex-1" />
-        <span className="text-xs font-bold text-warm-400 mr-2">상태</span>
+        <span className="text-xs font-bold text-warm-500 mr-2">상태</span>
         <div className="inline-flex bg-warm-100 p-1 rounded-md">
           {[{ k: "unresolved", l: "미해결" }, { k: "resolved", l: "처리완료" }, { k: "all", l: "전체" }].map((o) => (
             <button key={o.k} onClick={() => setStatusFilter(o.k)}
@@ -239,9 +239,12 @@ export default function CareMonitoringPage() {
               return (
                 <Card
                   key={alert.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedId(alert.id)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(alert.id); } }}
                   className={cn(
-                    "p-3.5 flex items-center gap-3 cursor-pointer border-l-4 transition-all hover:-translate-y-px hover:shadow-md",
+                    "p-3.5 flex items-center gap-3 cursor-pointer border-l-4 transition-all hover:-translate-y-px hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500/40",
                     s.bar,
                     isSel && "ring-2 ring-brand-400/50"
                   )}
@@ -329,9 +332,9 @@ export default function CareMonitoringPage() {
                       <div className="ml-auto text-right flex-none">
                         <div className={cn("font-en text-3xl font-extrabold leading-none", s.text)}>
                           {Math.round(selected.risk_score)}
-                          <span className="text-sm text-warm-400 font-bold">/100</span>
+                          <span className="text-sm text-warm-500 font-bold">/100</span>
                         </div>
-                        <div className="text-[11px] text-warm-400 mt-1">
+                        <div className="text-[11px] text-warm-500 mt-1">
                           AI 위험 점수 (높을수록 위험)
                         </div>
                       </div>
@@ -341,7 +344,7 @@ export default function CareMonitoringPage() {
                     <div className="grid grid-cols-[1.2fr_1fr] gap-6 p-6">
                       {/* Left: detected signal */}
                       <div>
-                        <div className="text-xs font-extrabold text-warm-400 uppercase tracking-wide mb-3">
+                        <div className="text-xs font-extrabold text-warm-500 uppercase tracking-wide mb-3">
                           AI 감지 신호
                         </div>
                         <div className="flex items-center gap-3 p-3 rounded-xl bg-warm-50 border border-warm-100">
@@ -363,14 +366,14 @@ export default function CareMonitoringPage() {
                             {Math.round(selected.risk_score)}
                           </div>
                         </div>
-                        <div className="mt-4 text-[11px] text-warm-400">
+                        <div className="mt-4 text-[11px] text-warm-500">
                           ※ 세부 신호 지표(낙상 횟수·활동량 추이 등)는 추후 연동 예정입니다.
                         </div>
                       </div>
 
                       {/* Right: recommendation + actions */}
                       <div>
-                        <div className="text-xs font-extrabold text-warm-400 uppercase tracking-wide mb-3">
+                        <div className="text-xs font-extrabold text-warm-500 uppercase tracking-wide mb-3">
                           권장 조치
                         </div>
                         <div
@@ -399,7 +402,7 @@ export default function CareMonitoringPage() {
                           </div>
                           <div>
                             <div className="text-sm font-bold text-warm-800">담당 케어 돌봄전문가</div>
-                            <div className="text-[11px] text-warm-400 mt-0.5">배정 정보 연동 예정</div>
+                            <div className="text-[11px] text-warm-500 mt-0.5">배정 정보 연동 예정</div>
                           </div>
                           <button className="ml-auto inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-warm-200 bg-white text-xs font-bold text-warm-600 hover:border-warm-300">
                             <PhoneCall className="w-3.5 h-3.5" />

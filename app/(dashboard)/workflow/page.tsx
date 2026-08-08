@@ -23,7 +23,7 @@ export default function WorkflowIndexPage() {
       </div>
 
       {/* 전체 */}
-      <div className="mb-3 text-[11px] font-bold text-warm-400 uppercase tracking-widest">전체 업무흐름도</div>
+      <div className="mb-3 text-[11px] font-bold text-warm-500 uppercase tracking-widest">전체 업무흐름도</div>
       <Link href="/workflow/overview"
         className="group flex items-center gap-4 rounded-xl border border-warm-200 bg-white p-5 shadow-sm hover:-translate-y-px hover:shadow-md transition-all mb-8">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white flex-none" style={{ background: "#7C4DFF" }}>
@@ -33,11 +33,11 @@ export default function WorkflowIndexPage() {
           <div className="text-base font-extrabold text-warm-800">전체 업무흐름도 (생애 전체 주기)</div>
           <div className="text-sm text-warm-500 mt-0.5">가입·온보딩 → 매칭 → 돌봄 수행 → 기록·검수 → 정산까지 한눈에</div>
         </div>
-        <ArrowRight className="w-5 h-5 text-warm-300 group-hover:text-brand-500 group-hover:translate-x-1 transition-all" />
+        <ArrowRight className="w-5 h-5 text-warm-500 group-hover:text-brand-500 group-hover:translate-x-1 transition-all" />
       </Link>
 
       {/* 접속자별 */}
-      <div className="mb-3 text-[11px] font-bold text-warm-400 uppercase tracking-widest">접속자별 업무흐름도</div>
+      <div className="mb-3 text-[11px] font-bold text-warm-500 uppercase tracking-widest">접속자별 업무흐름도</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {ROLE_CARDS.map((c) => {
           const Icon = c.icon;
@@ -58,7 +58,7 @@ export default function WorkflowIndexPage() {
         })}
       </div>
 
-      <div className="mt-8 text-xs text-warm-400">
+      <div className="mt-8 text-xs text-warm-500">
         통합본 이미지가 필요하면 <a href="/admin/workflow.png" target="_blank" rel="noopener noreferrer" className="text-brand-600 font-semibold hover:underline">전체 통합본 PNG ↗</a> 를 내려받을 수 있습니다.
       </div>
     </div>

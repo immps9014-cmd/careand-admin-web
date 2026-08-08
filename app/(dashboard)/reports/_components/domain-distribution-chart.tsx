@@ -43,7 +43,7 @@ export function DomainDistributionChart({ data, total }: Props) {
           <span className="font-en text-2xl font-extrabold text-warm-800 leading-none">
             {total}
           </span>
-          <span className="text-[10px] text-warm-400 mt-0.5">진행중</span>
+          <span className="text-[10px] text-warm-500 mt-0.5">진행중</span>
         </div>
       </div>
       <div className="flex flex-col gap-2.5 flex-1">

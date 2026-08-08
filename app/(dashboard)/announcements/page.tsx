@@ -171,7 +171,7 @@ export default function AnnouncementsPage() {
                     "flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2.5 text-xs font-bold transition-colors",
                     on
                       ? "border-brand-400 bg-brand-50 text-brand-600"
-                      : "border-warm-200 bg-white text-warm-400 hover:border-warm-300"
+                      : "border-warm-200 bg-white text-warm-500 hover:border-warm-300"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -194,7 +194,7 @@ export default function AnnouncementsPage() {
                     "flex-1 flex flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2.5 text-xs font-bold whitespace-nowrap select-none",
                     on
                       ? "border-brand-400 bg-brand-50 text-brand-600"
-                      : "border-warm-200 bg-white text-warm-400"
+                      : "border-warm-200 bg-white text-warm-500"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function AnnouncementsPage() {
                     type="button"
                     aria-label="대상 해제"
                     onClick={() => setSelected(null)}
-                    className="flex-none rounded-md p-1 text-warm-400 hover:bg-warm-100 hover:text-warm-700"
+                    className="flex-none rounded-md p-2 text-warm-500 hover:bg-warm-100 hover:text-warm-700"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -273,7 +273,7 @@ export default function AnnouncementsPage() {
 
                   {/* 검색 입력 */}
                   <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400 pointer-events-none" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-500 pointer-events-none" />
                     <Input
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -285,19 +285,19 @@ export default function AnnouncementsPage() {
                   {/* 검색 결과 */}
                   <div className="mb-4 max-h-[240px] overflow-y-auto rounded-lg border border-warm-200 divide-y divide-warm-100">
                     {kw.length < 1 && (
-                      <div className="px-3 py-6 text-center text-xs text-warm-400">
+                      <div className="px-3 py-6 text-center text-xs text-warm-500">
                         보낼 대상의 이름/연락처를 검색하세요
                       </div>
                     )}
                     {kw.length >= 1 && recipientsQuery.isLoading && (
-                      <div className="px-3 py-6 text-center text-xs text-warm-400">
+                      <div className="px-3 py-6 text-center text-xs text-warm-500">
                         검색 중…
                       </div>
                     )}
                     {kw.length >= 1 &&
                       !recipientsQuery.isLoading &&
                       (recipientsQuery.data?.length ?? 0) === 0 && (
-                        <div className="px-3 py-6 text-center text-xs text-warm-400">
+                        <div className="px-3 py-6 text-center text-xs text-warm-500">
                           검색 결과가 없습니다
                         </div>
                       )}
@@ -319,7 +319,7 @@ export default function AnnouncementsPage() {
                             {r.phone || r.email || `#${r.id}`}
                           </div>
                         </div>
-                        <Send className="w-3.5 h-3.5 flex-none text-warm-300" />
+                        <Send className="w-3.5 h-3.5 flex-none text-warm-500" />
                       </button>
                     ))}
                   </div>
@@ -344,7 +344,7 @@ export default function AnnouncementsPage() {
             placeholder={mode === "direct" ? "메시지 내용을 입력하세요" : "공지 내용을 입력하세요"}
             maxLength={2000}
             rows={5}
-            className="w-full rounded-lg border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-400 focus-visible:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-500/20 mb-4 resize-none leading-relaxed"
+            className="w-full rounded-lg border border-warm-200 bg-white px-3 py-2 text-sm placeholder:text-warm-500 focus-visible:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-500/20 mb-4 resize-none leading-relaxed"
           />
 
           {/* 발송 추정 안내 */}
@@ -397,14 +397,14 @@ export default function AnnouncementsPage() {
               <TableBody>
                 {query.isLoading && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-warm-400 py-10">
+                    <TableCell colSpan={4} className="text-center text-warm-500 py-10">
                       불러오는 중…
                     </TableCell>
                   </TableRow>
                 )}
                 {!query.isLoading && query.data?.data.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-warm-400 py-10">
+                    <TableCell colSpan={4} className="text-center text-warm-500 py-10">
                       발송한 공지가 없습니다
                     </TableCell>
                   </TableRow>
@@ -449,12 +449,12 @@ export default function AnnouncementsPage() {
 
           {/* 앱 푸시 미리보기 — 작성 중인 제목/내용 실시간 반영 */}
           <Card className="p-5">
-            <div className="text-xs font-extrabold text-warm-400 uppercase tracking-wider mb-3">
+            <div className="text-xs font-extrabold text-warm-500 uppercase tracking-wider mb-3">
               앱 푸시 미리보기
             </div>
             <div className="rounded-xl border border-dashed border-warm-200 bg-warm-50 p-4">
               <div className="max-w-[320px] rounded-xl border border-warm-200 bg-white shadow-card px-4 py-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-warm-400">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-warm-500">
                   <span className="w-[18px] h-[18px] rounded bg-brand-500 text-white flex items-center justify-center text-[10px] font-extrabold flex-none">
                     C
                   </span>

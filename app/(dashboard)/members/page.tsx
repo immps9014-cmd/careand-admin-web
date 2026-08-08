@@ -255,7 +255,7 @@ function MembersPageInner() {
         <div className="flex-1" />
 
         <div className="relative max-w-[240px] w-full">
-          <Search className="w-4 h-4 text-warm-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-warm-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -292,14 +292,14 @@ function MembersPageInner() {
           <TableBody>
             {query.isLoading && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={8} className="text-center text-warm-500 py-10">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
             {query.data?.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-warm-400 py-10">
+                <TableCell colSpan={8} className="text-center text-warm-500 py-10">
                   회원이 없습니다
                 </TableCell>
               </TableRow>
@@ -343,7 +343,7 @@ function MembersPageInner() {
                           ))}
                         </span>
                       ) : (
-                        <span className="text-warm-300 text-xs">미등록</span>
+                        <span className="text-warm-500 text-xs">미등록</span>
                       )
                     ) : (
                       <span className="text-warm-600 text-sm">{ROLE_BADGE[er]?.label ?? m.role}</span>
@@ -355,7 +355,7 @@ function MembersPageInner() {
                         {CG_VERIFY[m.caregiver_status].label}
                       </Badge>
                     ) : (
-                      <span className="text-warm-300 text-xs">—</span>
+                      <span className="text-warm-500 text-xs">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-warm-600 font-en text-xs">
@@ -431,6 +431,11 @@ function DRow({ label, children }: { label: string; children: React.ReactNode })
 }
 
 function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const qc = useQueryClient();
   const backdropDown = useRef(false);
   const isSuper = useAuth((s) => s.user?.admin?.permission_level) === "super";
@@ -508,19 +513,21 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
         onClick={(e) => { if (backdropDown.current && e.target === e.currentTarget) onClose(); }}
       />
       <div
+        role="dialog"
+        aria-modal="true"
         className="relative w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
         <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
           <h2 className="text-base font-bold text-warm-800">회원 상세</h2>
-          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600">
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-2 text-warm-500 hover:bg-warm-50 hover:text-warm-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6">
-          {isLoading && <div className="py-10 text-center text-warm-400 text-sm">불러오는 중…</div>}
+          {isLoading && <div className="py-10 text-center text-warm-500 text-sm">불러오는 중…</div>}
           {isError && <div className="py-10 text-center text-danger text-sm">상세 정보를 불러오지 못했습니다.</div>}
 
           {data && (
@@ -566,7 +573,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                     <div className="rounded-lg border border-warm-100 px-4 mb-4">
                       <DRow label="자격번호">
                         <span className="font-en font-semibold inline-flex items-center gap-1.5">
-                          <IdCard className="w-3.5 h-3.5 text-warm-400" />{cg.license_no || "미제출"}
+                          <IdCard className="w-3.5 h-3.5 text-warm-500" />{cg.license_no || "미제출"}
                           {cg.license_verified && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                         </span>
                       </DRow>
@@ -577,7 +584,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                             <img src={cg.license_image_url} alt="자격증" className="max-h-24 rounded-md border border-warm-200 hover:opacity-90" />
                           </a>
                         ) : (
-                          <span className="text-warm-400">미제출</span>
+                          <span className="text-warm-500">미제출</span>
                         )}
                       </DRow>
                       <DRow label="성별 · 나이">{(cg.gender === "M" ? "남성" : cg.gender === "F" ? "여성" : "-")}{calcAge(cg.birth_date) != null ? ` · 만 ${calcAge(cg.birth_date)}세` : ""}</DRow>
@@ -587,7 +594,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                             {(cg.service_domains || "").split(",").filter(Boolean).map((d) => (
                               <Badge key={d} variant="brand">{DOMAIN_LABEL[d] ?? d}</Badge>
                             ))}
-                            {!cg.service_domains && <span className="text-warm-400">-</span>}
+                            {!cg.service_domains && <span className="text-warm-500">-</span>}
                             <button type="button" onClick={() => setCgDomainsEdit((cg.service_domains || "").split(",").filter(Boolean))} className="text-xs font-semibold text-brand-600 hover:underline ml-1">수정</button>
                           </span>
                         ) : (
@@ -618,10 +625,10 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                         <span className="inline-flex flex-wrap gap-1 justify-end">
                           {cg.specialties.length > 0 ? cg.specialties.map((sp) => (
                             <Badge key={sp} variant="outline">{sp}</Badge>
-                          )) : <span className="text-warm-400">등록 없음</span>}
+                          )) : <span className="text-warm-500">등록 없음</span>}
                         </span>
                       </DRow>
-                      <DRow label="활동 지역"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-400" />{cg.base_address || "-"}</span></DRow>
+                      <DRow label="활동 지역"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-500" />{cg.base_address || "-"}</span></DRow>
                       <DRow label="평점 · 완료"><span className="inline-flex items-center gap-1"><Star className="w-3.5 h-3.5 text-warn" />{cg.rating_avg.toFixed(1)} · {cg.completed_sessions}회</span></DRow>
                       <DRow label="신청일"><span className="font-en">{formatDate(cg.created_at)}</span></DRow>
                     </div>
@@ -690,12 +697,12 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                         {orgEdit === null
                           ? (ORG_TYPE[data.organization.biz_type ?? ""] ?? data.organization.biz_type ?? "-")
                           : (
-                            <select value={orgEdit.biz_type} onChange={(e) => setOrgEdit({ ...orgEdit, biz_type: e.target.value })} className="h-8 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none">
+                            <select value={orgEdit.biz_type} onChange={(e) => setOrgEdit({ ...orgEdit, biz_type: e.target.value })} className="h-8 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
                               {ORG_TYPE_OPTIONS.map((k) => <option key={k} value={k}>{ORG_TYPE[k]}</option>)}
                             </select>
                           )}
                       </DRow>
-                      <DRow label="주소"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-400" />{data.organization.address || "-"}</span></DRow>
+                      <DRow label="주소"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-500" />{data.organization.address || "-"}</span></DRow>
                     </div>
 
                     {/* 승인/정지 처리 */}
@@ -745,11 +752,11 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                     </div>
                     <div className="rounded-lg border border-warm-100 px-4 mb-4">
                       <DRow label="관계">{data.guardian.relation || "-"}</DRow>
-                      <DRow label="연락처(주소)"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-400" />{data.guardian.contact_address || "-"}</span></DRow>
+                      <DRow label="연락처(주소)"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-500" />{data.guardian.contact_address || "-"}</span></DRow>
                       <DRow label="돌봄 대상">
                         {(data.guardian.seniors.length + data.guardian.patients.length) > 0
                           ? `어르신 ${data.guardian.seniors.length}명 · 환자 ${data.guardian.patients.length}명`
-                          : <span className="text-warm-400">등록 없음</span>}
+                          : <span className="text-warm-500">등록 없음</span>}
                       </DRow>
                     </div>
                     {(data.guardian.seniors.length > 0 || data.guardian.patients.length > 0) && (
@@ -786,7 +793,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                     <div className="rounded-lg border border-warm-100 px-4">
                       <DRow label="로그인 ID"><span className="font-en">{data.email || "-"}</span></DRow>
                       <DRow label="연락처"><span className="font-en">{data.phone || "-"}</span></DRow>
-                      <DRow label="비밀번호"><span className="text-warm-400">••••••••</span></DRow>
+                      <DRow label="비밀번호"><span className="text-warm-500">••••••••</span></DRow>
                       <div className="py-2.5">
                         <Button variant="outline" size="sm" onClick={() => setCredEdit({ email: data.email ?? "", phone: data.phone ?? "", password: "" })}>
                           <KeyRound className="w-4 h-4" /> 계정정보 수정
@@ -840,6 +847,11 @@ const ADD_ROLES: { key: string; label: string; role: CreateMemberInput["role"]; 
 ];
 
 function AddMemberModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const qc = useQueryClient();
   const [role, setRole] = useState<CreateMemberInput["role"]>("guardian");
   const [cgDomain, setCgDomain] = useState("senior");
@@ -900,10 +912,10 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
         onMouseDown={(e) => { backdropDown.current = e.target === e.currentTarget; }}
         onClick={(e) => { if (backdropDown.current && e.target === e.currentTarget) onClose(); }}
       />
-      <div className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-xl border border-warm-200 bg-white shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-warm-100 px-6 py-4 flex items-center justify-between">
           <h2 className="text-base font-bold text-warm-800">회원 추가</h2>
-          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-1 text-warm-400 hover:bg-warm-50 hover:text-warm-600">
+          <button type="button" aria-label="닫기" onClick={onClose} className="rounded-md p-2 text-warm-500 hover:bg-warm-50 hover:text-warm-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -972,7 +984,7 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
                 <select
                   value={bizType}
                   onChange={(e) => setBizType(e.target.value)}
-                  className="w-full h-10 rounded-md border border-warm-300 bg-white px-3 text-sm text-warm-800 focus:border-brand-500 focus:outline-none"
+                  className="w-full h-10 rounded-md border border-warm-300 bg-white px-3 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                 >
                   {ORG_TYPE_OPTIONS.map((k) => (
                     <option key={k} value={k}>{ORG_TYPE[k]}</option>
@@ -1071,7 +1083,7 @@ function RowMenu({ m, onDetail }: { m: Member; onDetail: () => void }) {
   return (
     <>
       <button ref={btnRef} type="button" onClick={toggle}
-        className="w-8 h-8 inline-flex items-center justify-center rounded-md text-warm-400 hover:bg-warm-100 hover:text-warm-600 transition-colors">
+        className="w-8 h-8 inline-flex items-center justify-center rounded-md text-warm-500 hover:bg-warm-100 hover:text-warm-600 transition-colors">
         <MoreVertical className="w-4 h-4" />
       </button>
       {open && (

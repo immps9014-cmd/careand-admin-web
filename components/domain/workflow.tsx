@@ -26,7 +26,7 @@ export function Legend() {
           {r.label}
         </span>
       ))}
-      <span className="inline-flex items-center gap-1 text-warm-400">
+      <span className="inline-flex items-center gap-1 text-warm-500">
         <ArrowUpRight className="w-3.5 h-3.5" /> 카드 클릭 시 관리 화면으로 이동
       </span>
     </div>
@@ -39,7 +39,7 @@ function StepCardInner({ step }: { step: Step }) {
     <>
       <div className="text-[10.5px] font-extrabold uppercase tracking-wide" style={{ color: r.color }}>{r.label}</div>
       <div className="text-[13px] font-bold text-warm-800 mt-1 leading-snug">
-        {step.n && <span className="text-warm-400">{step.n} </span>}{step.title}
+        {step.n && <span className="text-warm-500">{step.n} </span>}{step.title}
       </div>
       {step.desc && <div className="text-[10.5px] text-warm-500 mt-1.5 leading-relaxed">{step.desc}</div>}
       {step.href && (
@@ -76,8 +76,8 @@ function StepCard({ step }: { step: Step }) {
 function HArrow({ dir, note }: { dir: "right" | "left"; note?: string }) {
   return (
     <div className="flex flex-col items-center justify-center" style={{ width: AW, flex: "0 0 auto" }}>
-      {note && <div className="text-[9px] font-bold text-warm-400 text-center mb-1 leading-tight whitespace-pre-line">{note}</div>}
-      {dir === "right" ? <ArrowRight className="w-5 h-5 text-warm-300" /> : <ArrowLeft className="w-5 h-5 text-warm-300" />}
+      {note && <div className="text-[9px] font-bold text-warm-500 text-center mb-1 leading-tight whitespace-pre-line">{note}</div>}
+      {dir === "right" ? <ArrowRight className="w-5 h-5 text-warm-500" /> : <ArrowLeft className="w-5 h-5 text-warm-500" />}
     </div>
   );
 }
@@ -115,8 +115,8 @@ export function FlowChart({ steps }: { steps: Step[] }) {
             </div>
             {!isLast && (
               <div className="flex flex-col items-center py-1.5" style={{ marginLeft: downMl, width: AW }}>
-                <ArrowDown className="w-5 h-5 text-warm-300" />
-                {downNote && <div className="text-[9px] font-bold text-warm-400 text-center mt-1 leading-tight whitespace-pre-line" style={{ width: 96 }}>{downNote}</div>}
+                <ArrowDown className="w-5 h-5 text-warm-500" />
+                {downNote && <div className="text-[9px] font-bold text-warm-500 text-center mt-1 leading-tight whitespace-pre-line" style={{ width: 96 }}>{downNote}</div>}
               </div>
             )}
           </div>
@@ -143,7 +143,7 @@ export function WorkflowShell({
       </div>
       <div className="mb-4"><Legend /></div>
       <div className="rounded-xl border border-warm-200 bg-warm-50/40 p-6">
-        <p className="text-xs text-warm-400 mb-4">한 줄을 넘으면 아래로 이어집니다 (1행 →, 2행 ← 연속). 단계 카드를 클릭하면 해당 관리 화면으로 이동합니다.</p>
+        <p className="text-xs text-warm-500 mb-4">한 줄을 넘으면 아래로 이어집니다 (1행 →, 2행 ← 연속). 단계 카드를 클릭하면 해당 관리 화면으로 이동합니다.</p>
         {children}
       </div>
     </div>

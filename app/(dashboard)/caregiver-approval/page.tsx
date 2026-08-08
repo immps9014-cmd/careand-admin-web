@@ -173,10 +173,10 @@ export default function CaregiverApprovalPage() {
           </div>
 
           {query.isLoading && (
-            <Card className="p-6 text-center text-warm-400 text-sm">불러오는 중…</Card>
+            <Card className="p-6 text-center text-warm-500 text-sm">불러오는 중…</Card>
           )}
           {!query.isLoading && rows.length === 0 && (
-            <Card className="p-6 text-center text-warm-400 text-sm">해당 상태의 돌봄전문가가 없습니다</Card>
+            <Card className="p-6 text-center text-warm-500 text-sm">해당 상태의 돌봄전문가가 없습니다</Card>
           )}
 
           {rows.map((c) => {
@@ -201,7 +201,7 @@ export default function CaregiverApprovalPage() {
                     {DOMAIN_LABEL[dom] ?? dom}
                     {c.career_track ? ` · ${c.career_track}` : ""}
                   </div>
-                  <div className="text-[11px] text-warm-400 mt-1 flex items-center gap-1.5">
+                  <div className="text-[11px] text-warm-500 mt-1 flex items-center gap-1.5">
                     <Badge variant={STATUS_BADGE[c.status]?.variant ?? "outline"}>
                       {STATUS_BADGE[c.status]?.label ?? c.status}
                     </Badge>
@@ -216,7 +216,7 @@ export default function CaregiverApprovalPage() {
         {/* 상세 패널 */}
         <Card className="overflow-hidden">
           {!selected ? (
-            <div className="p-12 text-center text-warm-400 text-sm">
+            <div className="p-12 text-center text-warm-500 text-sm">
               왼쪽 목록에서 돌봄전문가를 선택하면 검토 상세가 표시됩니다.
             </div>
           ) : (
@@ -257,7 +257,7 @@ export default function CaregiverApprovalPage() {
                     <div className="inline-flex items-center gap-1 text-sm font-bold text-warm-700">
                       <Star className="w-4 h-4 text-warn" />{selected.rating_avg.toFixed(1)}
                     </div>
-                    <div className="text-[11px] text-warm-400 mt-0.5 font-en">{selected.completed_sessions}회 완료</div>
+                    <div className="text-[11px] text-warm-500 mt-0.5 font-en">{selected.completed_sessions}회 완료</div>
                   </div>
                 )}
               </div>
@@ -267,13 +267,13 @@ export default function CaregiverApprovalPage() {
                 {/* 좌: 도메인 / 특기 / 제출 서류 안내 */}
                 <div className="space-y-5">
                   <div>
-                    <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2.5">서비스 도메인 · 특기</div>
+                    <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2.5">서비스 도메인 · 특기</div>
                     <div className="flex flex-wrap gap-1.5">
                       {(selected.service_domains || "senior").split(",").map((d) => (
                         <Badge key={d} variant="brand">{DOMAIN_LABEL[d] ?? d}</Badge>
                       ))}
                       {selected.specialties.length === 0 && (
-                        <span className="text-warm-400 text-xs self-center">등록된 특기 없음</span>
+                        <span className="text-warm-500 text-xs self-center">등록된 특기 없음</span>
                       )}
                       {selected.specialties.map((s) => (
                         <Badge key={s} variant="outline">{s}</Badge>
@@ -283,7 +283,7 @@ export default function CaregiverApprovalPage() {
 
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide">제출 서류 검토</div>
+                      <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide">제출 서류 검토</div>
                       <span className="text-[11px] text-warm-500 bg-warm-100 rounded-full px-2.5 py-0.5">수동 확인</span>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -299,10 +299,10 @@ export default function CaregiverApprovalPage() {
                                 <span className="text-[9.5px] font-extrabold text-white bg-danger px-1.5 py-px rounded">필수</span>
                               )}
                             </div>
-                            <div className="text-[11px] text-warm-400 mt-0.5">담당자 직접 확인 항목</div>
+                            <div className="text-[11px] text-warm-500 mt-0.5">담당자 직접 확인 항목</div>
                           </div>
                           <div className="ml-auto flex items-center gap-2 flex-none">
-                            <span className="text-[11.5px] font-bold text-warm-400 inline-flex items-center gap-1">검토 필요</span>
+                            <span className="text-[11.5px] font-bold text-warm-500 inline-flex items-center gap-1">검토 필요</span>
                           </div>
                         </div>
                       ))}
@@ -313,7 +313,7 @@ export default function CaregiverApprovalPage() {
                 {/* 우: 검증 안내 + 결정 */}
                 <div className="space-y-4">
                   <div>
-                    <div className="text-[11px] font-extrabold text-warm-400 uppercase tracking-wide mb-2.5">자격 검증</div>
+                    <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2.5">자격 검증</div>
                     {(() => {
                       const dom = firstDomain(selected);
                       const accepted = DOMAIN_CREDENTIALS[dom];
