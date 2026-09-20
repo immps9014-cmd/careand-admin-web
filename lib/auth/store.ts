@@ -18,9 +18,12 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  /** persist 복원 완료 여부 — 이게 true 가 되기 전에는 인증 판정을 하면 안 된다 */
+  hasHydrated: boolean;
 
   setUser: (user: User) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  setHasHydrated: (v: boolean) => void;
   logout: () => void;
 }
 
@@ -31,8 +34,11 @@ export const authStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      hasHydrated: false,
 
       setUser: (user) => set({ user, isAuthenticated: true }),
+
+      setHasHydrated: (v) => set({ hasHydrated: v }),
 
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken, isAuthenticated: true }),
@@ -53,6 +59,11 @@ export const authStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // persist 복원 완료 후에만 인증 판정을 하도록 플래그 세팅
+        // (member-web lib/auth/store.ts 와 같은 패턴 — 두 앱의 가드 방식을 맞춘다)
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
