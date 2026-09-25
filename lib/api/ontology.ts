@@ -47,12 +47,37 @@ export interface CaregiverBrief {
   specialties: string[];
 }
 
+/** MCP 자연어 질문 처리율 (mcp_kpi.compute 요약, 최근 30일) — 못 푼 질문 원문이 포함되므로 관리자 화면 전용 */
+export interface OntologyKpi {
+  days: number;
+  /** 질문 수는 하한 — 도구를 안 부르고 끝난 질문은 log_unanswered 로만 잡힌다 */
+  questions: number;
+  processed: number;
+  rate: number | null;
+  unprocessed_by_reason: {
+    unanswered: number;
+    unsupported: number;
+    ambiguous: number;
+    error: number;
+  };
+  calls: number;
+  by_tool: Record<string, number>;
+  unprocessed: {
+    question: string;
+    why: string;
+    reason: string | null;
+    ts: string;
+  }[];
+}
+
 export interface OntologyOverview {
   available: boolean;
   status: OntologyStatus | null;
   diseases: DiseaseCoverage[];
   specialties: SpecialtySupply[];
   caregivers: CaregiverBrief[];
+  /** ai-service 가 KPI 계산에 실패하면 null — 카드를 숨긴다 */
+  kpi?: OntologyKpi | null;
   error?: string;
 }
 

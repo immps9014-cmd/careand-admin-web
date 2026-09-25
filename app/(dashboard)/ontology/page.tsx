@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Clock,
+  Gauge,
   Network,
   Search,
   ShieldAlert,
@@ -24,6 +25,7 @@ import {
 import {
   ontologyApi,
   type CaregiverBrief,
+  type OntologyKpi,
   type OntologyStatus,
 } from "@/lib/api/ontology";
 import { cn } from "@/lib/utils";
@@ -66,6 +68,121 @@ function DataAsOf({ status }: { status: OntologyStatus | null }) {
       데이터 기준 {status.data_at.slice(5, 16)}
       {age}
     </span>
+  );
+}
+
+const KPI_WHY_LABEL: Record<string, string> = {
+  unanswered: "맞는 도구 없음",
+  unsupported: "미지원 데이터",
+  ambiguous: "모호(후보만 제시)",
+  error: "오류",
+};
+
+/**
+ * 자연어 질문 처리율 카드 — caren-ontology MCP 호출 로그(nl_kpi 와 같은 계산) 기반.
+ * 로그 기반이라 Fuseki 장애 중에도 보인다. 못 푼 질문 목록이 곧 도구 백로그다.
+ */
+function KpiCard({ kpi }: { kpi: OntologyKpi }) {
+  const why = kpi.unprocessed_by_reason;
+  const unprocTotal = why.unanswered + why.unsupported + why.ambiguous + why.error;
+  return (
+    <Card className="p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-bold text-warm-800">
+            <Gauge className="h-4 w-4 text-brand-600" /> 자연어 질문 처리율 — Caren MCP
+          </h2>
+          <p className="mt-0.5 text-[12px] text-warm-500">
+            최근 {kpi.days}일 · MCP 도구 호출 로그로 계산합니다. 도구를 한 번도 부르지 않고
+            끝난 질문은 잡히지 않으므로 질문 수는 하한입니다.
+          </p>
+        </div>
+        <div className="text-right">
+          <div
+            className={cn(
+              "text-3xl font-extrabold tabular-nums tracking-tight",
+              kpi.rate === null
+                ? "text-warm-400"
+                : kpi.rate >= 0.8
+                ? "text-warm-900"
+                : "text-warn"
+            )}
+          >
+            {kpi.rate === null ? "—" : `${Math.round(kpi.rate * 100)}%`}
+          </div>
+          <div className="text-[12px] text-warm-500">
+            질문 {kpi.questions} · 처리 {kpi.processed} · 호출 {kpi.calls}
+          </div>
+        </div>
+      </div>
+
+      {kpi.questions === 0 ? (
+        <p className="mt-3 text-[13px] text-warm-500">
+          아직 집계할 질문이 없습니다 — claude.ai 커넥터나 Claude Code 에서 케어앤 데이터를
+          물으면 여기에 쌓입니다.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div>
+            <div className="text-[11.5px] font-bold uppercase tracking-wider text-warm-500">
+              미처리 {unprocTotal}건 · 사유
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {(Object.keys(KPI_WHY_LABEL) as (keyof typeof why)[]).map((k) => (
+                <span
+                  key={k}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[12.5px]",
+                    why[k] > 0
+                      ? "border-warn/40 bg-warn-bg text-warn"
+                      : "border-warm-200 bg-warm-50 text-warm-400"
+                  )}
+                >
+                  {KPI_WHY_LABEL[k]}
+                  <span className="font-bold tabular-nums">{why[k]}</span>
+                </span>
+              ))}
+            </div>
+            <div className="mt-3 text-[11.5px] font-bold uppercase tracking-wider text-warm-500">
+              도구별 호출
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {Object.entries(kpi.by_tool).map(([t, n]) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-warm-200 bg-white px-2.5 py-1 font-mono text-[12px] text-warm-700"
+                >
+                  {t}
+                  <span className="font-bold tabular-nums">{n}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-[11.5px] font-bold uppercase tracking-wider text-warm-500">
+              못 푼 질문(최근) — 도구 백로그
+            </div>
+            {kpi.unprocessed.length === 0 ? (
+              <p className="mt-1.5 text-[12.5px] text-warm-400">없음</p>
+            ) : (
+              <ul className="mt-1.5 space-y-1">
+                {kpi.unprocessed.map((u) => (
+                  <li
+                    key={`${u.ts}|${u.question}`}
+                    className="rounded-lg bg-warm-50 px-2.5 py-1.5 text-[12.5px]"
+                  >
+                    <span className="font-bold text-warm-700">“{u.question}”</span>
+                    <span className="ml-1.5 text-warm-500">
+                      [{KPI_WHY_LABEL[u.why] ?? u.why}]{u.reason ? ` ${u.reason}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -513,6 +630,9 @@ export default function OntologyPage() {
           </div>
         </>
       )}
+
+      {/* 처리율 KPI — 호출 로그 기반이라 그래프 미가용 중에도 보인다 */}
+      {data?.kpi && <KpiCard kpi={data.kpi} />}
     </div>
   );
 }
