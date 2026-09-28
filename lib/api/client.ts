@@ -46,7 +46,8 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       originalRequest.url !== "/v1/auth/refresh" &&
-      originalRequest.url !== "/v1/auth/login"
+      originalRequest.url !== "/v1/auth/login" &&
+      originalRequest.url !== "/v1/auth/2fa/verify"
     ) {
       if (isRefreshing) {
         // 다른 요청이 갱신 중이면 큐 대기
