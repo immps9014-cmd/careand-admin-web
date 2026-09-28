@@ -14,7 +14,6 @@ import {
   Phone,
   Mail,
   IdCard,
-  FileText,
   XCircle,
   AlertTriangle,
 } from "lucide-react";
@@ -69,14 +68,8 @@ const TYPE_AUTHORITY: Record<string, string> = {
   간병사: "민간자격정보서비스",
 };
 
-// 1차년도 수동 검증 — 제출 서류 체크리스트 (정적 안내, 자동 진위검증 미연동)
-const DOC_CHECKLIST: { label: string; required: boolean }[] = [
-  { label: "신분증", required: true },
-  { label: "자격증", required: true },
-  { label: "성범죄경력 회신서", required: true },
-  { label: "건강진단서", required: true },
-  { label: "통장 사본", required: false },
-];
+// 필수 제출 서류 — 백엔드 config/caregiver_docs.php 와 같게(자격증은 별도 자격번호·진위확인). 상세 상태는 CaregiverDocumentsPanel
+const REQUIRED_DOCS = ["신분증", "통장 사본", "범죄경력 회보서"];
 
 export default function CaregiverApprovalPage() {
   const [status, setStatus] = useState("pending");
@@ -137,7 +130,7 @@ export default function CaregiverApprovalPage() {
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">돌봄전문가 자격 검증</h1>
         <p className="text-sm text-warm-500 mt-1">
-          신규 돌봄전문가의 자격증·서류를 검토하고 승인·반려합니다. 시니어 케어는 성범죄경력 회신서 확인이 필수입니다 (1차년도 수동 검증).
+          신규 돌봄전문가의 자격증·서류를 검토하고 승인·반려합니다. 제출 서류(신분증·통장 사본·범죄경력 회보서)는 열람 사유를 남기고 원본을 확인합니다.
         </p>
       </div>
 
@@ -145,7 +138,7 @@ export default function CaregiverApprovalPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard variant="brand" label="승인 대기" value={status === "pending" ? total : "—"} icon={Clock} />
         <KpiCard label="검토 대상 (현재 탭)" value={total} icon={ShieldCheck} iconColor="info" />
-        <KpiCard label="필수 서류 항목" value={DOC_CHECKLIST.filter((d) => d.required).length} icon={FileWarning} iconColor="warn" subLabel="신분증·자격증·성범죄경력·건강진단서" />
+        <KpiCard label="필수 서류 항목" value={REQUIRED_DOCS.length} icon={FileWarning} iconColor="warn" subLabel={`${REQUIRED_DOCS.join("·")} + 자격번호`} />
         <KpiCard label="누적 검증 돌봄전문가" value={total} icon={CheckCircle2} iconColor="brand" subLabel="현재 탭 기준" />
       </div>
 
@@ -290,33 +283,7 @@ export default function CaregiverApprovalPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide">제출 서류 검토</div>
-                      <span className="text-[11px] text-warm-500 bg-warm-100 rounded-full px-2.5 py-0.5">수동 확인</span>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {DOC_CHECKLIST.map((doc) => (
-                        <div key={doc.label} className="flex items-center gap-3 px-3 py-2.5 border border-warm-100 rounded-lg bg-warm-50">
-                          <div className="w-9 h-11 rounded-md bg-brand-500/90 text-white flex items-center justify-center flex-none">
-                            <FileText className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-[13px] font-bold text-warm-800 flex items-center gap-1.5">
-                              {doc.label}
-                              {doc.required && (
-                                <span className="text-[9.5px] font-extrabold text-white bg-danger px-1.5 py-px rounded">필수</span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-warm-500 mt-0.5">담당자 직접 확인 항목</div>
-                          </div>
-                          <div className="ml-auto flex items-center gap-2 flex-none">
-                            <span className="text-[11.5px] font-bold text-warm-500 inline-flex items-center gap-1">검토 필요</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <CaregiverDocumentsPanel caregiverId={selected.id} />
                 </div>
 
                 {/* 우: 검증 안내 + 결정 */}
@@ -393,8 +360,6 @@ export default function CaregiverApprovalPage() {
                       );
                     })()}
                   </div>
-
-                  <CaregiverDocumentsPanel caregiverId={selected.id} />
 
                   <div className="border border-warm-100 rounded-xl p-4 bg-warm-50">
                     <div className="text-[13px] font-bold text-warm-800 mb-3">검토 결정</div>
