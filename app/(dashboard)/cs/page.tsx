@@ -60,6 +60,7 @@ function avatarBg(name: string) {
 export default function CsPage() {
   const [tab, setTab] = useState<"reviews" | "chatbot">("reviews");
   const [onlyNegative, setOnlyNegative] = useState(false);
+  const [onlyOpen, setOnlyOpen] = useState(false);
   // 인라인 답글 에디터 — 열려있는 후기 id와 입력 텍스트
   const [replyingId, setReplyingId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -72,7 +73,7 @@ export default function CsPage() {
       toast.success("답글을 저장했습니다.");
       setReplyingId(null);
       setReplyText("");
-      qc.invalidateQueries({ queryKey: ["admin", "cs", "reviews", onlyNegative] });
+      qc.invalidateQueries({ queryKey: ["admin", "cs"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -93,8 +94,8 @@ export default function CsPage() {
   });
 
   const reviewsQuery = useQuery({
-    queryKey: ["admin", "cs", "reviews", onlyNegative],
-    queryFn: () => csApi.reviews({ negative: onlyNegative }),
+    queryKey: ["admin", "cs", "reviews", onlyNegative, onlyOpen],
+    queryFn: () => csApi.reviews({ negative: onlyNegative, unanswered: onlyOpen }),
     enabled: tab === "reviews",
   });
 
@@ -140,8 +141,8 @@ export default function CsPage() {
           iconColor="info"
         />
         <KpiCard
-          label="부정 후기 (★1~2)"
-          value={stats?.reviews_negative ?? 0}
+          label={`부정 후기 미답변 (${stats?.sla_hours ?? 24}시간 초과 ${stats?.sla_overdue ?? 0})`}
+          value={stats?.negative_open ?? 0}
           icon={AlertTriangle}
           iconColor="danger"
         />
@@ -189,9 +190,18 @@ export default function CsPage() {
         </div>
         {tab === "reviews" && (
           <Button
-            variant={onlyNegative ? "danger" : "outline"}
+            variant={onlyOpen ? "danger" : "outline"}
             size="sm"
             className="ml-auto"
+            onClick={() => setOnlyOpen((v) => !v)}
+          >
+            답변 대기만 ({stats?.negative_open ?? 0})
+          </Button>
+        )}
+        {tab === "reviews" && (
+          <Button
+            variant={onlyNegative ? "danger" : "outline"}
+            size="sm"
             onClick={() => setOnlyNegative((v) => !v)}
           >
             <AlertTriangle className="w-4 h-4" />
@@ -316,6 +326,25 @@ export default function CsPage() {
                     <p className="text-[13.5px] text-warm-700 mt-1.5 leading-relaxed line-clamp-2">
                       {r.comment || "-"}
                     </p>
+                    {(r.scores?.length ?? 0) > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11.5px] text-warm-600">
+                        {r.scores.map((sc) => (
+                          <span key={sc.key} className={cn(sc.score <= 2 && "font-bold text-danger")}>
+                            {sc.label} <span className="font-en">{sc.score}</span>/5
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {r.open_hours != null && (
+                      <div
+                        className={cn(
+                          "mt-1.5 inline-flex rounded px-2 py-0.5 text-[11px] font-bold",
+                          r.open_hours >= (stats?.sla_hours ?? 24) ? "bg-danger text-white" : "bg-warn-bg text-warn"
+                        )}
+                      >
+                        답변 대기 {r.open_hours}시간
+                      </div>
+                    )}
 
                     {/* 기존 관리자 답글 */}
                     {r.admin_reply != null && (

@@ -5,6 +5,11 @@ export interface CsStats {
   reviews_avg: number;
   reviews_negative: number;
   rating_distribution: Record<string, number>;
+  /** 2점 이하 알림 후 미답변 건수 / 답변 기준 시간 / 기준 초과 건수 / 평균 답변 시간(시간) */
+  negative_open: number;
+  sla_hours: number;
+  sla_overdue: number;
+  avg_reply_hours: number | null;
   chatbot_total: number;
   chatbot_open: number;
 }
@@ -19,6 +24,12 @@ export interface CsReview {
   comment: string | null;
   tags: string[];
   is_negative: boolean;
+  service_domain: string | null;
+  /** 도메인별 평가 항목 점수 */
+  scores: { key: string; label: string; score: number }[];
+  flagged_at: string | null;
+  /** 2점 이하 미답변일 때 경과 시간(시간) */
+  open_hours: number | null;
   /** 관리자 답글 — 없으면 null */
   admin_reply: string | null;
   replied_at: string | null;
@@ -57,6 +68,7 @@ export const csApi = {
     rating?: number;
     role?: string;
     negative?: boolean;
+    unanswered?: boolean;
     page?: number;
   }): Promise<Paginated<CsReview>> {
     const { data } = await api.get<ApiResponse<CsReview[]>>("/v1/admin/cs/reviews", {
