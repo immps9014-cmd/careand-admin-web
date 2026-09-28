@@ -38,6 +38,7 @@ const TABS: { key: string; label: string }[] = [
   { key: "confirmed", label: "확정" },
   { key: "paid", label: "지급완료" },
   { key: "failed", label: "실패" },
+  { key: "disputed", label: "이의제기" },
 ];
 
 const STATUS_BADGE: Record<
@@ -377,6 +378,10 @@ export default function SettlementsPage() {
                       <span className={cn("w-1.5 h-1.5 rounded-full", badge.dot)} />
                       {badge.label}
                     </Badge>
+                    {st.dispute_status === "open" && <div className="mt-1 text-[11px] font-bold text-danger">이의제기 답변 대기</div>}
+                    {st.status === "confirmed" && st.dispute_status !== "open" && (
+                      <div className="mt-1 text-[11px] text-warm-500">{st.caregiver_ack_at ? "명세서 확인됨" : "명세서 미확인"}</div>
+                    )}
                   </TableCell>
                 </TableRow>
               );
@@ -410,6 +415,18 @@ function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => voi
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin", "settlement-detail", id],
     queryFn: () => operationsApi.settlementDetail(id),
+  });
+  const qc = useQueryClient();
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["admin", "settlement-detail", id] }); qc.invalidateQueries({ queryKey: ["admin", "settlements"] }); };
+  const reply = useMutation({
+    mutationFn: ({ text, resolve }: { text: string; resolve: boolean }) => operationsApi.replySettlementDispute(id, text, resolve),
+    onSuccess: (r) => { toast.success(r.data?.message ?? "답변했습니다."); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const paid = useMutation({
+    mutationFn: (tx?: string) => operationsApi.markSettlementPaid(id, tx),
+    onSuccess: (r) => { toast.success(r.data?.message ?? "입금 완료 처리했습니다."); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
   });
   const stBadge = data ? (STATUS_BADGE[data.status] ?? { variant: "outline" as const, label: data.status, dot: "bg-warm-400" }) : null;
   return (
@@ -459,7 +476,31 @@ function SettlementDetailModal({ id, onClose }: { id: number; onClose: () => voi
                 <SDRow label="확정일">{data.confirmed_at ? formatDateTime(data.confirmed_at) : "-"}</SDRow>
                 <SDRow label="지급일">{data.paid_at ? formatDateTime(data.paid_at) : "-"}</SDRow>
                 <SDRow label="생성일">{formatDateTime(data.created_at)}</SDRow>
+                <SDRow label="돌봄전문가 확인">{data.caregiver_ack_at ? formatDateTime(data.caregiver_ack_at) : "미확인"}</SDRow>
               </div>
+
+              {data.dispute && (
+                <div className={cn("rounded-lg px-4 py-3 mb-4 text-sm", data.dispute.status === "open" ? "bg-danger-bg" : "bg-warm-50")}>
+                  <div className="font-bold text-warm-800">이의제기 {data.dispute.status === "open" ? "(답변 대기)" : "(해결됨)"}</div>
+                  <p className="mt-1 text-warm-700">{data.dispute.reason}</p>
+                  {data.dispute.reply && <p className="mt-1 text-xs text-warm-600">답변: {data.dispute.reply}</p>}
+                  {data.dispute.status === "open" && (
+                    <div className="mt-2 flex gap-2">
+                      <Button size="sm" variant="brand" disabled={reply.isPending}
+                        onClick={() => { const t = window.prompt("답변 (해결 처리 — 돌봄전문가에게 전달)"); if (t && t.trim()) reply.mutate({ text: t.trim(), resolve: true }); }}>답변·해결</Button>
+                      <Button size="sm" variant="outline" disabled={reply.isPending}
+                        onClick={() => { const t = window.prompt("중간 답변 (계속 검토)"); if (t && t.trim()) reply.mutate({ text: t.trim(), resolve: false }); }}>검토 중 답변</Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {data.status === "confirmed" && (
+                <Button className="w-full mb-4" variant="brand" disabled={paid.isPending || data.dispute?.status === "open"}
+                  onClick={() => { const tx = window.prompt("이체 후 입금 완료 처리합니다. 이체 번호(선택)", ""); if (tx !== null) paid.mutate(tx.trim() || undefined); }}>
+                  {data.dispute?.status === "open" ? "이의제기 답변 후 입금 처리 가능" : "입금 완료 처리"}
+                </Button>
+              )}
 
               <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2">정산 항목 {data.items.length}건</div>
               {data.items.length === 0 ? (

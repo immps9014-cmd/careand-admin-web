@@ -308,6 +308,8 @@ export interface Settlement {
   status: "draft" | "confirmed" | "paid" | "failed";
   hometax_filing_no: string | null;
   paid_at: string | null;
+  caregiver_ack_at?: string | null;
+  dispute_status?: "open" | "resolved" | null;
 }
 export interface SettlementItem {
   id: number;
@@ -333,6 +335,9 @@ export interface SettlementDetailData {
   paid_at: string | null;
   created_at: string;
   items: SettlementItem[];
+  /** 기능 15 — 돌봄전문가 명세서 확인·이의제기 */
+  caregiver_ack_at?: string | null;
+  dispute?: { status: "open" | "resolved"; reason: string | null; at: string | null; reply: string | null } | null;
 }
 export interface SettlementSummary {
   caregivers: number;
@@ -495,6 +500,9 @@ export const operationsApi = {
     return { ...unwrap(data), summary: data.summary };
   },
 
+  replySettlementDispute: (id: number, reply: string, resolve: boolean) =>
+    api.post(`/v1/admin/settlements/${id}/dispute-reply`, { reply, resolve }),
+  markSettlementPaid: (id: number, bankTxId?: string) => api.post(`/v1/admin/settlements/${id}/paid`, { bank_tx_id: bankTxId }),
   async settlementDetail(id: number): Promise<SettlementDetailData> {
     const { data } = await api.get<ApiResponse<SettlementDetailData>>(`/v1/admin/settlements/${id}`);
     return data.data as SettlementDetailData;

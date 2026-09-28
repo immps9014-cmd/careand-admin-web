@@ -50,6 +50,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
 import { ExportMembersButton } from "@/components/domain/export-members-button";
+import { BlacklistModal, blacklistApi } from "@/components/domain/blacklist-modal";
 
 const ORG_STATUS: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
   pending: { variant: "warn", label: "승인 대기" },
@@ -132,6 +133,7 @@ function MembersPageInner() {
   const [sort, setSort] = useState("recent");
   const [detailId, setDetailId] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [blacklistOpen, setBlacklistOpen] = useState(false);
 
   // 상단바 검색은 /members?q=... 로 push한다. 같은 라우트면 리마운트되지 않으므로
   // URL 파라미터 변화를 반응형으로 구독해 q 상태에 동기화한다.
@@ -178,6 +180,7 @@ function MembersPageInner() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="md" onClick={() => setBlacklistOpen(true)}>블랙리스트</Button>
           <ExportMembersButton />
           <Button variant="brand" size="md" onClick={() => setAddOpen(true)}>
             <Plus className="w-4 h-4" />
@@ -408,6 +411,7 @@ function MembersPageInner() {
       {detailId != null && (
         <MemberDetailModal id={detailId} onClose={() => setDetailId(null)} />
       )}
+      {blacklistOpen && <BlacklistModal onClose={() => setBlacklistOpen(false)} />}
       {addOpen && <AddMemberModal onClose={() => setAddOpen(false)} />}
     </div>
   );
@@ -1079,6 +1083,11 @@ function RowMenu({ m, onDetail }: { m: Member; onDetail: () => void }) {
     if (r) setPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
     setOpen((o) => !o);
   }
+  const addBlacklist = useMutation({
+    mutationFn: (reason: string) => blacklistApi.add(m.id, reason),
+    onSuccess: (r) => { toast.success(r.data?.message ?? "블랙리스트에 올렸습니다."); qc.invalidateQueries({ queryKey: ["admin", "members"] }); qc.invalidateQueries({ queryKey: ["admin", "blacklist"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
   function act(status: "active" | "suspended" | "withdrawn", confirmMsg?: string) {
     setOpen(false);
     if (confirmMsg && !window.confirm(confirmMsg)) return;
@@ -1103,6 +1112,13 @@ function RowMenu({ m, onDetail }: { m: Member; onDetail: () => void }) {
                 <MenuItem onClick={() => act("suspended", `${m.name} 회원을 정지하시겠습니까?`)}>정지</MenuItem>
               ) : (
                 <MenuItem onClick={() => act("active")}>정지 해제 (활성화)</MenuItem>
+              )}
+              {m.role !== "admin" && (
+                <MenuItem danger onClick={() => {
+                  setOpen(false);
+                  const reason = window.prompt(`${m.name} 회원을 블랙리스트에 올립니다 (계정 정지 + 같은 번호 재가입 차단). 사유(5자 이상):`);
+                  if (reason && reason.trim().length >= 5) addBlacklist.mutate(reason.trim());
+                }}>블랙리스트 등록</MenuItem>
               )}
               <MenuItem danger onClick={() => act("withdrawn", `${m.name} 회원을 탈퇴 처리하시겠습니까?`)}>탈퇴 처리</MenuItem>
             </>
