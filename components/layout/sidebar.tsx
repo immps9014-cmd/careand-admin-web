@@ -18,6 +18,7 @@ import {
   Network,
   ShieldCheck,
   Sparkles,
+  UserCog,
   Users,
   Workflow,
   X,
@@ -28,38 +29,44 @@ import { useAuth } from "@/lib/auth/store";
 interface NavItem {
   href: string;
   label: string;
+  /** 권한 영역(config/admin_rbac.php) — 조회 권한이 없으면 메뉴를 숨긴다 */
+  area?: string;
   icon: typeof LayoutDashboard;
   badge?: string | number;
 }
 
 const MAIN_NAV: NavItem[] = [
-  { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
-  { href: "/members", label: "회원 관리", icon: Users },
-  { href: "/matching", label: "매칭 관리", icon: ArrowRightLeft },
-  { href: "/care-monitoring", label: "케어 모니터링", icon: ClipboardList },
-  { href: "/settlements", label: "정산", icon: DollarSign },
+  { href: "/dashboard", area: "dashboard", label: "대시보드", icon: LayoutDashboard },
+  { href: "/members", area: "members", label: "회원 관리", icon: Users },
+  { href: "/matching", area: "matching", label: "매칭 관리", icon: ArrowRightLeft },
+  { href: "/care-monitoring", area: "monitoring", label: "케어 모니터링", icon: ClipboardList },
+  { href: "/settlements", area: "settlements", label: "정산", icon: DollarSign },
 ];
 
 const OPS_NAV: NavItem[] = [
-  { href: "/caregiver-approval", label: "돌봄전문가 자격검증", icon: ShieldCheck },
-  { href: "/contracts", label: "계약·일정", icon: CalendarClock },
-  { href: "/care-sessions", label: "케어 진행 현황", icon: Activity },
-  { href: "/care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
-  { href: "/announcements", label: "공지·푸시", icon: Megaphone },
+  { href: "/caregiver-approval", area: "caregivers", label: "돌봄전문가 자격검증", icon: ShieldCheck },
+  { href: "/contracts", area: "contracts", label: "계약·일정", icon: CalendarClock },
+  { href: "/care-sessions", area: "care-sessions", label: "케어 진행 현황", icon: Activity },
+  { href: "/care-logs", area: "care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
+  { href: "/announcements", area: "announcements", label: "공지·푸시", icon: Megaphone },
   { href: "/workflow", label: "업무흐름도", icon: Workflow },
 ];
 
 const AI_NAV: NavItem[] = [
-  { href: "/insights", label: "AI 인사이트 검색", icon: Sparkles },
-  { href: "/ai-models", label: "AI 모델", icon: Brain },
-  { href: "/ontology", label: "온톨로지 분석", icon: Network },
-  { href: "/cs", label: "CS / 분쟁", icon: MessageCircle },
-  { href: "/reports", label: "리포트", icon: BarChart3 },
+  { href: "/insights", area: "insights", label: "AI 인사이트 검색", icon: Sparkles },
+  { href: "/ai-models", area: "ai-models", label: "AI 모델", icon: Brain },
+  { href: "/ontology", area: "ontology", label: "온톨로지 분석", icon: Network },
+  { href: "/cs", area: "cs", label: "CS / 분쟁", icon: MessageCircle },
+  { href: "/reports", area: "reports", label: "리포트", icon: BarChart3 },
+  { href: "/admins", area: "admins", label: "관리자 계정·권한", icon: UserCog },
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const user = useAuth((s) => s.user);
+  // 권한 5단계(S2-3): 조회 권한 없는 메뉴 숨김. 권한 정보가 없는 옛 로그인 정보면 그대로 보여 주고 서버가 막는다
+  const perms = user?.admin_permissions;
+  const visible = (items: NavItem[]) => items.filter((i) => !perms || !i.area || perms[i.area]?.read);
 
   return (
     <aside
@@ -93,13 +100,13 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       </div>
 
       {/* 메인 메뉴 */}
-      <NavSection title="메인" items={MAIN_NAV} pathname={pathname} onNavigate={onClose} />
+      <NavSection title="메인" items={visible(MAIN_NAV)} pathname={pathname} onNavigate={onClose} />
 
       {/* 운영 관리 */}
-      <NavSection title="운영 관리" items={OPS_NAV} pathname={pathname} onNavigate={onClose} />
+      <NavSection title="운영 관리" items={visible(OPS_NAV)} pathname={pathname} onNavigate={onClose} />
 
       {/* AI 운영 */}
-      <NavSection title="AI 운영" items={AI_NAV} pathname={pathname} onNavigate={onClose} />
+      <NavSection title="AI 운영" items={visible(AI_NAV)} pathname={pathname} onNavigate={onClose} />
 
       {/* 사용자 */}
       <div className="mt-auto px-6 py-4 border-t border-warm-100 flex items-center gap-3">
@@ -111,15 +118,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             {user?.name || "관리자"}
           </div>
           <div className="text-[11px] text-warm-500 truncate">
-            {user?.admin?.permission_level === "super"
-              ? "Super Admin"
-              : user?.admin?.permission_level === "operator"
-              ? "Operator"
-              : user?.admin?.permission_level === "cs"
-              ? "CS"
-              : user?.admin?.permission_level === "analyst"
-              ? "Analyst"
-              : "관리자"}
+            {user?.admin_level_label ?? "관리자"}
           </div>
         </div>
       </div>

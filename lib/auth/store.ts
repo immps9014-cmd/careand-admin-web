@@ -8,9 +8,13 @@ export interface User {
   role: "guardian" | "caregiver" | "organization" | "admin";
   status: string;
   admin?: {
-    permission_level: "super" | "operator" | "cs" | "analyst";
+    /** 권한 5단계(S2-3): 슈퍼관리자·지점장·CS 담당자·데이터 분석가·개발자 */
+    permission_level: "super" | "branch" | "cs" | "analyst" | "developer";
     department: string | null;
   };
+  /** 영역별 권한 — 메뉴 표시용(실제 차단은 서버). 로그인·내 정보 응답에 포함 */
+  admin_permissions?: Record<string, { read: boolean; write: boolean }>;
+  admin_level_label?: string;
 }
 
 interface AuthState {

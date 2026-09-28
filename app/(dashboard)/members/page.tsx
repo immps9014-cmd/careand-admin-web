@@ -869,7 +869,7 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
   const [representative, setRepresentative] = useState("");
   const [bizType, setBizType] = useState("care_center");
   const backdropDown = useRef(false);
-  const [permission, setPermission] = useState<NonNullable<CreateMemberInput["permission_level"]>>("operator");
+  const [permission, setPermission] = useState<NonNullable<CreateMemberInput["permission_level"]>>("cs");
 
   const create = useMutation({
     mutationFn: () =>
@@ -998,11 +998,12 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
           {role === "admin" && (
             <AddField label="권한">
               <div className="flex flex-wrap gap-2">
-                {(["super", "operator", "cs", "analyst"] as const).map((pl) => (
+                {/* 권한 5단계(S2-3) — 관리자 계정 생성은 슈퍼관리자만(서버에서 차단) */}
+                {([["super", "슈퍼관리자"], ["branch", "지점장"], ["cs", "CS 담당자"], ["analyst", "데이터 분석가"], ["developer", "개발자"]] as const).map(([pl, label]) => (
                   <button key={pl} type="button" onClick={() => setPermission(pl)}
                     className={cn("px-3 py-1.5 rounded-full border text-xs font-semibold",
                       permission === pl ? "border-brand-500 bg-brand-50 text-brand-700" : "border-warm-300 bg-white text-warm-600")}>
-                    {pl}
+                    {label}
                   </button>
                 ))}
               </div>

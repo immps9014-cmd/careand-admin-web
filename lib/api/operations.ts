@@ -240,7 +240,7 @@ export interface CreateMemberInput {
   biz_no?: string;
   representative?: string;
   biz_type?: string;
-  permission_level?: "super" | "operator" | "cs" | "analyst";
+  permission_level?: "super" | "branch" | "cs" | "analyst" | "developer";
 }
 
 /* ===== #23 정산 ===== */
