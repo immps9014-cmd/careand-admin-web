@@ -95,8 +95,8 @@ export default function MatchingPage() {
   });
 
   const assign = useMutation({
-    mutationFn: ({ requestId, cgId }: { requestId: number; cgId: number }) =>
-      operationsApi.manualAssign(requestId, cgId),
+    mutationFn: ({ requestId, cgId, force }: { requestId: number; cgId: number; force?: boolean }) =>
+      operationsApi.manualAssign(requestId, cgId, force),
     onSuccess: () => {
       toast.success("수동 매칭이 완료되었습니다.");
       setAssignTo(null);
@@ -104,7 +104,17 @@ export default function MatchingPage() {
       setConfirmAssign(null);
       qc.invalidateQueries({ queryKey: ["admin", "matching"] });
     },
-    onError: (e) => toast.error(getApiErrorMessage(e)),
+    onError: (e, vars) => {
+      // 일정 충돌 — 운영자가 확인하면 강제 배정(기능 21)
+      const res = (e as { response?: { status?: number; data?: { error_code?: string; message?: string } } }).response;
+      if (res?.status === 409 && res.data?.error_code === "SCHEDULE_CONFLICT" && !vars.force) {
+        if (window.confirm(`${res.data.message ?? "일정이 겹칩니다."}\n\n강제로 배정할까요?`)) {
+          assign.mutate({ ...vars, force: true });
+        }
+        return;
+      }
+      toast.error(getApiErrorMessage(e));
+    },
   });
 
   const rows = query.data?.data ?? [];

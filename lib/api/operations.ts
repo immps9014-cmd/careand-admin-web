@@ -417,8 +417,9 @@ export const operationsApi = {
     const { data } = await api.get<ApiResponse<MatchingDetailData>>(`/v1/admin/matching/requests/${id}`);
     return data.data as MatchingDetailData;
   },
-  manualAssign: (requestId: number, caregiverId: number) =>
-    api.post(`/v1/admin/matching/requests/${requestId}/manual-assign`, { caregiver_id: caregiverId }),
+  /** force=true: 돌봄전문가 일정 충돌(409 SCHEDULE_CONFLICT)을 알고도 강제 배정 */
+  manualAssign: (requestId: number, caregiverId: number, force = false) =>
+    api.post(`/v1/admin/matching/requests/${requestId}/manual-assign`, { caregiver_id: caregiverId, force }),
 
   // #19
   async members(params?: { role?: string; q?: string; status?: string; sort?: string; page?: number }): Promise<
