@@ -95,14 +95,20 @@ export interface CareSession {
   duration_min: number | null;
   is_manual: boolean;
   has_summary: boolean;
+  /** 확인 안 된 반경 밖 출퇴근의 최대 거리(m) — 기능 12 */
+  out_of_range_m?: number | null;
 }
 export interface CareSessionSummary {
+  out_of_range?: number;
   scheduled: number;
   in_progress: number;
   completed_pending: number;
 }
 export interface CareLogDetail {
   session_id: number;
+  /** 본문 수정 이력(기능 14·22) */
+  edited?: { role: "caregiver" | "admin"; reason: string | null; at: string; guardian_original: string | null; medical_original: string | null } | null;
+  review_note?: string | null;
   guardian_version: string | null;
   medical_version: string | null;
   confidence: number | null;
@@ -371,6 +377,7 @@ export const operationsApi = {
   },
 
   // #22
+  reviewAttendance: (sessionId: number) => api.post(`/v1/admin/care-sessions/${sessionId}/attendance-review`),
   async careSessions(
     params?: { status?: string; page?: number },
   ): Promise<Paginated<CareSession> & { summary: CareSessionSummary }> {
@@ -389,6 +396,8 @@ export const operationsApi = {
     return unwrap(data);
   },
   approveCareLog: (id: number) => api.post(`/v1/admin/care-logs/${id}/approve`),
+  updateCareLog: (id: number, payload: { guardian_version?: string; medical_version?: string; reason: string }) =>
+    api.patch(`/v1/admin/care-logs/${id}`, payload),
   rejectCareLog: (id: number, reason: string) =>
     api.post(`/v1/admin/care-logs/${id}/reject`, { reason }),
 

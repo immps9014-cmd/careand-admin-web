@@ -69,6 +69,8 @@ export default function CareLogsPage() {
     queryFn: () => operationsApi.careLogs({ review_status: reviewStatus }),
   });
 
+  useEffect(() => { setEditing(false); setShowOrig(false); }, [selectedId]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   const detail = useQuery({
     queryKey: ["admin", "care-log-detail", selectedId],
     queryFn: () => operationsApi.careLogDetail(selectedId as number),
@@ -93,6 +95,31 @@ export default function CareLogsPage() {
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
+
+  // 본문 수정(기능 22) — 수정 후 승인은 따로
+  const [editing, setEditing] = useState(false);
+  const [gText, setGText] = useState("");
+  const [mText, setMText] = useState("");
+  const [showOrig, setShowOrig] = useState(false);
+  const saveEdit = useMutation({
+    mutationFn: (reason: string) =>
+      operationsApi.updateCareLog(selectedId as number, { guardian_version: gText, medical_version: mText || undefined, reason }),
+    onSuccess: (res) => {
+      toast.success(res.data?.message ?? "본문을 수정했습니다.");
+      setEditing(false);
+      qc.invalidateQueries({ queryKey: ["admin", "care-log-detail", selectedId] });
+    },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  function startEdit() {
+    setGText(detail.data?.guardian_version ?? "");
+    setMText(detail.data?.medical_version ?? "");
+    setEditing(true);
+  }
+  function submitEdit() {
+    const reason = window.prompt("수정 사유를 입력하세요 (감사 기록에 남습니다)");
+    if (reason && reason.trim().length >= 2) saveEdit.mutate(reason.trim());
+  }
 
   function handleReject(id: number) {
     const reason = window.prompt("반려(재작성 요청) 사유를 입력하세요:");
@@ -368,11 +395,42 @@ export default function CareLogsPage() {
                       <div className="text-xs text-warm-500 py-3">불러오는 중…</div>
                     ) : detail.data && (detail.data.guardian_version || detail.data.transcript) ? (
                       <div className="space-y-3">
+                        {detail.data.edited && (
+                          <div className="rounded-lg bg-warn-bg px-3 py-2 text-[12px] text-warn">
+                            <b>{detail.data.edited.role === "caregiver" ? "돌봄전문가" : "운영자"}가 본문을 수정함</b>
+                            {detail.data.edited.reason ? ` — ${detail.data.edited.reason}` : ""}
+                            <button type="button" className="ml-2 underline" onClick={() => setShowOrig((v) => !v)}>
+                              {showOrig ? "원본 닫기" : "AI 원본 보기"}
+                            </button>
+                            {showOrig && (
+                              <p className="mt-1.5 whitespace-pre-wrap text-warm-600">{detail.data.edited.guardian_original ?? "—"}</p>
+                            )}
+                          </div>
+                        )}
                         <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
-                          <div className="text-[11px] font-bold text-brand-700 mb-1">보호자용 요약 (승인 시 발송)</div>
-                          <p className="text-[13px] text-warm-800 whitespace-pre-wrap leading-relaxed">{detail.data.guardian_version || "—"}</p>
+                          <div className="flex items-center text-[11px] font-bold text-brand-700 mb-1">
+                            보호자용 요약 (승인 시 발송)
+                            {!editing && (
+                              <button type="button" className="ml-auto text-[11px] font-bold text-brand-600 underline" onClick={startEdit}>본문 수정</button>
+                            )}
+                          </div>
+                          {editing ? (
+                            <>
+                              <textarea aria-label="보호자용 요약" value={gText} onChange={(e) => setGText(e.target.value)} rows={6}
+                                className="w-full rounded-md border border-warm-200 bg-white p-2 text-[13px] text-warm-800" />
+                              <div className="mt-2 text-[11px] font-bold text-warm-500">의료·돌봄용 요약</div>
+                              <textarea aria-label="의료·돌봄용 요약" value={mText} onChange={(e) => setMText(e.target.value)} rows={4}
+                                className="w-full rounded-md border border-warm-200 bg-white p-2 text-[13px] text-warm-700" />
+                              <div className="mt-2 flex justify-end gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setEditing(false)}>취소</Button>
+                                <Button variant="brand" size="sm" disabled={saveEdit.isPending || gText.trim().length < 10} onClick={submitEdit}>수정 저장</Button>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-[13px] text-warm-800 whitespace-pre-wrap leading-relaxed">{detail.data.guardian_version || "—"}</p>
+                          )}
                         </div>
-                        {detail.data.medical_version && (
+                        {!editing && detail.data.medical_version && (
                           <div className="rounded-xl border border-warm-100 p-3">
                             <div className="text-[11px] font-bold text-warm-500 mb-1">의료·돌봄용 요약</div>
                             <p className="text-[13px] text-warm-700 whitespace-pre-wrap leading-relaxed">{detail.data.medical_version}</p>

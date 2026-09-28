@@ -3,8 +3,10 @@ import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { Activity, Clock, PlayCircle, ClipboardCheck, MapPin } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { Activity, Clock, PlayCircle, ClipboardCheck, MapPin, MapPinOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ const TABS = [
   { key: "in_progress", label: "진행중" },
   { key: "scheduled", label: "예정" },
   { key: "completed", label: "완료·검수대기" },
+  { key: "out_of_range", label: "반경 밖 확인" },
 ];
 
 const STATUS: Record<
@@ -50,6 +53,13 @@ export default function CareSessionsPage() {
     refetchInterval: 30_000,
   });
 
+  const qc = useQueryClient();
+  const review = useMutation({
+    mutationFn: (id: number) => operationsApi.reviewAttendance(id),
+    onSuccess: (res) => { toast.success(res.data?.message ?? "확인 처리했습니다."); qc.invalidateQueries({ queryKey: ["admin", "care-sessions"] }); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
   const rows = query.data?.data ?? [];
   const sm = query.data?.summary;
 
@@ -65,10 +75,11 @@ export default function CareSessionsPage() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <KpiCard variant="brand" label="진행중" value={sm?.in_progress ?? 0} icon={PlayCircle} />
         <KpiCard label="예정" value={sm?.scheduled ?? 0} icon={Clock} iconColor="info" />
         <KpiCard label="완료·검수대기" value={sm?.completed_pending ?? 0} icon={ClipboardCheck} iconColor="warn" subLabel="AI 일지 검수 필요" />
+        <KpiCard label="반경 밖 출퇴근" value={sm?.out_of_range ?? 0} icon={MapPinOff} iconColor="danger" subLabel="운영팀 확인 필요" />
       </div>
 
       {/* 탭 */}
@@ -120,6 +131,12 @@ export default function CareSessionsPage() {
                   <TableCell className="text-warm-500 font-en text-xs">
                     <div>출근 {s.actual_start ? formatDateTime(s.actual_start) : "—"}</div>
                     <div>퇴근 {s.actual_end ? formatDateTime(s.actual_end) : "—"}</div>
+                    {s.out_of_range_m != null && (
+                      <div className="mt-1 inline-flex items-center gap-1 rounded bg-danger-bg px-1.5 py-0.5 text-[11px] font-bold text-danger">
+                        <MapPinOff className="w-3 h-3" /> 반경 밖 {s.out_of_range_m.toLocaleString()}m
+                        <button type="button" className="ml-1 underline" disabled={review.isPending} onClick={() => review.mutate(s.id)}>확인</button>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className={cn("inline-flex items-center gap-1.5 text-xs font-bold")}>
