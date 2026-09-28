@@ -18,6 +18,35 @@ export interface AdminCaregiver {
   completed_sessions: number;
   rejection_reason: string | null;
   created_at: string;
+  /** 서류 요약(기능 20) — 필수 서류 수·확인 완료 수·검토 대기 수 */
+  docs_summary?: { required: number; verified: number; pending: number };
+}
+
+/* ===== 돌봄전문가 서류(기능 9·20) ===== */
+export type CgDocStatus = "missing" | "submitted" | "verified" | "rejected" | "expired";
+export interface CgDocItem {
+  type: string;
+  label: string;
+  required: boolean;
+  hint: string | null;
+  status: CgDocStatus;
+  document: {
+    id: number;
+    original_name: string | null;
+    mime: string | null;
+    size_bytes: number;
+    issued_at: string | null;
+    expires_at: string | null;
+    reject_reason: string | null;
+    reviewed_at: string | null;
+    created_at: string;
+  } | null;
+}
+export interface CgDocuments {
+  checklist: CgDocItem[];
+  missing_required: string[];
+  enforce_on_approve: boolean;
+  payout: { bank_name: string | null; bank_account_masked: string | null; bank_holder: string | null; updated_at: string | null };
 }
 
 /* ===== #21 계약·일정 ===== */
@@ -311,6 +340,21 @@ export const operationsApi = {
     return unwrap(data);
   },
   approveCaregiver: (id: number) => api.post(`/v1/admin/caregivers/${id}/approve`),
+  async caregiverDocuments(id: number): Promise<CgDocuments> {
+    const { data } = await api.get(`/v1/admin/caregivers/${id}/documents`);
+    return data.data;
+  },
+  /** 원본 열람 — 사유는 URL 인코딩해 헤더로(감사로그에 남음) */
+  async caregiverDocumentFile(id: number, docId: number, reason: string): Promise<Blob> {
+    const { data } = await api.get(`/v1/admin/caregivers/${id}/documents/${docId}/file`, {
+      responseType: "blob",
+      headers: { "X-Access-Reason": encodeURIComponent(reason) },
+    });
+    return data;
+  },
+  verifyCaregiverDocument: (id: number, docId: number) => api.post(`/v1/admin/caregivers/${id}/documents/${docId}/verify`),
+  rejectCaregiverDocument: (id: number, docId: number, reason: string) =>
+    api.post(`/v1/admin/caregivers/${id}/documents/${docId}/reject`, { reason }),
   rejectCaregiver: (id: number, reason: string) =>
     api.post(`/v1/admin/caregivers/${id}/reject`, { reason }),
 

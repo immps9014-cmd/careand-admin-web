@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/domain/kpi-card";
 import { operationsApi } from "@/lib/api/operations";
+import { CaregiverDocumentsPanel } from "@/components/domain/caregiver-documents-panel";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, cn } from "@/lib/utils";
 
@@ -89,8 +90,10 @@ export default function CaregiverApprovalPage() {
 
   const approve = useMutation({
     mutationFn: (id: number) => operationsApi.approveCaregiver(id),
-    onSuccess: () => {
-      toast.success("돌봄전문가를 승인했습니다.");
+    onSuccess: (res) => {
+      const missing: string[] = res?.data?.missing_documents ?? [];
+      if (missing.length) toast.warning(`승인했습니다. 미확인 필수 서류: ${missing.join(", ")}`);
+      else toast.success("돌봄전문가를 승인했습니다.");
       qc.invalidateQueries({ queryKey: ["admin", "caregivers"] });
     },
     onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -206,6 +209,12 @@ export default function CaregiverApprovalPage() {
                       {STATUS_BADGE[c.status]?.label ?? c.status}
                     </Badge>
                     <span className="font-en">{formatDate(c.created_at)}</span>
+                    {c.docs_summary && (
+                      <span className={cn("font-semibold", c.docs_summary.pending > 0 ? "text-warn" : c.docs_summary.verified >= c.docs_summary.required ? "text-brand-700" : "text-warm-500")}>
+                        서류 {c.docs_summary.verified}/{c.docs_summary.required}
+                        {c.docs_summary.pending > 0 ? ` · 대기 ${c.docs_summary.pending}` : ""}
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
@@ -384,6 +393,8 @@ export default function CaregiverApprovalPage() {
                       );
                     })()}
                   </div>
+
+                  <CaregiverDocumentsPanel caregiverId={selected.id} />
 
                   <div className="border border-warm-100 rounded-xl p-4 bg-warm-50">
                     <div className="text-[13px] font-bold text-warm-800 mb-3">검토 결정</div>
