@@ -49,6 +49,7 @@ import { operationsApi, type CaregiverDetail, type CreateMemberInput, type Membe
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
+import { ExportMembersButton } from "@/components/domain/export-members-button";
 
 const ORG_STATUS: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
   pending: { variant: "warn", label: "승인 대기" },
@@ -176,10 +177,13 @@ function MembersPageInner() {
             보호자·돌봄전문가·운영자를 통합 조회·검색합니다 (개인정보 마스킹 적용)
           </p>
         </div>
-        <Button variant="brand" size="md" onClick={() => setAddOpen(true)}>
-          <Plus className="w-4 h-4" />
-          회원 추가
-        </Button>
+        <div className="flex gap-2">
+          <ExportMembersButton />
+          <Button variant="brand" size="md" onClick={() => setAddOpen(true)}>
+            <Plus className="w-4 h-4" />
+            회원 추가
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">

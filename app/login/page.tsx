@@ -221,7 +221,8 @@ export default function LoginPage() {
         )}
 
         <p className="text-center text-xs text-warm-500 mt-6">
-          © 2026 Care&. All rights reserved.
+          © 2026 Care&. All rights reserved. ·{" "}
+          <a href="/www/privacy" target="_blank" rel="noopener" className="font-semibold text-warm-600 hover:text-brand-600">개인정보 처리방침</a>
         </p>
       </div>
     </div>
