@@ -77,6 +77,18 @@ export interface CareLogDetail {
   guardian_version: string | null;
   medical_version: string | null;
   confidence: number | null;
+  /** 사실성 검증·안전 알림(S3) — AI 서비스 verify.py */
+  risk_score?: number | null;
+  verification?: {
+    risk: number;
+    claims: number;
+    unsupported: { type: string; claim: string }[];
+    sensitive: string[];
+    alerts: { id: string; label: string; severity: string; evidence: string }[];
+    needs_review: boolean;
+    reasons: string[];
+    method: string;
+  } | null;
   llm_model: string | null;
   transcript: string | null;
   stt_confidence: number | null;

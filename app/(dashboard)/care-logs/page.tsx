@@ -423,7 +423,38 @@ export default function CareLogsPage() {
                       label="검수 상태"
                       detail={REVIEW_BADGE[selected.review_status]?.label ?? selected.review_status}
                     />
+                    {/* 사실성 검증·안전 알림(S3, 기능 29·41) — AI 서비스 verify.py 결과 */}
+                    {detail.data?.verification && (
+                      <>
+                        <QualityCheck
+                          ok={(detail.data.verification.alerts ?? []).length === 0}
+                          label="안전 알림"
+                          detail={(detail.data.verification.alerts ?? []).length
+                            ? detail.data.verification.alerts.map((a) => a.label).join(", ")
+                            : "없음"}
+                        />
+                        <QualityCheck
+                          ok={(detail.data.verification.risk ?? 0) < 0.25}
+                          label="원문 대조"
+                          detail={(detail.data.verification.unsupported ?? []).length
+                            ? `근거 없는 내용 ${detail.data.verification.unsupported.length}건: ${detail.data.verification.unsupported.map((u) => u.claim).join(", ")}`
+                            : "원문과 일치"}
+                        />
+                        <QualityCheck
+                          ok={(detail.data.verification.sensitive ?? []).length === 0}
+                          label="민감정보"
+                          detail={(detail.data.verification.sensitive ?? []).length ? `${detail.data.verification.sensitive.join(", ")} 가림 처리` : "없음"}
+                        />
+                      </>
+                    )}
                   </div>
+
+                  {selected.review_status !== "rejected" && selected.review_note && (
+                    <div className="mt-3 rounded-lg border border-warm-200 bg-warm-50 px-3 py-2.5">
+                      <div className="text-[11px] font-bold text-warm-600 mb-0.5">{selected.review_status === "approved" ? "승인 기록" : "검수 사유"}</div>
+                      <div className="text-xs text-warm-700">{selected.review_note}</div>
+                    </div>
+                  )}
 
                   {selected.review_status === "rejected" && selected.review_note && (
                     <div className="mt-3 rounded-lg border border-danger/30 bg-danger-bg px-3 py-2.5">
