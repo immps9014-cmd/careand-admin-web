@@ -30,6 +30,7 @@ import {
 import { operationsApi, type AnnouncementRecipient } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
+import { fetchBreakdown } from "@/lib/api/dashboard";
 
 type Mode = "group" | "direct";
 
@@ -63,6 +64,10 @@ export default function AnnouncementsPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [target, setTarget] = useState<"all" | "guardian" | "caregiver">("all");
+  // 세분 대상(기능 25, S5) — 도메인: 돌봄전문가 활동 도메인·보호자 요청 이력 / 지점: 돌봄전문가 소속만
+  const [tDomain, setTDomain] = useState("");
+  const [tBranch, setTBranch] = useState("");
+  const branches = useQuery({ queryKey: ["admin", "branches-via-breakdown"], queryFn: () => fetchBreakdown({ period: "today" }), staleTime: 600_000 });
 
   // 개인 지정 발송 상태
   const [search, setSearch] = useState("");
@@ -94,7 +99,7 @@ export default function AnnouncementsPage() {
   };
 
   const sendGroup = useMutation({
-    mutationFn: () => operationsApi.broadcast({ title, body, target }),
+    mutationFn: () => operationsApi.broadcast({ title, body, target, domain: tDomain || undefined, branch_id: tBranch ? Number(tBranch) : undefined }),
     onSuccess: (res) => {
       toast.success(res.data?.message ?? "공지를 발송했습니다.");
       resetForm();
@@ -221,6 +226,20 @@ export default function AnnouncementsPage() {
                   </Button>
                 ))}
               </div>
+              <div className="flex gap-2 mb-4">
+                <select aria-label="도메인" value={tDomain} onChange={(e) => setTDomain(e.target.value)}
+                  className="h-9 flex-1 rounded-md border border-warm-200 bg-white px-2.5 text-sm text-warm-700">
+                  <option value="">모든 도메인</option>
+                  {[["senior", "시니어 돌봄"], ["nursing", "간병"], ["housekeeping", "가사"], ["living_support", "생활지원"],
+                    ["postpartum", "산후"], ["childcare", "아이돌봄"], ["mental_care", "마음돌봄"]].map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+                <select aria-label="지점" value={tBranch} onChange={(e) => setTBranch(e.target.value)} disabled={target === "guardian"}
+                  className="h-9 flex-1 rounded-md border border-warm-200 bg-white px-2.5 text-sm text-warm-700 disabled:opacity-50">
+                  <option value="">모든 지점</option>
+                  {(branches.data?.by_branch ?? []).map((b) => <option key={b.branch_id} value={b.branch_id}>{b.name}</option>)}
+                </select>
+              </div>
+              {tBranch && <p className="-mt-2 mb-4 text-[11px] text-warm-500">지점은 돌봄전문가 소속 기준이라 보호자에게는 가지 않아요.</p>}
             </>
           )}
 
@@ -391,20 +410,21 @@ export default function AnnouncementsPage() {
                   <TableHead>제목</TableHead>
                   <TableHead>수신자</TableHead>
                   <TableHead>읽음률</TableHead>
+                  <TableHead>도달 · 24시간 열람</TableHead>
                   <TableHead className="text-right">발송일시</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {query.isLoading && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-warm-500 py-10">
+                    <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                       불러오는 중…
                     </TableCell>
                   </TableRow>
                 )}
                 {!query.isLoading && query.data?.data.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-warm-500 py-10">
+                    <TableCell colSpan={5} className="text-center text-warm-500 py-10">
                       발송한 공지가 없습니다
                     </TableCell>
                   </TableRow>
@@ -437,6 +457,9 @@ export default function AnnouncementsPage() {
                           {a.read_rate}%
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="font-en text-xs text-warm-600">
+                      푸시 {a.push_count ?? 0}명 · {a.read_24h_rate ?? 0}%
                     </TableCell>
                     <TableCell className="text-right font-en text-xs text-warm-500">
                       {a.sent_at ? formatDateTime(a.sent_at) : "-"}

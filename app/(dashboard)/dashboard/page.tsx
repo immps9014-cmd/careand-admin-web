@@ -12,6 +12,7 @@ import { AlertItem } from "@/components/domain/alert-item";
 import { dashboardApi } from "@/lib/api/dashboard";
 import { cn, formatKRW, ko } from "@/lib/utils";
 import { HourlyRequestsChart } from "./_components/hourly-requests-chart";
+import { DashboardBreakdown } from "@/components/domain/dashboard-breakdown";
 
 const DOMAIN_CARDS = [
   { key: "senior", label: "요양보호" },
@@ -153,6 +154,9 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 지점·도메인·기간 필터(기능 17, S5) */}
+      <DashboardBreakdown />
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <Card className="col-span-2">

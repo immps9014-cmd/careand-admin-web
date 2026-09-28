@@ -117,3 +117,48 @@ export const dashboardApi = {
     return data;
   },
 };
+
+/* ===== 지점·도메인·기간 필터 현황(기능 17, S5) — GET /v1/admin/dashboard/breakdown ===== */
+export interface DashboardBreakdown {
+  filter: { period: string; from: string; branch_id: number | null; domain: string | null };
+  requests: number;
+  matched: number;
+  match_rate: number | null;
+  revenue: number;
+  sessions_completed: number;
+  active_caregivers: number;
+  utilization: number | null;
+  rating_avg: number | null;
+  by_branch: { branch_id: number; name: string; revenue: number; active_caregivers: number }[];
+  unassigned_caregivers: number;
+  by_domain: { domain: string; label: string; requests: number; matched: number }[];
+}
+export async function fetchBreakdown(params: { period: string; branch_id?: string; domain?: string }): Promise<DashboardBreakdown> {
+  const { data } = await api.get("/v1/admin/dashboard/breakdown", {
+    params: { period: params.period, branch_id: params.branch_id || undefined, domain: params.domain || undefined },
+  });
+  return data.data;
+}
+
+/* ===== 월간 결산(기능 23·26, S5) ===== */
+export interface MonthlyReport {
+  month: string;
+  generated_at: string;
+  data: {
+    revenue: { paid_count: number; total: number; self_pay: number; ltc_pay: number; cancelled_count: number; cancelled_amount: number;
+      by_domain: { domain: string; label: string; count: number; amount: number }[]; by_branch: { branch: string; count: number; amount: number }[] };
+    settlement: { count: number; gross: number; withholding: number; net: number; paid_count: number };
+    matching: { requests: number; matched: number; expired: number; avg_match_hours: number | null };
+    care: { sessions_completed: number; care_hours: number; logs_sent: number; avg_log_minutes: number | null };
+    members: { new_guardians: number; new_caregivers: number; withdrawn: number };
+    reviews: { count: number; avg_rating: number | null; negative: number };
+  };
+}
+export async function fetchMonthlyReports(): Promise<MonthlyReport[]> {
+  const { data } = await api.get("/v1/admin/reports/monthly");
+  return data.data ?? [];
+}
+export async function generateMonthlyReport(month: string): Promise<{ message: string }> {
+  const { data } = await api.post("/v1/admin/reports/monthly", { month });
+  return data;
+}

@@ -134,6 +134,12 @@ export interface Announcement {
   sent_at: string;
   /** 개인 지정(1인) 발송이면 true — 그룹 공지는 false */
   is_direct: boolean;
+  /** 도달(발송 시 푸시 토큰 있던 수신자)·24시간 내 열람(기능 25, S5) */
+  push_count?: number;
+  read_24h?: number;
+  read_24h_rate?: number;
+  domain?: string | null;
+  branch_id?: number | null;
 }
 
 /** 개인 지정 발송 대상 검색 결과 */
@@ -391,7 +397,7 @@ export const operationsApi = {
     const { data } = await api.get<ApiResponse<Announcement[]>>("/v1/admin/announcements", { params });
     return unwrap(data);
   },
-  broadcast: (payload: { title: string; body: string; target: "all" | "guardian" | "caregiver" }) =>
+  broadcast: (payload: { title: string; body: string; target: "all" | "guardian" | "caregiver"; domain?: string; branch_id?: number }) =>
     api.post("/v1/admin/announcements", payload),
   // 개인 지정 발송 — 보호자/돌봄전문가 검색
   async searchRecipients(params: { q: string; role?: "guardian" | "caregiver" }): Promise<AnnouncementRecipient[]> {

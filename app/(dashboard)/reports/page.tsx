@@ -19,6 +19,7 @@ import { csApi } from "@/lib/api/cs";
 import { cn, formatKRW } from "@/lib/utils";
 import { DomainDistributionChart } from "./_components/domain-distribution-chart";
 import { RatingDistributionChart } from "./_components/rating-distribution-chart";
+import { MonthlyClose } from "@/components/domain/monthly-close";
 
 /** 클라이언트 측 CSV 다운로드 (실데이터 기반) */
 function downloadCsv(filename: string, rows: (string | number)[][]) {
@@ -131,6 +132,9 @@ export default function ReportsPage() {
           이번 주
         </Button>
       </div>
+
+      {/* 월간 결산(기능 23·26, S5) */}
+      <MonthlyClose />
 
       {/* 실시간 통계 3종 */}
       <div className="grid grid-cols-3 gap-4 mb-[18px]">
