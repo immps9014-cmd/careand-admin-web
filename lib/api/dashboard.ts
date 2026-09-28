@@ -37,6 +37,25 @@ export interface HourlyRequestsResponse {
   avg_match_minutes?: number | null;
 }
 
+/** 사업계획서(협약) 핵심성과지표 — GET /v1/admin/dashboard/business-kpi */
+export interface BusinessKpi {
+  key: "stt_term_rate" | "match_lead_hours" | "care_log_minutes";
+  name: string;
+  label: string;
+  unit: "%" | "h" | "min";
+  weight: number;
+  baseline: number | null;
+  target: number;
+  /** up = 높을수록 좋음(인식률), down = 낮을수록 좋음(소요시간) */
+  direction: "up" | "down";
+  /** 측정값 — 표본이 없으면 null("측정 전") */
+  value: number | null;
+  n: number;
+  n_label: string | null;
+  measured_at: string | null;
+  note: string;
+}
+
 export interface RegionalDemand {
   region: string;
   senior_count: number;
@@ -68,6 +87,11 @@ export const dashboardApi = {
     const { data } = await api.get("/v1/admin/dashboard/hourly-requests", {
       params: { period },
     });
+    return data;
+  },
+
+  async businessKpi(period: "all" | "30d" | "7d" = "all"): Promise<{ period: string; data: BusinessKpi[] }> {
+    const { data } = await api.get("/v1/admin/dashboard/business-kpi", { params: { period } });
     return data;
   },
 

@@ -62,6 +62,8 @@ export default function DashboardPage() {
   const hourlyQuery = useQuery({ queryKey: ["admin", "dashboard", "hourly", "today"], queryFn: () => dashboardApi.hourlyRequests("today") });
   const alertsQuery = useQuery({ queryKey: ["admin", "dashboard", "alerts"], queryFn: dashboardApi.recentAlerts, refetchInterval: 30_000 });
   const regionalQuery = useQuery({ queryKey: ["admin", "dashboard", "regional"], queryFn: dashboardApi.regionalDemand });
+  // 사업계획서(협약) KPI 3종 — 구축 전·목표 대비 현재 측정값 (2026-09-28, 구현계획 S1)
+  const bizKpiQuery = useQuery({ queryKey: ["admin", "dashboard", "business-kpi"], queryFn: () => dashboardApi.businessKpi("all"), refetchInterval: 300_000 });
 
   const kpi = kpiQuery.data?.data;
   const alertData = alertsQuery.data?.data ?? [];
@@ -110,6 +112,44 @@ export default function DashboardPage() {
                 </div>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base font-bold text-warm-800">사업 KPI</h2>
+            <span className="text-[11px] text-warm-500">중소기업 스마트서비스 협약 핵심성과지표 · 전체 기간</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {(bizKpiQuery.data?.data ?? []).map((k) => {
+              const fmt = (v: number) => (k.unit === "%" ? v.toFixed(1) : k.unit === "h" ? v.toFixed(2) : v.toFixed(1));
+              const met = k.value != null && (k.direction === "up" ? k.value >= k.target : k.value <= k.target);
+              return (
+                <div key={k.key} className="rounded-lg border border-warm-100 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-warm-500">{k.name} · {k.label}</span>
+                    {k.value == null ? (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warm-100 text-warm-500">측정 전</span>
+                    ) : met ? (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-600">목표 달성</span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">목표 미달</span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-en text-2xl font-bold text-warm-800">{k.value != null ? fmt(k.value) : "—"}</span>
+                    <span className="text-xs text-warm-500">{k.unit}</span>
+                  </div>
+                  <div className="text-[11px] text-warm-600 mt-1.5 font-en">
+                    목표 {k.target}{k.unit}{k.baseline != null ? ` · 구축 전 ${k.baseline}${k.unit}` : ""}
+                  </div>
+                  <div className="text-[11px] text-warm-500 mt-1">{k.n_label ?? "표본 없음"} · {k.note}</div>
+                </div>
+              );
+            })}
+            {bizKpiQuery.isError && <div className="text-xs text-warm-500">사업 KPI를 불러오지 못했습니다.</div>}
           </div>
         </CardContent>
       </Card>
