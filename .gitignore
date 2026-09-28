@@ -1,5 +1,5 @@
 .env.local
 node_modules/
-.next/
-.next.prev/
+# 빌드 산출물·배포 백업(.next.prev, .next.prevN, .next.broken-*) 전부 — 2026-09-28
+/.next*/
 *.tsbuildinfo
