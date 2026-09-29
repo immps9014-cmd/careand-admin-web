@@ -121,8 +121,8 @@ export default function TestAccountsPage() {
                         </TableCell>
                         <TableCell>
                           {a.status === "active"
-                            ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">사용 중</span>
-                            : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">{a.status === "suspended" ? "정지" : a.status}</span>}
+                            ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap bg-brand-50 text-brand-700">사용 중</span>
+                            : <span className="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap bg-warn-bg text-warn">{a.status === "suspended" ? "정지" : a.status}</span>}
                         </TableCell>
                         <TableCell className="text-sm text-warm-600">{a.note ?? "—"}</TableCell>
                       </TableRow>
