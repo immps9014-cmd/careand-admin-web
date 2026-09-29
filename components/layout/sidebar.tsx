@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   Clock,
+  KeyRound,
   DollarSign,
   LayoutDashboard,
   Megaphone,
@@ -59,6 +60,7 @@ const AI_NAV: NavItem[] = [
   { href: "/cs", area: "cs", label: "CS / 분쟁", icon: MessageCircle },
   { href: "/reports", area: "reports", label: "리포트", icon: BarChart3 },
   { href: "/admins", area: "admins", label: "관리자 계정·권한", icon: UserCog },
+  { href: "/test-accounts", area: "test-accounts", label: "테스트 계정", icon: KeyRound },
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
