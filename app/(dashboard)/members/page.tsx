@@ -110,6 +110,19 @@ const ROLE_AVATAR: Record<string, string> = {
   admin: "bg-warm-600",
 };
 
+/** 요청자가 가입 때 고른 이용 서비스 — 선택 순서대로, 첫 항목(대표 서비스)만 강조 */
+function ServiceBadges({ services }: { services: string[] }) {
+  return (
+    <span className="inline-flex flex-wrap gap-1">
+      {services.map((d, i) => (
+        <Badge key={d} variant={i === 0 ? "brand" : "outline"} title={i === 0 ? "대표 서비스" : undefined}>
+          {DOMAIN_LABEL[d] ?? d}
+        </Badge>
+      ))}
+    </span>
+  );
+}
+
 /** 행/뱃지 표시용 유효 역할 키 — 가사·산모요청자는 guardian이지만 intent로 구분 */
 function effectiveRole(m: { role: string; intent?: string | null }): string {
   if (m.role === "guardian" && (m.intent === "housekeeping" || m.intent === "postpartum")) return m.intent;
@@ -288,7 +301,7 @@ function MembersPageInner() {
             <TableRow>
               <TableHead>회원</TableHead>
               <TableHead>역할</TableHead>
-              <TableHead>직군</TableHead>
+              <TableHead>직군 · 이용 서비스</TableHead>
               <TableHead>자격검증</TableHead>
               <TableHead>연락처</TableHead>
               <TableHead>가입일</TableHead>
@@ -352,6 +365,8 @@ function MembersPageInner() {
                       ) : (
                         <span className="text-warm-500 text-xs">미등록</span>
                       )
+                    ) : m.role === "guardian" && (m.services?.length ?? 0) > 0 ? (
+                      <ServiceBadges services={m.services!} />
                     ) : (
                       <span className="text-warm-600 text-sm">{ROLE_BADGE[er]?.label ?? m.role}</span>
                     )}
@@ -759,6 +774,13 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                       <h3 className="text-sm font-bold text-warm-700">보호자 정보</h3>
                     </div>
                     <div className="rounded-lg border border-warm-100 px-4 mb-4">
+                      <DRow label="이용 서비스">
+                        {(data.guardian.services?.length ?? 0) > 0 ? (
+                          <ServiceBadges services={data.guardian.services!} />
+                        ) : (
+                          <span className="text-warm-500">가입 때 선택 안 함</span>
+                        )}
+                      </DRow>
                       <DRow label="관계">{data.guardian.relation || "-"}</DRow>
                       <DRow label="연락처(주소)"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-500" />{data.guardian.contact_address || "-"}</span></DRow>
                       <DRow label="돌봄 대상">

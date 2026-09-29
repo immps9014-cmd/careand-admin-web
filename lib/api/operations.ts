@@ -218,6 +218,8 @@ export interface Member {
   caregiver_status?: "pending" | "active" | "suspended" | "leave" | "rejected" | null;
   /** 돌봄전문가 직군(senior/nursing/housekeeping) — 비-돌봄전문가은 null */
   service_domains?: string | null;
+  /** 요청자가 가입 때 고른 주로 이용할 서비스(선택 순서, 첫 항목=대표). 비-요청자 null */
+  services?: string[] | null;
   created_at: string;
   /** 탈퇴(소프트삭제) 일시 — 활성 회원은 null */
   withdrawn_at?: string | null;
@@ -268,6 +270,8 @@ export interface GuardianDetail {
   id: number;
   relation: string | null;
   contact_address: string | null;
+  /** 가입 때 고른 주로 이용할 서비스(선택 순서, 첫 항목=대표) */
+  services?: string[];
   seniors: { name: string; care_grade: number | null }[];
   patients: { name: string; hospital_name: string | null }[];
 }
