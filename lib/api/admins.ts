@@ -25,6 +25,8 @@ export interface AdminArea {
 export interface AdminListResponse {
   data: AdminAccount[];
   levels: Record<AdminLevel, string>;
+  /** 서버 .env ADMIN_2FA_REQUIRED — false 면 2단계 인증 표시를 숨긴다 */
+  two_factor_required?: boolean;
   areas: Record<string, AdminArea>;
 }
 

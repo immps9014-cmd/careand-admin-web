@@ -23,6 +23,8 @@ export default function AdminsPage() {
   const me = useAuth((s) => s.user);
   const q = useQuery({ queryKey: ["admin", "admins"], queryFn: adminsApi.list });
   const levels = q.data?.levels;
+  // 서버가 2단계 인증을 끈 상태(ADMIN_2FA_REQUIRED=false)면 관련 열·버튼·안내를 숨긴다. 응답 전엔 숨김.
+  const mfa = q.data?.two_factor_required === true;
 
   const [form, setForm] = useState({ email: "", name: "", phone: "", password: "", permission_level: "cs" as AdminLevel, department: "" });
   const [resetTarget, setResetTarget] = useState<AdminAccount | null>(null);
@@ -31,7 +33,7 @@ export default function AdminsPage() {
   const createM = useMutation({
     mutationFn: () => adminsApi.create({ ...form, department: form.department || undefined }),
     onSuccess: () => {
-      toast.success("관리자 계정을 만들었습니다. 첫 로그인 때 2단계 인증을 등록합니다.");
+      toast.success(mfa ? "관리자 계정을 만들었습니다. 첫 로그인 때 2단계 인증을 등록합니다." : "관리자 계정을 만들었습니다. 아이디와 비밀번호로 로그인합니다.");
       setForm({ email: "", name: "", phone: "", password: "", permission_level: "cs", department: "" });
       refresh();
     },
@@ -65,14 +67,14 @@ export default function AdminsPage() {
                 <TableHead>이름 · 아이디</TableHead>
                 <TableHead>권한 등급</TableHead>
                 <TableHead>부서</TableHead>
-                <TableHead>2단계 인증</TableHead>
+                {mfa && <TableHead>2단계 인증</TableHead>}
                 <TableHead>상태</TableHead>
-                <TableHead className="text-right">관리</TableHead>
+                {mfa && <TableHead className="text-right">관리</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {q.isLoading && (
-                <TableRow><TableCell colSpan={6} className="text-center text-warm-500 py-8">불러오는 중…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={mfa ? 6 : 4} className="text-center text-warm-500 py-8">불러오는 중…</TableCell></TableRow>
               )}
               {(q.data?.data ?? []).map((a) => {
                 const isMe = a.user_id === me?.id;
@@ -95,11 +97,13 @@ export default function AdminsPage() {
                       </select>
                     </TableCell>
                     <TableCell className="text-sm text-warm-700">{a.department ?? "—"}</TableCell>
-                    <TableCell>
-                      {a.two_factor
-                        ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">등록됨</span>
-                        : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">첫 로그인 때 등록</span>}
-                    </TableCell>
+                    {mfa && (
+                      <TableCell>
+                        {a.two_factor
+                          ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">등록됨</span>
+                          : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">첫 로그인 때 등록</span>}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <button
                         type="button"
@@ -111,11 +115,13 @@ export default function AdminsPage() {
                         {a.status === "active" ? "활성 · 정지하기" : "정지됨 · 활성화"}
                       </button>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" disabled={!a.two_factor} onClick={() => setResetTarget(a)}>
-                        2단계 인증 초기화
-                      </Button>
-                    </TableCell>
+                    {mfa && (
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm" disabled={!a.two_factor} onClick={() => setResetTarget(a)}>
+                          2단계 인증 초기화
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -128,7 +134,9 @@ export default function AdminsPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-base font-bold text-warm-800 mb-1">관리자 계정 추가</h2>
-            <p className="text-xs text-warm-500 mb-4">임시 비밀번호를 전달하면, 첫 로그인 때 인증 앱을 등록해야 접속됩니다.</p>
+            <p className="text-xs text-warm-500 mb-4">
+              {mfa ? "임시 비밀번호를 전달하면, 첫 로그인 때 인증 앱을 등록해야 접속됩니다." : "아이디와 비밀번호를 전달하면 바로 로그인할 수 있습니다."}
+            </p>
             <form
               className="grid grid-cols-1 sm:grid-cols-2 gap-3"
               onSubmit={(e) => { e.preventDefault(); createM.mutate(); }}
