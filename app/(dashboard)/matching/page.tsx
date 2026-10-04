@@ -267,6 +267,9 @@ export default function MatchingPage() {
                       <Badge variant={DOMAIN_BADGE[row.service_domain] ?? "outline"}>
                         {DOMAIN_LABEL[row.service_domain] ?? row.service_domain}
                       </Badge>
+                      {row.category && (
+                        <div className="mt-1 text-[11px] text-warm-500">{[row.category, ...(row.extra_categories ?? [])].join(" + ")}</div>
+                      )}
                     </TableCell>
                     <TableCell className="font-en text-warm-600 text-xs">
                       {row.scheduled_start ? formatDateTime(row.scheduled_start) : "-"}
@@ -498,6 +501,17 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
 
               <div className="rounded-lg border border-warm-100 bg-warm-50/60 px-4 mb-4">
                 <MDRow label="일정">{data.scheduled_start ? formatDateTime(data.scheduled_start) : "-"} · {data.duration_min}분</MDRow>
+                {data.category && (
+                  <MDRow label="서비스 종류">
+                    {data.category}
+                    {!!data.extra_categories?.length && <span className="text-warm-500"> + {data.extra_categories.join(" + ")} (함께)</span>}
+                  </MDRow>
+                )}
+                {data.newborns?.map((b, i) => (
+                  <MDRow key={i} label="아기">
+                    {b.name} · {b.gender === "F" ? "여아" : "남아"} · {b.birth_date} 출생 · <span className="font-en">{(b.birth_weight_g / 1000).toFixed(1)}kg</span>
+                  </MDRow>
+                ))}
                 <MDRow label="대상자 정보">{(data.senior?.gender === "M" ? "남성" : data.senior?.gender === "F" ? "여성" : "-")}{data.senior?.care_grade ? ` · ${data.senior.care_grade}` : ""}</MDRow>
                 <MDRow label="주소">{data.address?.address || data.address?.label || "-"}</MDRow>
                 {data.address?.entry_note && <MDRow label="출입 안내">{data.address.entry_note}</MDRow>}

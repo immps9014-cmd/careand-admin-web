@@ -168,6 +168,9 @@ export interface MatchingRequest {
   guardian_name: string | null;
   mode: string;
   service_domain: string;
+  /** 세부 종류(요금 기준) + 함께 고른 종류(복수 선택) */
+  category?: string | null;
+  extra_categories?: string[];
   scheduled_start: string | null;
   status: string;
   candidate_count: number;
@@ -196,6 +199,10 @@ export interface MatchingDetailData {
   duration_min: number;
   status: string;
   special_request: string | null;
+  category?: string | null;
+  extra_categories?: string[];
+  /** 산후: 산모의 아기(신생아) */
+  newborns?: { name: string; gender: "M" | "F"; birth_date: string; birth_weight_g: number }[];
   created_at: string;
   matched_at: string | null;
   senior: { gender: string | null; care_grade: string | null; special_notes: string | null } | null;
