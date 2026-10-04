@@ -55,6 +55,9 @@ const DOMAIN_TABS = [
   { key: "senior", label: "요양보호" },
   { key: "nursing", label: "간병" },
   { key: "living_support", label: "생활지원" },
+  { key: "postpartum", label: "산후" },
+  { key: "childcare", label: "아이돌봄" },
+  { key: "mental_care", label: "마음돌봄" },
 ];
 
 export default function MatchingPage() {
