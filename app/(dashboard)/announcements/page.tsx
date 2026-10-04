@@ -231,7 +231,7 @@ export default function AnnouncementsPage() {
                   className="h-9 flex-1 rounded-md border border-warm-200 bg-white px-2.5 text-sm text-warm-700">
                   <option value="">모든 도메인</option>
                   {[["senior", "시니어 돌봄"], ["nursing", "간병"], ["housekeeping", "가사"], ["living_support", "생활지원"],
-                    ["postpartum", "산후"], ["childcare", "아이돌봄"], ["mental_care", "마음돌봄"]].map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    ["postpartum", "산모신생아"], ["childcare", "아이돌봄"], ["mental_care", "마음돌봄"]].map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
                 <select aria-label="지점" value={tBranch} onChange={(e) => setTBranch(e.target.value)} disabled={target === "guardian"}
                   className="h-9 flex-1 rounded-md border border-warm-200 bg-white px-2.5 text-sm text-warm-700 disabled:opacity-50">

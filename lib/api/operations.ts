@@ -29,6 +29,9 @@ export interface CgDocItem {
   label: string;
   required: boolean;
   hint: string | null;
+  /** 확인되면 이용자에게 이름·유효기간이 보이는 서류(산모신생아 건강관리 구비서류) */
+  public?: boolean;
+  needs_issued_at?: boolean;
   status: CgDocStatus;
   document: {
     id: number;
@@ -203,6 +206,17 @@ export interface MatchingDetailData {
   extra_categories?: string[];
   /** 산후: 산모의 아기(신생아) */
   newborns?: { name: string; gender: "M" | "F"; birth_date: string; birth_weight_g: number }[];
+  /** 산모신생아: 가정 정보·희망사항·희망 제공인력 (2026-10-05) */
+  care_profile?: {
+    postnatal_center?: { used: boolean | null; days?: number | null };
+    spouse?: { present: boolean | null; at_home?: boolean | null };
+    older_children?: { age: number; school?: "preschool" | "school" }[];
+    other_family?: string | null;
+    pets?: { has: boolean | null; detail?: string | null };
+    cctv?: { has: boolean | null; location?: string | null };
+    wishes?: Record<string, string>;
+    preferred_caregiver?: { region?: string; min_career_years?: number; age_range?: string; religion?: string; other?: string };
+  } | null;
   created_at: string;
   matched_at: string | null;
   senior: { gender: string | null; care_grade: string | null; special_notes: string | null } | null;

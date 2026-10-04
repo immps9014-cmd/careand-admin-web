@@ -13,7 +13,7 @@ import { formatKRW } from "@/lib/utils";
  */
 const DOMAINS: [string, string][] = [
   ["senior", "시니어 돌봄"], ["nursing", "간병"], ["housekeeping", "가사"], ["living_support", "생활지원"],
-  ["postpartum", "산후"], ["childcare", "아이돌봄"], ["mental_care", "마음돌봄"],
+  ["postpartum", "산모신생아"], ["childcare", "아이돌봄"], ["mental_care", "마음돌봄"],
 ];
 const PERIODS: [string, string][] = [["today", "오늘"], ["week", "이번 주"], ["month", "이번 달"]];
 

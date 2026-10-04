@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { operationsApi } from "@/lib/api/operations";
+import { operationsApi, type MatchingDetailData } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -55,7 +55,7 @@ const DOMAIN_TABS = [
   { key: "senior", label: "요양보호" },
   { key: "nursing", label: "간병" },
   { key: "living_support", label: "생활지원" },
-  { key: "postpartum", label: "산후" },
+  { key: "postpartum", label: "산모신생아" },
   { key: "childcare", label: "아이돌봄" },
   { key: "mental_care", label: "마음돌봄" },
 ];
@@ -438,6 +438,41 @@ const RESP_LABEL: Record<string, { label: string; cls: string }> = {
   expired: { label: "만료", cls: "bg-warm-100 text-warm-500" },
 };
 
+const WISH_LABEL: Record<string, string> = {
+  mother_care: "산모 케어", newborn_care: "신생아 케어", family_care: "가족 케어", housework: "가사 케어",
+  emotional_support: "정서적 지지", work_style: "성향·업무 스타일", focus: "중점 고려사항", special: "특이사항",
+};
+
+/** 산모신생아: 가정 정보·희망사항·희망 제공인력 — 관리자는 전부 본다(돌봄전문가는 가정 한 줄만) */
+function CareProfileRows({ p }: { p: NonNullable<MatchingDetailData["care_profile"]> }) {
+  const yn = (v: boolean | null | undefined, y: string, n: string) => (v == null ? null : v ? y : n);
+  const home = [
+    yn(p.postnatal_center?.used, `조리원 ${p.postnatal_center?.days ?? "?"}일 후`, "조리원 안 씀"),
+    p.spouse?.present == null ? null : p.spouse.present ? (p.spouse.at_home ? "배우자 재택" : "배우자 출근") : "배우자 없음",
+    p.older_children?.length ? `큰아이 ${p.older_children.map((k) => `${k.age}세`).join("·")}` : null,
+    p.other_family || null,
+  ].filter(Boolean).join(" · ");
+  const pref = p.preferred_caregiver ?? {};
+  const prefLine = [
+    pref.region && `지역 ${pref.region}`,
+    pref.min_career_years != null && `경력 ${pref.min_career_years}년+`,
+    pref.age_range && `나이 ${pref.age_range}`,
+    pref.religion && `종교 ${pref.religion}`,
+    pref.other,
+  ].filter(Boolean).join(" · ");
+  return (
+    <>
+      {home && <MDRow label="가정">{home}</MDRow>}
+      {p.pets?.has != null && <MDRow label="반려동물">{p.pets.has ? p.pets.detail || "있음" : "없음"}</MDRow>}
+      {p.cctv?.has != null && <MDRow label="CCTV">{p.cctv.has ? p.cctv.location || "있음" : "없음"}</MDRow>}
+      {Object.entries(p.wishes ?? {}).map(([k, v]) => (
+        <MDRow key={k} label={`희망 · ${WISH_LABEL[k] ?? k}`}>{v}</MDRow>
+      ))}
+      {prefLine && <MDRow label="희망 관리사">{prefLine}</MDRow>}
+    </>
+  );
+}
+
 function MDRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-warm-100 last:border-0">
@@ -515,6 +550,7 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                     {b.name} · {b.gender === "F" ? "여아" : "남아"} · {b.birth_date} 출생 · <span className="font-en">{(b.birth_weight_g / 1000).toFixed(1)}kg</span>
                   </MDRow>
                 ))}
+                {data.care_profile && <CareProfileRows p={data.care_profile} />}
                 <MDRow label="대상자 정보">{(data.senior?.gender === "M" ? "남성" : data.senior?.gender === "F" ? "여성" : "-")}{data.senior?.care_grade ? ` · ${data.senior.care_grade}` : ""}</MDRow>
                 <MDRow label="주소">{data.address?.address || data.address?.label || "-"}</MDRow>
                 {data.address?.entry_note && <MDRow label="출입 안내">{data.address.entry_note}</MDRow>}

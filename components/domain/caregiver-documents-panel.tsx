@@ -91,6 +91,7 @@ export function CaregiverDocumentsPanel({ caregiverId }: { caregiverId: number }
                 <div className="text-[13px] font-semibold text-warm-800">
                   {c.label}
                   {c.required && <span className="ml-1 text-[10.5px] text-danger">필수</span>}
+                  {c.public && <span className="ml-1 text-[10.5px] text-brand-600">이용자 공개</span>}
                 </div>
                 <div className="text-[11px] text-warm-500 truncate">
                   {doc
