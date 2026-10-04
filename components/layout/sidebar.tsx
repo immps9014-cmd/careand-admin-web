@@ -8,6 +8,7 @@ import {
   BarChart3,
   Brain,
   CalendarClock,
+  Baby,
   ClipboardCheck,
   ClipboardList,
   Clock,
@@ -47,6 +48,7 @@ const MAIN_NAV: NavItem[] = [
 const OPS_NAV: NavItem[] = [
   { href: "/caregiver-approval", area: "caregivers", label: "돌봄전문가 자격검증", icon: ShieldCheck },
   { href: "/contracts", area: "contracts", label: "계약·일정", icon: CalendarClock },
+  { href: "/mnh", area: "mnh", label: "산모신생아 바우처", icon: Baby },
   { href: "/care-sessions", area: "care-sessions", label: "케어 진행 현황", icon: Activity },
   { href: "/care-logs", area: "care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
   { href: "/announcements", area: "announcements", label: "공지·푸시", icon: Megaphone },
