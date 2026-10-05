@@ -85,7 +85,7 @@ function IssueCard({ i, statuses }: { i: CareIssueRow; statuses: Record<string, 
           </div>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm text-warm-800">{i.detail}</p>
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-warm-600">
-            <dt className="text-warm-500">보호자</dt><dd>{i.reporter_name} <span className="font-en tabular-nums select-all">{i.reporter_phone ?? ""}</span></dd>
+            <dt className="text-warm-500">보호자</dt><dd>{i.reporter_name} <span className="font-en tabular-nums select-all">{(i.reporter_phone ?? "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</span></dd>
             <dt className="text-warm-500">돌봄전문가</dt>
             <dd>{i.caregiver_name}{i.caregiver_issue_count > 1 && <b className="ml-1 text-danger">누적 {i.caregiver_issue_count}건</b>}</dd>
             <dt className="text-warm-500">요청</dt>
