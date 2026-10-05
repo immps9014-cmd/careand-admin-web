@@ -359,7 +359,7 @@ function HolidaysTab() {
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow><TableHead>날짜</TableHead><TableHead>이름</TableHead><TableHead>출처</TableHead><TableHead className="w-16" /></TableRow>
+              <TableRow><TableHead>날짜</TableHead><TableHead className="whitespace-nowrap">이름</TableHead><TableHead className="whitespace-nowrap">출처</TableHead><TableHead className="w-16" /></TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 && (
@@ -370,8 +370,8 @@ function HolidaysTab() {
                 return (
                   <TableRow key={h.id} className={cn(h.date < today && "opacity-60")}>
                     <TableCell className="whitespace-nowrap font-semibold">{h.date} <span className={cn("font-normal", dow === 0 ? "text-danger" : dow === 6 ? "text-info" : "text-warm-500")}>({DOW_KO[dow]})</span></TableCell>
-                    <TableCell>{h.name}</TableCell>
-                    <TableCell className="text-xs text-warm-500">{h.source === "admin" ? "직접 추가" : "기본"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{h.name}</TableCell>
+                    <TableCell className="text-xs text-warm-500 whitespace-nowrap">{h.source === "admin" ? "직접 추가" : "기본"}</TableCell>
                     <TableCell>
                       {h.date > today && (
                         <Button size="sm" variant="ghost" aria-label={`${h.date} ${h.name} 지우기`} disabled={del.isPending}
