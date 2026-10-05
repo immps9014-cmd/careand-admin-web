@@ -155,7 +155,7 @@ export function ContractDocsCard({ contractId, closed }: { contractId: number; c
             <div className="flex flex-wrap gap-1.5">
               {records.map((r) => (
                 <button key={r.id} onClick={() => setView(r.id)} className={cn("px-2 py-1 rounded-md text-xs font-semibold", DOC_STATUS_STYLE[r.status]?.cls)}>
-                  {r.issued_at.slice(5, 10).replace("-", "/")}
+                  {(r.session_date ?? r.issued_at).slice(5, 10).replace("-", "/")}
                 </button>
               ))}
             </div>

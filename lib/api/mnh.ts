@@ -233,6 +233,7 @@ export interface MnhDocBrief {
   signed_at: string | null;
   pdf_ready: boolean;
   issued_at: string;
+  session_date?: string | null;
   void_reason: string | null;
   signed_ip?: string | null;
   content_hash?: string | null;
