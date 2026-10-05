@@ -9,11 +9,15 @@ export interface HexAxis { key: string; label: string; score: number | null; eno
 
 const MAX = 5;
 
-export function HexagonChart({ axes, compare, size = 260, mini = false, title }: {
+export function HexagonChart({ axes, compare, size = 260, mini = false, title, fontScale = 1, pad: padProp }: {
   axes: HexAxis[]; compare?: HexAxis[] | null; size?: number; mini?: boolean; title?: string;
+  /** 좁은 화면에서 축소돼 보일 때 글자를 키운다(폰 회원 화면 1.5 → 실제 12px 이상) */
+  fontScale?: number;
+  /** 축 이름 자리 여백(viewBox 단위) */
+  pad?: number;
 }) {
   const [hover, setHover] = useState<number | null>(null);
-  const pad = mini ? 6 : 104;   // 좌우 축 이름(「소통·서비스 마인드」 등)이 잘리지 않게
+  const pad = mini ? 6 : padProp ?? 104;   // 좌우 축 이름(「소통·서비스 마인드」 등)이 잘리지 않게
   const W = size + pad * 2;
   const c = W / 2;
   const R = size / 2;
@@ -58,9 +62,12 @@ export function HexagonChart({ axes, compare, size = 260, mini = false, title }:
           const [x, y] = pt(i, MAX + 0.55);
           const anchor = Math.abs(x - c) < 4 ? "middle" : x > c ? "start" : "end";
           return (
-            <text key={a.key} x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={12.5} fill="#35312B" fontWeight={600}>
-              {a.label}
-              <tspan x={x} dy={15} fontSize={12} fontWeight={700} fill={a.score === null ? "#736D64" : "#211E1A"}>
+            <text key={a.key} x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={12.5 * fontScale} fill="#35312B" fontWeight={600}>
+              {/* 긴 이름은 「·」에서 두 줄로 — 좌우 여백을 줄여 폰에서도 글자가 작아지지 않게 */}
+              {(a.label.length > 6 && a.label.includes("·") ? [a.label.split("·")[0] + "·", a.label.split("·").slice(1).join("·")] : [a.label]).map((ln, k) => (
+                <tspan key={k} x={x} dy={k === 0 ? 0 : 14 * fontScale}>{ln}</tspan>
+              ))}
+              <tspan x={x} dy={15 * fontScale} fontSize={12 * fontScale} fontWeight={700} fill={a.score === null ? "#736D64" : "#211E1A"}>
                 {a.score === null ? "자료 없음" : a.score.toFixed(1)}{a.score !== null && a.enough === false ? " ·적음" : ""}
               </tspan>
             </text>
