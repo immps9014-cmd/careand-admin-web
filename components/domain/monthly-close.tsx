@@ -21,6 +21,10 @@ function toCsv(r: MonthlyReport): string {
     ["매출", "결제 건수", d.revenue.paid_count], ["매출", "매출 합계", d.revenue.total],
     ["매출", "본인부담", d.revenue.self_pay], ["매출", "장기요양 청구분", d.revenue.ltc_pay],
     ["매출", "취소·환불 건수", d.revenue.cancelled_count], ["매출", "취소·환불 금액", d.revenue.cancelled_amount],
+    ...(d.revenue.voucher ? [
+      ["매출", "그중 바우처 선납(환불 차감)", d.revenue.voucher.net], ["매출", "바우처 선납 건수", d.revenue.voucher.prepaid_count],
+      ["매출", "바우처 환불 금액", d.revenue.voucher.refund_amount],
+    ] : []),
     ...d.revenue.by_domain.map((x) => ["도메인 매출", x.label, x.amount]),
     ...d.revenue.by_branch.map((x) => ["지점 매출", x.branch, x.amount]),
     ["정산", "정산서 수", d.settlement.count], ["정산", "지급 총액", d.settlement.gross],

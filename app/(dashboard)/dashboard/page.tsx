@@ -90,7 +90,8 @@ export default function DashboardPage() {
         <KpiCard variant="alert" label="미해결 위험 알림" value={kpi?.high_alerts_unresolved ?? 0} icon={AlertTriangle} subLabel={alertSubLabel} cta="즉시 확인" />
         <KpiCard label="검수 대기 돌봄전문가" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
         <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
-        <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined} />
+        <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined}
+          subLabel={kpi?.voucher_revenue_this_week ? `바우처 선납 ${formatKRW(kpi.voucher_revenue_this_week)} 포함` : undefined} />
       </div>
 
       <Card className="mb-6">

@@ -61,6 +61,9 @@ export interface MnhContractSummary {
   prepaid_amount: number | null;
   prepaid_at: string | null;
   prepaid_receipt_no: string | null;
+  /** 취소 때 돌려준 본인부담금(매출에서 뺌) */
+  refund_amount: number | null;
+  refunded_at: string | null;
   caregiver_id: number | null;
   caregiver_name: string | null;
   member_note: string | null;
@@ -178,8 +181,8 @@ export const mnhApi = {
     api.delete<{ message: string; result: HolidayResync }>(`/v1/admin/mnh/holidays/${id}`).then((r) => r.data),
   note: (id: number, body: { date?: string; text: string }) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/notes`, body).then((r) => r.data),
-  cancel: (id: number, reason: string) =>
-    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, { reason }).then((r) => r.data),
+  cancel: (id: number, reason: string, refund_amount?: number) =>
+    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, { reason, ...(refund_amount !== undefined ? { refund_amount } : {}) }).then((r) => r.data),
 };
 
 /** 공휴일 표 변경 뒤 다시 맞춘 계약 / 담당 일정이 겹쳐 그대로 둔 계약 */

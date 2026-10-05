@@ -355,6 +355,9 @@ function PrepaidCard({ c, closed, onDone, refetch }: CardProps & { refetch: () =
         <Row k="수단" v={c.payment_method_label} />
         <Row k="납부일" v={c.prepaid_at?.slice(0, 10) ?? "-"} />
         {c.prepaid_receipt_no && <Row k="영수증 번호" v={c.prepaid_receipt_no} />}
+        {c.refund_amount != null && (
+          <Row k="취소 환불" v={c.refund_amount > 0 ? `${formatKRW(c.refund_amount)} (${c.refunded_at?.slice(0, 10) ?? ""})` : "돌려주지 않음"} />
+        )}
         {c.self_pay != null && c.prepaid_amount !== c.self_pay && <p className="text-xs text-warn mt-1">본인부담금 {formatKRW(c.self_pay)}과 금액이 달라요.</p>}
         {(c.status === "applied" || c.status === "confirmed") && (
           <Button size="sm" variant="ghost" className="mt-2 text-danger hover:bg-danger-bg" disabled={clear.isPending}
@@ -488,7 +491,7 @@ function SettingsCard({ c, onDone }: CardProps) {
 
 function CancelCard({ c, onDone }: CardProps) {
   const cancel = useMutation({
-    mutationFn: (reason: string) => mnhApi.cancel(c.id, reason),
+    mutationFn: (v: { reason: string; refund?: number }) => mnhApi.cancel(c.id, v.reason, v.refund),
     onSuccess: (r) => { toast.success(r.message ?? "취소했어요."); onDone(r.data); },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
@@ -497,7 +500,15 @@ function CancelCard({ c, onDone }: CardProps) {
       <Button size="sm" variant="ghost" className="text-danger hover:bg-danger-bg" disabled={cancel.isPending}
         onClick={() => {
           const reason = window.prompt("계약을 취소할까요? 남은 예정 일정이 모두 취소돼요. 사유를 적어 주세요.");
-          if (reason && reason.trim()) cancel.mutate(reason.trim());
+          if (!reason || !reason.trim()) return;
+          if (!c.prepaid) { cancel.mutate({ reason: reason.trim() }); return; }
+          // 선납한 계약 — 돌려준 금액은 매출에서 빠진다. 제공 전이면 전액을 기본값으로
+          const max = c.prepaid_amount ?? 0;
+          const input = window.prompt(`돌려준 본인부담금(원)을 적어 주세요. 0 ~ ${max.toLocaleString("ko-KR")}원, 돌려주지 않았으면 0.`, String(c.completed_days > 0 ? "" : max));
+          if (input === null) return;
+          const refund = Number(input.replace(/[^0-9]/g, ""));
+          if (input.trim() === "" || !Number.isFinite(refund) || refund > max) { toast.error(`0 ~ ${max.toLocaleString("ko-KR")}원 사이로 적어 주세요.`); return; }
+          cancel.mutate({ reason: reason.trim(), refund });
         }}>
         계약 취소
       </Button>

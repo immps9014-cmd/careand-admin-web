@@ -5,6 +5,8 @@ export interface DashboardKpi {
   matches_today: number;
   revenue_today: number;
   revenue_this_week: number;
+  /** 그중 산모신생아 바우처 선납(환불 차감) — 결제 기록 밖이라 따로 더한 금액 */
+  voucher_revenue_this_week?: number;
   revenue_change_pct: number;
   high_alerts_unresolved: number;
   pending_caregivers: number;
@@ -146,6 +148,7 @@ export interface MonthlyReport {
   generated_at: string;
   data: {
     revenue: { paid_count: number; total: number; self_pay: number; ltc_pay: number; cancelled_count: number; cancelled_amount: number;
+      voucher?: { net: number; prepaid_amount: number; prepaid_count: number; refund_amount: number; refund_count: number };
       by_domain: { domain: string; label: string; count: number; amount: number }[]; by_branch: { branch: string; count: number; amount: number }[] };
     settlement: { count: number; gross: number; withholding: number; net: number; paid_count: number };
     matching: { requests: number; matched: number; expired: number; avg_match_hours: number | null };
