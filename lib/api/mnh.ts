@@ -188,6 +188,8 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   note: "특이사항",
   cancelled: "계약 취소",
   completed: "서비스 종료",
+  doc_issued: "서류 발행",
+  doc_signed: "서류 서명",
 };
 
 export const DOW_KO = ["일", "월", "화", "수", "목", "금", "토"];
@@ -203,3 +205,97 @@ export function dayLabel(date: string): string {
 export function todayKst(): string {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
 }
+
+/* ───── 전자서명 서류(3단계) ───── */
+
+export interface MnhDocFieldDef {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "date" | "checks" | "select";
+  filled_by: "client" | "caregiver" | "admin";
+  options?: string[] | Record<string, string> | null;
+}
+
+export interface MnhDocBrief {
+  id: number;
+  doc_type: string;
+  label: string;
+  title: string;
+  status: "issued" | "signed" | "void";
+  signer_role: "client" | "caregiver";
+  signer_name: string | null;
+  before_start: boolean;
+  contract_id: number | null;
+  care_session_id: number | null;
+  caregiver_id: number | null;
+  template_version: number | null;
+  form_data: Record<string, unknown>;
+  signed_at: string | null;
+  pdf_ready: boolean;
+  issued_at: string;
+  void_reason: string | null;
+  signed_ip?: string | null;
+  content_hash?: string | null;
+}
+
+export interface MnhDocDetail extends MnhDocBrief {
+  content_html: string;
+  fields_html: string;
+  integrity: boolean | null;
+}
+
+export interface MnhTemplate {
+  doc_type: string;
+  label: string;
+  signer: "client" | "caregiver";
+  before_start: boolean;
+  auto: string | null;
+  fields: MnhDocFieldDef[];
+  version: number;
+  title: string;
+  body: string;
+  note: string | null;
+  updated_at: string;
+  versions: { version: number; note: string | null; created_at: string }[];
+}
+
+export const mnhDocAdminApi = {
+  forContract: (id: number) =>
+    api.get<Ok<{ documents: MnhDocBrief[]; missing_before_start: string[]; enforce: boolean; issuable: { type: string; label: string; admin_fields: MnhDocFieldDef[] }[] }>>(`/v1/admin/mnh/contracts/${id}/documents`).then((r) => r.data),
+  issue: (id: number, doc_type: string, form_data?: Record<string, unknown>) =>
+    api.post<Ok<MnhDocBrief>>(`/v1/admin/mnh/contracts/${id}/documents`, { doc_type, form_data }).then((r) => r.data),
+  get: (id: number) => api.get<Ok<MnhDocDetail>>(`/v1/admin/mnh/documents/${id}`).then((r) => r.data),
+  reissue: (id: number, reason: string) => api.post<Ok<MnhDocBrief>>(`/v1/admin/mnh/documents/${id}/reissue`, { reason }).then((r) => r.data),
+  void: (id: number, reason: string) => api.post<{ message: string }>(`/v1/admin/mnh/documents/${id}/void`, { reason }).then((r) => r.data),
+  templates: () => api.get<Ok<{ templates: MnhTemplate[]; variables: string[]; provider: Record<string, string> }>>(`/v1/admin/mnh/templates`).then((r) => r.data),
+  saveTemplate: (type: string, body: { title: string; body: string; note?: string }) =>
+    api.put<{ message: string }>(`/v1/admin/mnh/templates/${type}`, body).then((r) => r.data),
+  preview: (type: string, body: string) => api.post<Ok<{ html: string }>>(`/v1/admin/mnh/templates/${type}/preview`, { body }).then((r) => r.data),
+  employment: () =>
+    api.get<Ok<{ caregiver_id: number; name: string; status: string; documents: MnhDocBrief[] }[]>>(`/v1/admin/mnh/employment`).then((r) => r.data),
+  issueEmployment: (caregiver_id: number, form_data: Record<string, unknown>) =>
+    api.post<Ok<MnhDocBrief>>(`/v1/admin/mnh/employment`, { caregiver_id, form_data }).then((r) => r.data),
+  async openPdf(id: number) {
+    const win = window.open("", "_blank");
+    try {
+      const res = await api.get(`/v1/admin/mnh/documents/${id}/pdf`, { responseType: "blob" });
+      const url = URL.createObjectURL(res.data as Blob);
+      if (win) win.location.href = url; else window.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      win?.close();
+      const blob = (e as { response?: { data?: Blob } }).response?.data;
+      if (blob instanceof Blob) {
+        const msg = await blob.text().then((t) => JSON.parse(t).message as string).catch(() => null);
+        if (msg) throw new Error(msg);
+      }
+      throw e;
+    }
+  },
+};
+
+export const DOC_STATUS_STYLE: Record<string, { cls: string; label: string }> = {
+  issued: { cls: "bg-warn-bg text-warn", label: "서명 대기" },
+  signed: { cls: "bg-brand-50 text-brand-700", label: "서명 완료" },
+  void: { cls: "bg-warm-100 text-warm-500", label: "취소" },
+};

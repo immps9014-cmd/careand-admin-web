@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { ContractDocsCard } from "@/components/domain/mnh-docs";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, conflictMessage, dayLabel, todayKst, MNH_EVENT_LABEL, MNH_STATUS_STYLE, DOW_KO,
@@ -51,6 +52,7 @@ export default function MnhContractPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-5 items-start">
         <div className="space-y-5 min-w-0">
           <ScheduleCard c={c} closed={closed} onDone={apply} />
+          <ContractDocsCard contractId={c.id} closed={c.status === "cancelled"} />
           <NotesCard c={c} onDone={apply} />
         </div>
         <div className="space-y-5 min-w-0">
@@ -180,6 +182,11 @@ function ScheduleCard({ c, closed, onDone }: CardProps) {
 
 /* ───── 특이사항·이력 ───── */
 
+const DOC_TYPE_LABEL: Record<string, string> = {
+  service_contract: "서비스 이용계약서", privacy_consent: "개인정보 수집·이용 동의서", user_rules: "서비스 이용자 준수사항",
+  initial_consult: "초기상담 기록지", receipt: "본인부담금 영수증", satisfaction: "서비스 만족도 모니터링",
+};
+
 function eventText(e: MnhContractDetail["events"][number]): string {
   const p = e.payload ?? {};
   switch (e.type) {
@@ -191,6 +198,7 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
     case "cancelled": return String(p.reason ?? "");
+    case "doc_issued": case "doc_signed": return DOC_TYPE_LABEL[String(p.doc_type ?? "")] ?? String(p.doc_type ?? "");
     default: return e.date ? dayLabel(e.date) : "";
   }
 }
