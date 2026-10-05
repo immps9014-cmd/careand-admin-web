@@ -13,7 +13,7 @@ export function HexagonChart({ axes, compare, size = 260, mini = false, title }:
   axes: HexAxis[]; compare?: HexAxis[] | null; size?: number; mini?: boolean; title?: string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
-  const pad = mini ? 6 : 64;
+  const pad = mini ? 6 : 104;   // 좌우 축 이름(「소통·서비스 마인드」 등)이 잘리지 않게
   const W = size + pad * 2;
   const c = W / 2;
   const R = size / 2;
