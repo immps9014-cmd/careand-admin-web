@@ -60,7 +60,7 @@ export const epdsApi = {
 };
 
 export const EPDS_RISK_STYLE: Record<EpdsRisk, string> = {
-  low: "bg-brand-50 text-brand-700",
+  low: "bg-warm-100 text-warm-700",   // 양호 — 브랜드 코랄은 위험색과 헷갈려 중립색
   medium: "bg-warn-bg text-warn",
   high: "bg-danger-bg text-danger",
   critical: "bg-danger text-white",

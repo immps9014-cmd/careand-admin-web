@@ -35,7 +35,7 @@ export function RiskPill({ row }: { row: Pick<EpdsRow, "risk_level" | "risk_labe
 /** 총점 0~30 막대 — 10·13점(주의·상담 권고 경계) 눈금 */
 export function ScoreBar({ total }: { total: number }) {
   const pct = (v: number) => `${(v / 30) * 100}%`;
-  const tone = total >= 13 ? "bg-danger" : total >= 10 ? "bg-warn" : "bg-brand-500";
+  const tone = total >= 13 ? "bg-danger" : total >= 10 ? "bg-warn" : "bg-warm-400";
   return (
     <div className="relative h-1.5 w-24 rounded-full bg-warm-100" aria-hidden>
       <div className={cn("absolute inset-y-0 left-0 rounded-full", tone)} style={{ width: pct(total) }} />
@@ -50,7 +50,7 @@ function Trend({ total, prev }: { total: number; prev: number | null | undefined
   const d = total - prev;
   if (d === 0) return <span className="text-xs text-warm-500">지난번과 같음</span>;
   return (
-    <span className={cn("inline-flex items-center gap-0.5 text-xs font-semibold", d > 0 ? "text-danger" : "text-brand-700")}>
+    <span className={cn("inline-flex items-center gap-0.5 text-xs font-semibold", d > 0 ? "text-danger" : "text-info")}>
       {d > 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
       {Math.abs(d)}점 (지난번 {prev})
     </span>
