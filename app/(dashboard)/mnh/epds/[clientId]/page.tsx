@@ -86,6 +86,10 @@ function Detail({ data, focus, onChange }: { data: EpdsClientDetail; focus: numb
           <p className="text-xs font-semibold text-warm-500 mb-1">연락처(신청 회원)</p>
           <p className="font-semibold text-warm-800">{c.guardian?.name ?? "-"}</p>
           <p className="font-en tabular-nums text-warm-800 select-all">{c.guardian?.phone ?? "번호 없음"}</p>
+          <p className="text-xs font-semibold text-warm-500 mt-3 mb-1">산모 비상연락처</p>
+          {c.emergency_contact
+            ? <p className="text-warm-800">{c.emergency_contact.name}({c.emergency_contact.relation}) <span className="font-en tabular-nums select-all">{c.emergency_contact.phone.replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</span></p>
+            : <p className="text-sm text-warm-500">미등록</p>}
         </CardContent></Card>
         <Card className={cn(anyAlert && "border-danger/40 bg-danger-bg")}><CardContent className="p-4">
           <p className="text-xs font-semibold text-warm-500 mb-1 flex items-center gap-1"><PhoneCall className="w-3.5 h-3.5" />위기 연락처(산모 안내용)</p>

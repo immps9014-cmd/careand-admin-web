@@ -40,7 +40,7 @@ export interface EpdsHistoryRow extends EpdsRow {
 }
 
 export interface EpdsClientDetail {
-  client: { id: number; name: string; birth_date: string | null; delivery_date: string | null; delivery_type: string | null; guardian: { id: number; name: string; phone: string | null } | null };
+  client: { id: number; name: string; birth_date: string | null; delivery_date: string | null; delivery_type: string | null; guardian: { id: number; name: string; phone: string | null } | null; emergency_contact?: { name: string; relation: string; phone: string } | null };
   contract: { id: number; contract_no: string; status: string; caregiver_name: string | null } | null;
   history: EpdsHistoryRow[];
   period: string;

@@ -114,6 +114,8 @@ export interface MnhContractDetail extends MnhContractSummary {
   match_request_id: number | null;
   user: { id: number; name: string } | null;
   care_profile_summary: string | null;
+  /** 산모 비상연락처(2026-10-05) — phone 숫자만 */
+  client_emergency_contact: { name: string; relation: string; phone: string } | null;
   cancelled_sessions: { date: string; reason: string | null; caregiver_name: string | null }[];
 }
 

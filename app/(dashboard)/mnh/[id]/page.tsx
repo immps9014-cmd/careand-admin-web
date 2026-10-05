@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -55,6 +56,9 @@ export default function MnhContractPage() {
           <ScheduleCard c={c} closed={closed} onDone={apply} />
           <ContractDocsCard contractId={c.id} closed={c.status === "cancelled"} />
           <ContractEvalCard contractId={c.id} status={c.status} />
+          <Section title="이용일지" aside={<Link href="/mnh?tab=journal" className="text-xs text-brand-700 hover:underline">전체 보기</Link>}>
+            <MnhJournalTab clientId={c.postpartum_client_id} compact />
+          </Section>
           <NotesCard c={c} onDone={apply} />
         </div>
         <div className="space-y-5 min-w-0">
@@ -265,6 +269,8 @@ function NotesCard({ c, onDone }: CardProps) {
 
 /* ───── 이용자 ───── */
 
+const fmtPhone = (p?: string | null) => (p ?? "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+
 function ClientCard({ c }: { c: MnhContractDetail }) {
   return (
     <Section title="이용자">
@@ -272,6 +278,9 @@ function ClientCard({ c }: { c: MnhContractDetail }) {
       <Row k="신청 회원" v={c.user?.name ?? "-"} />
       <Row k="출산(예정)일" v={c.delivery_date ?? "-"} />
       <Row k="주소" v={c.address || "-"} />
+      <Row k="비상연락처" v={c.client_emergency_contact
+        ? `${c.client_emergency_contact.name}(${c.client_emergency_contact.relation}) ${fmtPhone(c.client_emergency_contact.phone)}`
+        : <span className="text-warm-500">미등록</span>} />
       {c.care_profile_summary && <Row k="가정 정보" v={c.care_profile_summary} />}
       {c.member_note && <Row k="이용자 메모" v={c.member_note} />}
     </Section>

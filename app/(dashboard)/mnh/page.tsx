@@ -14,6 +14,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { EmploymentTab, TemplatesTab } from "@/components/domain/mnh-docs";
 import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { EpdsTab } from "@/components/domain/mnh-epds";
+import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, MNH_STATUS_STYLE, DOW_KO, todayKst,
@@ -33,6 +34,7 @@ const TABS = [
   { key: "employment", label: "인력 계약" },
   { key: "evaluation", label: "인력 평가" },
   { key: "epds", label: "산후우울 검사" },
+  { key: "journal", label: "이용일지" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -82,6 +84,7 @@ function MnhPage() {
       {tab === "employment" && <EmploymentTab />}
       {tab === "evaluation" && <EvaluationTab />}
       {tab === "epds" && <EpdsTab />}
+      {tab === "journal" && <MnhJournalTab />}
     </div>
   );
 }
