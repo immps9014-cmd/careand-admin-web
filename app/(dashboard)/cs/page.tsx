@@ -25,6 +25,7 @@ import { KpiCard } from "@/components/domain/kpi-card";
 import { csApi, type CsReview } from "@/lib/api/cs";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, formatTimeAgo, cn } from "@/lib/utils";
+import { CareIssuesTab } from "@/components/domain/care-issues";
 
 function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   const dim = size === "md" ? "w-4 h-4" : "w-3.5 h-3.5";
@@ -58,7 +59,7 @@ function avatarBg(name: string) {
 }
 
 export default function CsPage() {
-  const [tab, setTab] = useState<"reviews" | "chatbot">("reviews");
+  const [tab, setTab] = useState<"reviews" | "chatbot" | "issues">("reviews");
   const [onlyNegative, setOnlyNegative] = useState(false);
   const [onlyOpen, setOnlyOpen] = useState(false);
   // 인라인 답글 에디터 — 열려있는 후기 id와 입력 텍스트
@@ -187,6 +188,16 @@ export default function CsPage() {
               {stats?.chatbot_total ?? 0}
             </span>
           </button>
+          <button
+            onClick={() => setTab("issues")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded inline-flex items-center gap-1.5 transition-colors",
+              tab === "issues" ? "bg-white text-warm-800 shadow-sm" : "text-warm-600 hover:text-warm-800"
+            )}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            교체·신고
+          </button>
         </div>
         {tab === "reviews" && (
           <Button
@@ -209,6 +220,8 @@ export default function CsPage() {
           </Button>
         )}
       </div>
+
+      {tab === "issues" && <CareIssuesTab />}
 
       {/* 후기 탭 — 좌: 평점 요약 / 우: 후기 목록 */}
       {tab === "reviews" && (

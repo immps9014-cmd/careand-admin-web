@@ -95,3 +95,38 @@ export const csApi = {
     };
   },
 };
+
+/* ===== 교체 요청·신고(2026-10-05) ===== */
+export interface CareIssueRow {
+  id: number;
+  kind: "replace" | "report";
+  kind_label: string;
+  category: string;
+  category_label: string;
+  detail: string;
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  status_label: string;
+  admin_reply: string | null;
+  handled_at: string | null;
+  created_at: string;
+  match_id: number;
+  request_id: number;
+  caregiver_id: number;
+  caregiver_name: string;
+  reporter_name: string;
+  reporter_phone: string | null;
+  service_label: string;
+  handled_by_name: string | null;
+  caregiver_issue_count: number;
+}
+export interface CareIssueList {
+  summary: { open: number; in_progress: number; total: number };
+  issues: CareIssueRow[];
+  statuses: Record<string, string>;
+}
+export const careIssueApi = {
+  list: (params: { status?: string; kind?: string; q?: string }) =>
+    api.get<{ success: boolean; data: CareIssueList }>(`/v1/admin/cs/issues`, { params }).then((r) => r.data.data),
+  handle: (id: number, body: { status: string; reply?: string }) =>
+    api.post<{ success: boolean; message?: string }>(`/v1/admin/cs/issues/${id}`, body).then((r) => r.data),
+};

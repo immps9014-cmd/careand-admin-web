@@ -65,6 +65,11 @@ export default function MatchingPage() {
   const [domain, setDomain] = useState("");
   const [assignTo, setAssignTo] = useState<number | null>(null);
   const [detailId, setDetailId] = useState<number | null>(null);
+  // CS 교체·신고에서 /matching?request={id} 로 들어오면 그 요청 상세를 바로 연다(2026-10-05)
+  useEffect(() => {
+    const r = Number(new URLSearchParams(window.location.search).get("request"));
+    if (r > 0) setDetailId(r);
+  }, []);
   const [selectedCg, setSelectedCg] = useState<number | "">("");
   // 수동 배정은 확정 즉시 매칭 계약을 생성하므로 confirm을 거친다(INV-6).
   const [confirmAssign, setConfirmAssign] = useState<{
