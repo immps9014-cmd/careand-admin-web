@@ -167,7 +167,7 @@ function ExtrasBlock({ x }: { x: NonNullable<import("@/lib/api/operations").CgDo
         )}
         <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-warm-500" />
           비상연락처: {x.emergency_contact
-            ? <span><b>{x.emergency_contact.name}</b>({x.emergency_contact.relation}) <span className="font-en select-all">{x.emergency_contact.phone}</span></span>
+            ? <span><b>{x.emergency_contact.name}</b>({x.emergency_contact.relation}) <span className="font-en select-all">{x.emergency_contact.phone.replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</span></span>
             : <span className="text-warm-500">없음</span>}
         </p>
         <p className="flex items-start gap-1.5"><HeartHandshake className="w-3.5 h-3.5 mt-0.5 text-warm-500 shrink-0" />
