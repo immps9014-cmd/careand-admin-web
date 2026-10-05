@@ -16,17 +16,18 @@ import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, MNH_STATUS_STYLE, DOW_KO, todayKst,
-  type MnhCalendarRow, type MnhContractSummary, type MnhLabels, type MnhSupportType,
+  type HolidayResync, type MnhCalendarRow, type MnhContractSummary, type MnhLabels, type MnhSupportType,
 } from "@/lib/api/mnh";
 
 /**
  * 산모신생아 바우처(CAREN-MNH-01 2단계, 2026-10-05). 제공기관 = 케어앤 운영사.
- * 탭: 계약(신청~종료) · 달력(이용자별 제공일·연기·담당) · 지원유형 기준표(복지부 연도별 고시값 입력).
+ * 탭: 계약(신청~종료) · 달력(이용자별 제공일·연기·담당) · 지원유형 기준표(복지부 연도별 고시값 입력) · 공휴일(제공일 자동 제외).
  */
 const TABS = [
   { key: "contracts", label: "계약" },
   { key: "calendar", label: "달력" },
   { key: "rates", label: "지원유형 기준표" },
+  { key: "holidays", label: "공휴일" },
   { key: "templates", label: "서류 서식" },
   { key: "employment", label: "인력 계약" },
   { key: "evaluation", label: "인력 평가" },
@@ -74,6 +75,7 @@ function MnhPage() {
       {tab === "contracts" && <ContractsTab />}
       {tab === "calendar" && <CalendarTab />}
       {tab === "rates" && <RatesTab />}
+      {tab === "holidays" && <HolidaysTab />}
       {tab === "templates" && <TemplatesTab />}
       {tab === "employment" && <EmploymentTab />}
       {tab === "evaluation" && <EvaluationTab />}
@@ -204,6 +206,7 @@ function CalendarTab() {
   const [month, setMonth] = useState(today.slice(0, 7));
   const q = useQuery({ queryKey: ["admin", "mnh", "calendar", month], queryFn: () => mnhApi.calendar(month) });
   const rows = q.data?.data.contracts ?? [];
+  const holidays = useMemo(() => new Map((q.data?.data.holidays ?? []).map((h) => [h.date, h.name])), [q.data]);
   const days = useMemo(() => monthDays(month), [month]);
   const [y, m] = month.split("-").map(Number);
 
@@ -221,6 +224,7 @@ function CalendarTab() {
         <Legend cls={CELL.in_progress} label="출근" />
         <Legend cls={CELL.completed} label="완료" />
         <Legend cls="bg-warn-bg text-warn" label="연기" text="연" />
+        <Legend cls="bg-danger-bg text-danger" label="공휴일(제공 안 함)" text="휴" />
         <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-danger" />특이사항</span>
       </div>
       <Card>
@@ -231,8 +235,9 @@ function CalendarTab() {
                 <th className="sticky left-0 z-10 bg-warm-50 text-left px-3 py-2 min-w-[150px] font-semibold text-warm-600">이용자 · 담당</th>
                 {days.map((d) => {
                   const dow = new Date(`${d}T00:00:00Z`).getUTCDay();
+                  const hol = holidays.get(d);
                   return (
-                    <th key={d} className={cn("w-8 min-w-[2rem] py-1 font-semibold", dow === 0 ? "text-danger" : dow === 6 ? "text-info" : "text-warm-600", d === today && "bg-brand-50")}>
+                    <th key={d} title={hol} className={cn("w-8 min-w-[2rem] py-1 font-semibold", dow === 0 || hol ? "text-danger" : dow === 6 ? "text-info" : "text-warm-600", d === today && "bg-brand-50")}>
                       <div>{Number(d.slice(8))}</div>
                       <div className="font-normal">{DOW_KO[dow]}</div>
                     </th>
@@ -244,7 +249,7 @@ function CalendarTab() {
               {rows.length === 0 && (
                 <tr><td colSpan={days.length + 1} className="text-center text-warm-500 py-10">{q.isLoading ? "불러오는 중…" : "이 달에 걸친 계약이 없습니다."}</td></tr>
               )}
-              {rows.map((r) => <CalendarRow key={r.id} r={r} days={days} today={today} />)}
+              {rows.map((r) => <CalendarRow key={r.id} r={r} days={days} today={today} holidays={holidays} />)}
             </tbody>
           </table>
         </CardContent>
@@ -257,7 +262,7 @@ function Legend({ cls, label, text }: { cls: string; label: string; text?: strin
   return <span className="inline-flex items-center gap-1"><span className={cn("w-5 h-4 rounded text-[10px] grid place-items-center font-bold", cls)}>{text ?? ""}</span>{label}</span>;
 }
 
-function CalendarRow({ r, days, today }: { r: MnhCalendarRow; days: string[]; today: string }) {
+function CalendarRow({ r, days, today, holidays }: { r: MnhCalendarRow; days: string[]; today: string; holidays: Map<string, string> }) {
   const cells = new Map(r.cells.map((c) => [c.date, c]));
   const postponed = new Set(r.postponed);
   const notes = new Map<string, string[]>();
@@ -275,12 +280,16 @@ function CalendarRow({ r, days, today }: { r: MnhCalendarRow; days: string[]; to
       {days.map((d) => {
         const c = cells.get(d);
         const n = notes.get(d);
-        const title = [c ? `${c.seq}일차 ${c.caregiver_name ?? ""}` : null, postponed.has(d) ? "연기된 날" : null, ...(n ?? [])].filter(Boolean).join("\n");
+        const hol = holidays.get(d);
+        // 계약 기간 안의 공휴일 중 제공일이 아닌 날만 「휴」 — 공휴일 근무로 지정한 날은 회차 칸으로 나온다
+        const inSpan = d >= r.start_date && (!r.end_date || d <= r.end_date);
+        const off = !c && !postponed.has(d) && hol && inSpan;
+        const title = [c ? `${c.seq}일차 ${c.caregiver_name ?? ""}` : null, hol ? `${hol}${c ? " (근무)" : ""}` : null, postponed.has(d) ? "연기된 날" : null, ...(n ?? [])].filter(Boolean).join("\n");
         return (
           <td key={d} className={cn("p-0.5 text-center", d === today && "bg-brand-50/50")} title={title || undefined}>
             <div className={cn("relative h-7 rounded grid place-items-center font-semibold",
-              c ? CELL[c.status] : postponed.has(d) ? "bg-warn-bg text-warn" : "")}>
-              {c ? c.seq : postponed.has(d) ? "연" : ""}
+              c ? CELL[c.status] : postponed.has(d) ? "bg-warn-bg text-warn" : off ? "bg-danger-bg text-danger" : "")}>
+              {c ? c.seq : postponed.has(d) ? "연" : off ? "휴" : ""}
               {n && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-danger" aria-label="특이사항" />}
             </div>
           </td>
@@ -288,6 +297,104 @@ function CalendarRow({ r, days, today }: { r: MnhCalendarRow; days: string[]; to
       })}
     </tr>
   );
+}
+
+/* ───────────── 공휴일 ───────────── */
+
+function HolidaysTab() {
+  const qc = useQueryClient();
+  const thisYear = Number(todayKst().slice(0, 4));
+  const [year, setYear] = useState(thisYear);
+  const q = useQuery({ queryKey: ["admin", "mnh", "holidays", year], queryFn: () => mnhApi.holidays(year) });
+  const rows = q.data?.data.rows ?? [];
+  const today = q.data?.data.today ?? todayKst();
+  const years = Array.from(new Set([thisYear + 1, thisYear, ...(q.data?.data.years ?? [])])).sort((a, b) => b - a);
+  const [date, setDate] = useState("");
+  const [name, setName] = useState("");
+
+  const done = (r: { message: string; result: HolidayResync }) => {
+    if (r.result.conflicts.length) toast.warning(`${r.message}\n${r.result.conflicts.map((c) => `${c.contract_no}: ${c.message}`).join("\n")}`, { duration: 10000 });
+    else toast.success(r.message);
+    qc.invalidateQueries({ queryKey: ["admin", "mnh"] });
+  };
+  const add = useMutation({
+    mutationFn: () => mnhApi.createHoliday({ date, name: name.trim() }),
+    onSuccess: (r) => { done(r); setDate(""); setName(""); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const del = useMutation({
+    mutationFn: (id: number) => mnhApi.deleteHoliday(id),
+    onSuccess: done,
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
+  return (
+    <>
+      <p className="text-sm text-warm-700 bg-info-bg rounded-lg px-4 py-3 mb-4">
+        바우처 제공일을 셀 때 여기 있는 날은 <b>자동으로 빼고 끝에 하루를 붙입니다</b>. 관공서 공휴일(대체공휴일·선거일 포함)은 2027년까지 넣어 두었어요.
+        임시공휴일이나 다음 해 공휴일은 직접 추가하세요. 추가·삭제하면 그날에 걸친 진행 중 계약의 일정이 바로 다시 맞춰집니다.
+        특정 계약만 공휴일에 제공하려면 계약 상세에서 「근무」로 지정하세요.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <label className="text-sm font-semibold text-warm-700" htmlFor="hol-year">연도</label>
+        <select id="hol-year" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-9 rounded-lg border border-warm-200 px-2 text-sm">
+          {years.map((y) => <option key={y} value={y}>{y}년</option>)}
+        </select>
+      </div>
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <form className="flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); add.mutate(); }}>
+            <Field label="날짜">
+              <Input required type="date" min={shiftDay(today, 1)} value={date} onChange={(e) => setDate(e.target.value)} className="w-44" />
+            </Field>
+            <Field label="이름">
+              <Input required maxLength={50} value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 임시공휴일" className="w-56" />
+            </Field>
+            <Button type="submit" disabled={add.isPending || !date || !name.trim()}><Plus />추가</Button>
+            <span className="text-xs text-warm-500">내일 이후 날짜만 넣거나 지울 수 있어요(이미 제공한 기록과 어긋나지 않게).</span>
+          </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>날짜</TableHead><TableHead>이름</TableHead><TableHead>출처</TableHead><TableHead className="w-16" /></TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0 && (
+                <TableRow><TableCell colSpan={4} className="text-center text-warm-500 py-10">{q.isLoading ? "불러오는 중…" : `${year}년 공휴일이 비어 있어요. 고시를 보고 추가하세요.`}</TableCell></TableRow>
+              )}
+              {rows.map((h) => {
+                const dow = new Date(`${h.date}T00:00:00Z`).getUTCDay();
+                return (
+                  <TableRow key={h.id} className={cn(h.date < today && "opacity-60")}>
+                    <TableCell className="whitespace-nowrap font-semibold">{h.date} <span className={cn("font-normal", dow === 0 ? "text-danger" : dow === 6 ? "text-info" : "text-warm-500")}>({DOW_KO[dow]})</span></TableCell>
+                    <TableCell>{h.name}</TableCell>
+                    <TableCell className="text-xs text-warm-500">{h.source === "admin" ? "직접 추가" : "기본"}</TableCell>
+                    <TableCell>
+                      {h.date > today && (
+                        <Button size="sm" variant="ghost" aria-label={`${h.date} ${h.name} 지우기`} disabled={del.isPending}
+                          onClick={() => { if (window.confirm(`${h.date} ${h.name}을 공휴일에서 지울까요? 걸친 계약은 그날도 제공일이 돼요.`)) del.mutate(h.id!); }}>
+                          <Trash2 />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function shiftDay(date: string, delta: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
 }
 
 /* ───────────── 지원유형 기준표 ───────────── */

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, CalendarX2, RotateCcw } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, CalendarX2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,9 +127,10 @@ function ScheduleCard({ c, closed, onDone }: CardProps) {
   const today = todayKst();
   const postpone = useForceable((v: { date: string; reason: string }) => mnhApi.postpone(c.id, v), onDone);
   const restore = useForceable((v: { date: string }) => mnhApi.restore(c.id, v), onDone);
+  const holidayWork = useForceable((v: { date: string; work: boolean }) => mnhApi.holidayWork(c.id, v), onDone);
 
   return (
-    <Section title={`일정표 · ${c.days}일`} aside={<span className="text-xs text-warm-500">연기하면 그날이 빠지고 끝에 하루가 붙어요</span>}>
+    <Section title={`일정표 · ${c.days}일`} aside={<span className="text-xs text-warm-500">연기·공휴일은 그날이 빠지고 끝에 하루가 붙어요</span>}>
       <ol className="divide-y divide-warm-100">
         {c.schedule.map((d) => {
           const st = DAY_STYLE[d.status] ?? DAY_STYLE.planned;
@@ -139,12 +140,19 @@ function ScheduleCard({ c, closed, onDone }: CardProps) {
               <span className="w-12 text-xs text-warm-500">{d.seq}일차</span>
               <span className={cn("w-24 font-semibold", d.date === today && "text-brand-700")}>{dayLabel(d.date)}</span>
               <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold", st.cls)}>{st.label}</span>
+              {d.holiday && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-danger-bg text-danger">{d.holiday} 근무</span>}
               <span className="text-warm-700">{d.caregiver_name ?? ""}</span>
               {(d.actual_start || d.actual_end) && (
                 <span className="text-xs text-warm-500">{hm(d.actual_start) ?? "?"} ~ {hm(d.actual_end) ?? ""}</span>
               )}
               {d.journal && <span className="basis-full text-xs text-warm-500 pl-[3.75rem] line-clamp-2">근무일지: {d.journal}</span>}
-              {canPostpone && (
+              {canPostpone && d.holiday && (
+                <Button size="sm" variant="ghost" className="ml-auto" disabled={holidayWork.isPending}
+                  onClick={() => { if (window.confirm(`${dayLabel(d.date)} ${d.holiday}을 다시 쉬는 날로 둘까요? 끝에 하루가 붙어요.`)) holidayWork.mutate({ date: d.date, work: false }); }}>
+                  <RotateCcw />휴무로
+                </Button>
+              )}
+              {canPostpone && !d.holiday && (
                 <Button size="sm" variant="ghost" className="ml-auto" disabled={postpone.isPending}
                   onClick={() => {
                     const reason = window.prompt(`${dayLabel(d.date)}을 연기할까요? 사유(공휴일·행사 등)를 적어 주세요.`);
@@ -157,6 +165,24 @@ function ScheduleCard({ c, closed, onDone }: CardProps) {
           );
         })}
       </ol>
+      {c.holidays.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-warm-100">
+          <p className={labelCls}>공휴일이라 빠진 날</p>
+          <div className="flex flex-wrap gap-2">
+            {c.holidays.map((h) => (
+              <span key={h.date} className="inline-flex items-center gap-1 rounded-full bg-danger-bg text-warm-800 text-xs font-semibold pl-3 pr-1 py-0.5">
+                {dayLabel(h.date)} {h.name}
+                {!closed && h.date >= today ? (
+                  <button className="inline-flex items-center gap-0.5 px-1.5 py-1 rounded-full hover:bg-white/70 text-danger" aria-label={`${dayLabel(h.date)} 공휴일 근무로 지정`} disabled={holidayWork.isPending}
+                    onClick={() => { if (window.confirm(`${dayLabel(h.date)} ${h.name}에도 제공할까요? 끝에서 하루가 줄어요.`)) holidayWork.mutate({ date: h.date, work: true }); }}>
+                    <BriefcaseBusiness className="w-3.5 h-3.5" />근무
+                  </button>
+                ) : <span className="w-1" />}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       {c.postponed.length > 0 && (
         <div className="mt-3 pt-3 border-t border-warm-100">
           <p className={labelCls}>연기된 날</p>
@@ -195,6 +221,9 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "note": return String(p.text ?? "");
     case "postponed": return `${e.date ? dayLabel(e.date) : ""} 연기 — ${String(p.reason ?? "")}${p.new_end ? ` (종료 ${String(p.new_end)})` : ""}`;
     case "restored": return `${e.date ? dayLabel(e.date) : ""} 연기 되돌림`;
+    case "holiday_work": return `${e.date ? dayLabel(e.date) : ""} ${String(p.name ?? "")} 근무 지정${p.new_end ? ` (종료 ${String(p.new_end)})` : ""}`;
+    case "holiday_off": return `${e.date ? dayLabel(e.date) : ""} ${String(p.name ?? "")} 휴무로 되돌림${p.new_end ? ` (종료 ${String(p.new_end)})` : ""}`;
+    case "holiday_changed": return `${e.date ? dayLabel(e.date) : ""} 공휴일 ${p.name ? `추가(${String(p.name)})` : "삭제"}${p.new_end ? ` (종료 ${String(p.new_end)})` : ""}`;
     case "swapped": return `${e.date ? dayLabel(e.date) : ""}부터 교체 · ${String(p.sessions ?? "")}회 — ${String(p.reason ?? "")}`;
     case "prepaid": return `${formatKRW(Number(p.amount ?? 0))} · ${String(p.method ?? "")}${p.receipt_no ? ` · 영수증 ${String(p.receipt_no)}` : ""}`;
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;

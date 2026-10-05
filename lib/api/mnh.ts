@@ -78,6 +78,15 @@ export interface MnhScheduleDay {
   actual_start: string | null;
   actual_end: string | null;
   journal: string | null;
+  /** 공휴일 근무로 지정한 날이면 공휴일 이름 */
+  holiday: string | null;
+}
+
+export interface MnhHoliday {
+  id?: number;
+  date: string;
+  name: string;
+  source?: "seed" | "admin";
 }
 
 export interface MnhEvent {
@@ -91,6 +100,9 @@ export interface MnhEvent {
 export interface MnhContractDetail extends MnhContractSummary {
   schedule: MnhScheduleDay[];
   postponed: string[];
+  /** 제공 요일인데 공휴일이라 빠진 날 */
+  holidays: MnhHoliday[];
+  holiday_work_dates: string[];
   completed_days: number;
   delivery_date: string | null;
   events: MnhEvent[];
@@ -140,7 +152,7 @@ export const mnhApi = {
   contracts: (params: { status?: string; q?: string }) =>
     api.get<Ok<MnhContractSummary[]> & { counts: Record<string, number> }>(`/v1/admin/mnh/contracts`, { params }).then((r) => r.data),
   calendar: (month: string) =>
-    api.get<Ok<{ month: string; contracts: MnhCalendarRow[] }>>(`/v1/admin/mnh/calendar`, { params: { month } }).then((r) => r.data),
+    api.get<Ok<{ month: string; holidays: MnhHoliday[]; contracts: MnhCalendarRow[] }>>(`/v1/admin/mnh/calendar`, { params: { month } }).then((r) => r.data),
   caregivers: (all = false) =>
     api.get<Ok<MnhCaregiverOption[]>>(`/v1/admin/mnh/caregivers`, { params: all ? { all: 1 } : {} }).then((r) => r.data),
   contract: (id: number) => api.get<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}`).then((r) => r.data),
@@ -156,11 +168,25 @@ export const mnhApi = {
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/postpone`, body).then((r) => r.data),
   restore: (id: number, body: { date: string; force?: boolean }) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/restore`, body).then((r) => r.data),
+  holidayWork: (id: number, body: { date: string; work: boolean; force?: boolean }) =>
+    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/holiday-work`, body).then((r) => r.data),
+  holidays: (year: number) =>
+    api.get<Ok<{ year: number; years: number[]; today: string; rows: MnhHoliday[] }>>(`/v1/admin/mnh/holidays`, { params: { year } }).then((r) => r.data),
+  createHoliday: (body: { date: string; name: string }) =>
+    api.post<{ message: string; result: HolidayResync }>(`/v1/admin/mnh/holidays`, body).then((r) => r.data),
+  deleteHoliday: (id: number) =>
+    api.delete<{ message: string; result: HolidayResync }>(`/v1/admin/mnh/holidays/${id}`).then((r) => r.data),
   note: (id: number, body: { date?: string; text: string }) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/notes`, body).then((r) => r.data),
   cancel: (id: number, reason: string) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, { reason }).then((r) => r.data),
 };
+
+/** 공휴일 표 변경 뒤 다시 맞춘 계약 / 담당 일정이 겹쳐 그대로 둔 계약 */
+export interface HolidayResync {
+  synced: { id: number; contract_no: string; end_date: string }[];
+  conflicts: { id: number; contract_no: string; message: string }[];
+}
 
 /** 409 SCHEDULE_CONFLICT 이면 서버 문구 */
 export function conflictMessage(e: unknown): string | null {
@@ -184,6 +210,9 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   swapped: "담당 교체",
   postponed: "연기",
   restored: "연기 되돌림",
+  holiday_work: "공휴일 근무",
+  holiday_off: "공휴일 휴무",
+  holiday_changed: "공휴일 변경",
   start_changed: "일정 변경",
   note: "특이사항",
   cancelled: "계약 취소",
