@@ -50,6 +50,13 @@ export interface CgDocuments {
   missing_required: string[];
   enforce_on_approve: boolean;
   payout: { bank_name: string | null; bank_account_masked: string | null; bank_holder: string | null; updated_at: string | null };
+  /** 비상연락처·사진·희망사항(2026-10-05) — 비상연락처는 원문(운영팀만) */
+  extras?: {
+    emergency_contact: { name: string; relation: string; phone: string } | null;
+    work_preferences: { days: number[]; times: string[]; regions: string | null; note: string | null } | null;
+    photo_url: string | null;
+    missing: ("emergency_contact" | "photo")[];
+  };
 }
 
 /* ===== #21 계약·일정 ===== */

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Eye, FileCheck2, Landmark, XCircle, CheckCircle2 } from "lucide-react";
+import { Eye, FileCheck2, Landmark, XCircle, CheckCircle2, Phone, UserRound, HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { operationsApi, type CgDocStatus } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -138,6 +138,43 @@ export function CaregiverDocumentsPanel({ caregiverId }: { caregiverId: number }
         ) : (
           <span className="text-danger font-semibold">미등록</span>
         )}
+      </div>
+      {d.extras && <ExtrasBlock x={d.extras} />}
+    </div>
+  );
+}
+
+const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const TIMES: Record<string, string> = { day: "주간", evening: "저녁", night: "야간", live_in: "입주·숙식" };
+
+/** 프로필 사진·비상연락처·희망사항 — 승인 전 확인용 */
+function ExtrasBlock({ x }: { x: NonNullable<import("@/lib/api/operations").CgDocuments["extras"]> }) {
+  const p = x.work_preferences;
+  const pref = p ? [
+    p.days.length ? p.days.map((n) => DAYS[n - 1]).join("·") : null,
+    p.times.length ? p.times.map((t) => TIMES[t] ?? t).join("·") : null,
+    p.regions,
+  ].filter(Boolean).join(" / ") : "";
+  return (
+    <div className="mt-3 flex gap-3 rounded-lg border border-warm-100 p-3">
+      <div className="w-16 h-16 shrink-0 rounded-full bg-warm-100 overflow-hidden grid place-items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {x.photo_url ? <img src={x.photo_url} alt="프로필 사진" className="w-full h-full object-cover" /> : <UserRound className="w-7 h-7 text-warm-400" />}
+      </div>
+      <div className="min-w-0 flex-1 space-y-1 text-[12.5px] text-warm-700">
+        {x.missing.length > 0 && (
+          <p className="text-danger font-semibold">미입력: {x.missing.map((m) => (m === "photo" ? "프로필 사진" : "비상연락처")).join(", ")}</p>
+        )}
+        <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-warm-500" />
+          비상연락처: {x.emergency_contact
+            ? <span><b>{x.emergency_contact.name}</b>({x.emergency_contact.relation}) <span className="font-en select-all">{x.emergency_contact.phone}</span></span>
+            : <span className="text-warm-500">없음</span>}
+        </p>
+        <p className="flex items-start gap-1.5"><HeartHandshake className="w-3.5 h-3.5 mt-0.5 text-warm-500 shrink-0" />
+          <span>희망 근무: {pref || <span className="text-warm-500">없음</span>}
+            {p?.note && <span className="block text-warm-600">특이사항: {p.note}</span>}
+          </span>
+        </p>
       </div>
     </div>
   );
