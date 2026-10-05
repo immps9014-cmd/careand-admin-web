@@ -165,16 +165,17 @@ function ExtrasBlock({ x }: { x: NonNullable<import("@/lib/api/operations").CgDo
         {x.missing.length > 0 && (
           <p className="text-danger font-semibold">미입력: {x.missing.map((m) => (m === "photo" ? "프로필 사진" : "비상연락처")).join(", ")}</p>
         )}
-        <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-warm-500" />
-          비상연락처: {x.emergency_contact
-            ? <span><b>{x.emergency_contact.name}</b>({x.emergency_contact.relation}) <span className="font-en select-all">{x.emergency_contact.phone.replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</span></span>
-            : <span className="text-warm-500">없음</span>}
-        </p>
-        <p className="flex items-start gap-1.5"><HeartHandshake className="w-3.5 h-3.5 mt-0.5 text-warm-500 shrink-0" />
-          <span>희망 근무: {pref || <span className="text-warm-500">없음</span>}
-            {p?.note && <span className="block text-warm-600">특이사항: {p.note}</span>}
-          </span>
-        </p>
+        <div>
+          <p className="flex items-center gap-1 text-[11.5px] font-semibold text-warm-500"><Phone className="w-3.5 h-3.5" />비상연락처</p>
+          {x.emergency_contact
+            ? <p><b>{x.emergency_contact.name}</b> ({x.emergency_contact.relation}) <span className="font-en whitespace-nowrap select-all">{x.emergency_contact.phone.replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</span></p>
+            : <p className="text-warm-500">없음</p>}
+        </div>
+        <div>
+          <p className="flex items-center gap-1 text-[11.5px] font-semibold text-warm-500"><HeartHandshake className="w-3.5 h-3.5" />희망 근무</p>
+          <p>{pref || <span className="text-warm-500">없음</span>}</p>
+          {p?.note && <p className="text-warm-600">특이사항: {p.note}</p>}
+        </div>
       </div>
     </div>
   );
