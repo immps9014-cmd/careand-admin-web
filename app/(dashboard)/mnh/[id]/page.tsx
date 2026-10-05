@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { ContractDocsCard } from "@/components/domain/mnh-docs";
+import { ContractEvalCard } from "@/components/domain/mnh-eval";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, conflictMessage, dayLabel, todayKst, MNH_EVENT_LABEL, MNH_STATUS_STYLE, DOW_KO,
@@ -53,6 +54,7 @@ export default function MnhContractPage() {
         <div className="space-y-5 min-w-0">
           <ScheduleCard c={c} closed={closed} onDone={apply} />
           <ContractDocsCard contractId={c.id} closed={c.status === "cancelled"} />
+          <ContractEvalCard contractId={c.id} status={c.status} />
           <NotesCard c={c} onDone={apply} />
         </div>
         <div className="space-y-5 min-w-0">
@@ -198,6 +200,7 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
     case "cancelled": return String(p.reason ?? "");
+    case "evaluated": return `${p.kind === "org_to_caregiver" ? "기관 → 관리사" : "관리사 → 이용자"} · ${p.timing === "final" ? "종료" : "수시"}`;
     case "doc_issued": case "doc_signed": return DOC_TYPE_LABEL[String(p.doc_type ?? "")] ?? String(p.doc_type ?? "");
     default: return e.date ? dayLabel(e.date) : "";
   }

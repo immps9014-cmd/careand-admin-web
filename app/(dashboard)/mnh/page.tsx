@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { EmploymentTab, TemplatesTab } from "@/components/domain/mnh-docs";
+import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, MNH_STATUS_STYLE, DOW_KO, todayKst,
@@ -28,6 +29,7 @@ const TABS = [
   { key: "rates", label: "지원유형 기준표" },
   { key: "templates", label: "서류 서식" },
   { key: "employment", label: "인력 계약" },
+  { key: "evaluation", label: "인력 평가" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -74,6 +76,7 @@ function MnhPage() {
       {tab === "rates" && <RatesTab />}
       {tab === "templates" && <TemplatesTab />}
       {tab === "employment" && <EmploymentTab />}
+      {tab === "evaluation" && <EvaluationTab />}
     </div>
   );
 }

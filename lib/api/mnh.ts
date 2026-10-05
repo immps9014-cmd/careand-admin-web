@@ -190,6 +190,7 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   completed: "서비스 종료",
   doc_issued: "서류 발행",
   doc_signed: "서류 서명",
+  evaluated: "평가",
 };
 
 export const DOW_KO = ["일", "월", "화", "수", "목", "금", "토"];
@@ -299,4 +300,54 @@ export const DOC_STATUS_STYLE: Record<string, { cls: string; label: string }> = 
   issued: { cls: "bg-warn-bg text-warn", label: "서명 대기" },
   signed: { cls: "bg-brand-50 text-brand-700", label: "서명 완료" },
   void: { cls: "bg-warm-100 text-warm-500", label: "취소" },
+};
+
+/* ───── 양방향 평가·종합평가(4단계) ───── */
+
+export interface HexAxisData {
+  key: string;
+  label: string;
+  score: number | null;
+  n: number;
+  enough: boolean;
+  sources: { source: string; label: string; value: number | null; n: number; rate?: number }[];
+}
+export interface HexData {
+  axes: HexAxisData[];
+  overall: number | null;
+  counts: { reviews: number; org_evaluations: number; completed_visits: number };
+}
+export interface MnhEvaluation {
+  id: number;
+  kind: "caregiver_to_client" | "org_to_caregiver";
+  contract_id: number | null;
+  caregiver_id: number;
+  timing: "interim" | "final";
+  timing_label: string;
+  items: { key: string; label: string; score: number | null }[];
+  average: number | null;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+  evaluator_name?: string | null;
+  caregiver_name?: string | null;
+  contract_no?: string | null;
+}
+
+export const mnhEvalApi = {
+  hexagons: (months?: number) =>
+    api.get<Ok<{ caregivers: ({ caregiver_id: number; name: string; status: string } & HexData)[]; team_average: { key: string; label: string; score: number | null }[]; min_samples: number }>>(
+      `/v1/admin/mnh/hexagons`, { params: months ? { months } : {} }).then((r) => r.data),
+  caregiver: (id: number, months?: number) =>
+    api.get<Ok<{ caregiver_id: number; name: string } & HexData & {
+      org_evaluations: MnhEvaluation[];
+      reviews: { id: number; rating: number; comment: string | null; contract_no: string | null; items: { key: string; label: string; score: number | null }[]; created_at: string }[];
+      contracts: { id: number; contract_no: string; status: string; client_name: string | null }[];
+      org_items: { key: string; label: string }[];
+    }>>(`/v1/admin/mnh/caregivers/${id}/evaluation`, { params: months ? { months } : {} }).then((r) => r.data),
+  submitOrg: (body: { caregiver_id: number; contract_id?: number | null; scores: Record<string, number>; comment?: string; timing: "interim" | "final" }) =>
+    api.post<Ok<MnhEvaluation>>(`/v1/admin/mnh/evaluations`, body).then((r) => r.data),
+  forContract: (id: number) =>
+    api.get<Ok<{ evaluations: MnhEvaluation[]; caregivers: { caregiver_id: number; name: string | null }[]; org_items: { key: string; label: string }[] }>>(
+      `/v1/admin/mnh/contracts/${id}/evaluations`).then((r) => r.data),
 };
