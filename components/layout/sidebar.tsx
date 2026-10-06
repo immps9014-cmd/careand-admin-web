@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   ArrowRightLeft,
+  BadgeCheck,
   BarChart3,
   Brain,
   CalendarClock,
@@ -47,6 +48,7 @@ const MAIN_NAV: NavItem[] = [
 
 const OPS_NAV: NavItem[] = [
   { href: "/caregiver-approval", area: "caregivers", label: "돌봄전문가 자격검증", icon: ShieldCheck },
+  { href: "/caregiver-cert", area: "caregivers", label: "케어앤에듀 인증", icon: BadgeCheck },
   { href: "/contracts", area: "contracts", label: "계약·일정", icon: CalendarClock },
   { href: "/mnh", area: "mnh", label: "산모신생아 바우처", icon: Baby },
   { href: "/care-sessions", area: "care-sessions", label: "케어 진행 현황", icon: Activity },

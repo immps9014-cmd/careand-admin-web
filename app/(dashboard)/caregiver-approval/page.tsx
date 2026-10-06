@@ -202,6 +202,7 @@ export default function CaregiverApprovalPage() {
                       {STATUS_BADGE[c.status]?.label ?? c.status}
                     </Badge>
                     <span className="font-en">{formatDate(c.created_at)}</span>
+                    {c.careand_certified && <span className="font-semibold text-amber-700">케어앤에듀 인증</span>}
                     {c.docs_summary && (
                       <span className={cn("font-semibold", c.docs_summary.pending > 0 ? "text-warn" : c.docs_summary.verified >= c.docs_summary.required ? "text-brand-700" : "text-warm-500")}>
                         서류 {c.docs_summary.verified}/{c.docs_summary.required}

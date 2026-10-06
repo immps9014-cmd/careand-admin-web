@@ -13,6 +13,7 @@ export interface AdminCaregiver {
   license_no: string | null;
   license_type: string | null;
   license_verified: boolean;
+  careand_certified?: boolean;   // 케어앤에듀 인증(2026-10-07)
   career_track: string;
   rating_avg: number;
   completed_sessions: number;
