@@ -70,6 +70,44 @@ export interface MnhContractSummary {
   cancel_reason: string | null;
   created_at: string;
   completed_days?: number;
+  /** 추가요금·대여용품(케어앤 자체 가격, 바우처 밖) — 신청 때 금액 그대로 */
+  addons?: MnhContractAddon[];
+  addon_total?: number | null;
+}
+
+export interface MnhContractAddon {
+  id: number;
+  kind: string;
+  name: string;
+  unit_label: string;
+  price: number;
+  qty: number;
+  amount: number;
+}
+
+/** 소득 판정 기준표(기준중위소득 150%·건보료 본인부담 상한) */
+export interface MnhIncomeCriterion {
+  id: number;
+  year: number;
+  household_size: number;
+  income_limit: number;
+  premium_employee: number;
+  premium_regional: number;
+  premium_mixed: number;
+}
+
+/** 추가요금·대여용품 항목 */
+export interface MnhAddonItem {
+  id: number;
+  kind: string;
+  name: string;
+  unit_label: string;
+  price: number;
+  max_qty: number;
+  note: string | null;
+  sort: number;
+  is_active: boolean;
+  contracts: number;
 }
 
 export interface MnhScheduleDay {
@@ -153,6 +191,16 @@ export const mnhApi = {
   updateSupportType: (id: number, body: Partial<MnhSupportType>) => api.patch(`/v1/admin/mnh/support-types/${id}`, body).then((r) => r.data),
   deleteSupportType: (id: number) => api.delete<{ message: string }>(`/v1/admin/mnh/support-types/${id}`).then((r) => r.data),
   copySupportTypes: (from: number, to: number) => api.post<{ message: string }>(`/v1/admin/mnh/support-types/copy`, { from, to }).then((r) => r.data),
+
+  incomeCriteria: (year: number) =>
+    api.get<Ok<{ year: number; years: number[]; rows: MnhIncomeCriterion[] }>>(`/v1/admin/mnh/income-criteria`, { params: { year } }).then((r) => r.data),
+  saveIncomeCriterion: (body: Omit<MnhIncomeCriterion, "id">) => api.put(`/v1/admin/mnh/income-criteria`, body).then((r) => r.data),
+  deleteIncomeCriterion: (id: number) => api.delete(`/v1/admin/mnh/income-criteria/${id}`).then((r) => r.data),
+
+  addons: () => api.get<Ok<{ rows: MnhAddonItem[]; kinds: Record<string, string> }>>(`/v1/admin/mnh/addons`).then((r) => r.data),
+  createAddon: (body: Partial<MnhAddonItem>) => api.post(`/v1/admin/mnh/addons`, body).then((r) => r.data),
+  updateAddon: (id: number, body: Partial<MnhAddonItem>) => api.patch(`/v1/admin/mnh/addons/${id}`, body).then((r) => r.data),
+  deleteAddon: (id: number) => api.delete(`/v1/admin/mnh/addons/${id}`).then((r) => r.data),
 
   contracts: (params: { status?: string; q?: string }) =>
     api.get<Ok<MnhContractSummary[]> & { counts: Record<string, number> }>(`/v1/admin/mnh/contracts`, { params }).then((r) => r.data),

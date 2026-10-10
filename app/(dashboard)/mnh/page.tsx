@@ -18,17 +18,20 @@ import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { cn, formatKRW } from "@/lib/utils";
 import {
   mnhApi, MNH_STATUS_STYLE, DOW_KO, todayKst,
-  type HolidayResync, type MnhCalendarRow, type MnhContractSummary, type MnhLabels, type MnhSupportType,
+  type HolidayResync, type MnhAddonItem, type MnhCalendarRow, type MnhContractSummary, type MnhIncomeCriterion, type MnhLabels, type MnhSupportType,
 } from "@/lib/api/mnh";
 
 /**
  * 산모신생아 바우처(CAREN-MNH-01 2단계, 2026-10-05). 제공기관 = 케어앤 운영사.
  * 탭: 계약(신청~종료) · 달력(이용자별 제공일·연기·담당) · 지원유형 기준표(복지부 연도별 고시값 입력) · 공휴일(제공일 자동 제외).
+ * 2026-10-10: 소득 판정 기준표(기준중위소득 150%·건보료 상한) · 추가요금·대여용품(케어앤 자체 가격) 탭 추가.
  */
 const TABS = [
   { key: "contracts", label: "계약" },
   { key: "calendar", label: "달력" },
   { key: "rates", label: "지원유형 기준표" },
+  { key: "income", label: "소득 판정 기준표" },
+  { key: "addons", label: "추가요금·대여용품" },
   { key: "holidays", label: "공휴일" },
   { key: "templates", label: "서류 서식" },
   { key: "employment", label: "인력 계약" },
@@ -79,6 +82,8 @@ function MnhPage() {
       {tab === "contracts" && <ContractsTab />}
       {tab === "calendar" && <CalendarTab />}
       {tab === "rates" && <RatesTab />}
+      {tab === "income" && <IncomeTab />}
+      {tab === "addons" && <AddonsTab />}
       {tab === "holidays" && <HolidaysTab />}
       {tab === "templates" && <TemplatesTab />}
       {tab === "employment" && <EmploymentTab />}
@@ -542,6 +547,266 @@ function RatesTab() {
                     <div className="flex gap-1">
                       <Button size="sm" variant="ghost" aria-label="고치기" onClick={() => setDraft({ id: r.id, fetus_type: r.fetus_type, birth_order: r.birth_order, income_tier: r.income_tier, period: r.period, days: String(r.days), total_price: String(r.total_price), gov_support: String(r.gov_support), note: r.note ?? "" })}><Pencil /></Button>
                       <Button size="sm" variant="ghost" aria-label="삭제" className="text-danger hover:bg-danger-bg" onClick={() => { if (window.confirm(`${r.income_tier} ${labels?.periods[r.period] ?? ""} 행을 지울까요?`)) del.mutate(r.id); }}><Trash2 /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+/* ───────────── 소득 판정 기준표 ───────────── */
+
+type IncomeDraft = { id?: number; household_size: string; income_limit: string; premium_employee: string; premium_regional: string; premium_mixed: string };
+const EMPTY_INCOME: IncomeDraft = { household_size: "", income_limit: "", premium_employee: "", premium_regional: "", premium_mixed: "" };
+const INCOME_MONEY: { key: keyof Omit<IncomeDraft, "id" | "household_size">; label: string }[] = [
+  { key: "income_limit", label: "월 소득기준(원)" },
+  { key: "premium_employee", label: "건보료 상한 · 직장(원)" },
+  { key: "premium_regional", label: "건보료 상한 · 지역(원)" },
+  { key: "premium_mixed", label: "건보료 상한 · 혼합(원)" },
+];
+
+function IncomeTab() {
+  const qc = useQueryClient();
+  const thisYear = Number(todayKst().slice(0, 4));
+  const [year, setYear] = useState(thisYear);
+  const q = useQuery({ queryKey: ["admin", "mnh", "income", year], queryFn: () => mnhApi.incomeCriteria(year) });
+  const rows = q.data?.data.rows ?? [];
+  const years = Array.from(new Set([thisYear + 1, thisYear, ...(q.data?.data.years ?? [])])).sort((a, b) => b - a);
+  const [draft, setDraft] = useState<IncomeDraft | null>(null);
+  useEffect(() => setDraft(null), [year]);
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "mnh", "income"] });
+  const save = useMutation({
+    mutationFn: (d: IncomeDraft) => mnhApi.saveIncomeCriterion({
+      year, household_size: Number(d.household_size), income_limit: Number(d.income_limit),
+      premium_employee: Number(d.premium_employee), premium_regional: Number(d.premium_regional), premium_mixed: Number(d.premium_mixed),
+    }),
+    onSuccess: () => { toast.success("저장했어요."); setDraft(null); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const del = useMutation({
+    mutationFn: (id: number) => mnhApi.deleteIncomeCriterion(id),
+    onSuccess: () => { toast.success("지웠어요."); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  // 같은 연도·가구원수가 이미 있으면 서버가 그 행을 고친다(upsert)
+  const dup = draft && !draft.id && rows.some((r) => String(r.household_size) === draft.household_size);
+  const ready = draft && draft.household_size !== "" && INCOME_MONEY.every((m) => draft[m.key] !== "");
+
+  return (
+    <>
+      <p className="text-sm text-warm-700 bg-info-bg rounded-lg px-4 py-3 mb-4">
+        기준중위소득 150% 판정용 · 장기요양보험료 제외 금액 · 매년 복지부 사업안내 고시값으로 갱신해 주세요.
+        가구원수는 <b>태아를 포함</b>해서 세요.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <label className="text-sm font-semibold text-warm-700" htmlFor="inc-year">연도</label>
+        <select id="inc-year" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-9 rounded-lg border border-warm-200 px-2 text-sm">
+          {years.map((y) => <option key={y} value={y}>{y}년</option>)}
+        </select>
+        <Button size="sm" onClick={() => setDraft({ ...EMPTY_INCOME, household_size: String(rows.length ? Math.max(...rows.map((r) => r.household_size)) + 1 : 2) })}><Plus />행 추가</Button>
+      </div>
+
+      {draft && (
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <form className="grid grid-cols-2 md:grid-cols-5 gap-3" onSubmit={(e) => { e.preventDefault(); save.mutate(draft); }}>
+              <Field label="가구원수(태아 포함)">
+                <Input required type="number" min={1} max={20} disabled={!!draft.id} value={draft.household_size} onChange={(e) => setDraft({ ...draft, household_size: e.target.value })} />
+              </Field>
+              {INCOME_MONEY.map((m) => (
+                <Field key={m.key} label={m.label}>
+                  <Input required type="number" min={0} value={draft[m.key]} onChange={(e) => setDraft({ ...draft, [m.key]: e.target.value })} />
+                  {draft[m.key] !== "" && <span className="block text-[11px] text-warm-500 mt-0.5">{formatKRW(draft[m.key])}</span>}
+                </Field>
+              ))}
+              <div className="col-span-2 md:col-span-5 flex flex-wrap items-center gap-2">
+                <Button type="submit" disabled={save.isPending || !ready}>{draft.id || dup ? "고치기" : "추가"}</Button>
+                <Button type="button" variant="outline" onClick={() => setDraft(null)}>닫기</Button>
+                {dup && <span className="text-xs text-warn">{year}년 {draft.household_size}인 가구 행이 이미 있어요. 저장하면 그 행을 고쳐요.</span>}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead rowSpan={2} className="whitespace-nowrap">가구원수(태아 포함)</TableHead>
+                <TableHead rowSpan={2} className="text-right whitespace-nowrap">월 소득기준</TableHead>
+                <TableHead colSpan={3} className="text-center whitespace-nowrap">건보료 본인부담 상한</TableHead>
+                <TableHead rowSpan={2} className="w-24" />
+              </TableRow>
+              <TableRow>
+                <TableHead className="text-right">직장</TableHead><TableHead className="text-right">지역</TableHead><TableHead className="text-right">혼합</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="text-center text-warm-500 py-10">{q.isLoading ? "불러오는 중…" : `${year}년 소득 판정 기준표가 비어 있어요. 사업안내를 보고 행을 추가하세요.`}</TableCell></TableRow>
+              )}
+              {rows.map((r: MnhIncomeCriterion) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-semibold">{r.household_size}인</TableCell>
+                  <TableCell className="text-right font-bold">{formatKRW(r.income_limit)}</TableCell>
+                  <TableCell className="text-right">{formatKRW(r.premium_employee)}</TableCell>
+                  <TableCell className="text-right">{formatKRW(r.premium_regional)}</TableCell>
+                  <TableCell className="text-right">{formatKRW(r.premium_mixed)}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" aria-label={`${r.household_size}인 가구 고치기`} onClick={() => setDraft({ id: r.id, household_size: String(r.household_size), income_limit: String(r.income_limit), premium_employee: String(r.premium_employee), premium_regional: String(r.premium_regional), premium_mixed: String(r.premium_mixed) })}><Pencil /></Button>
+                      <Button size="sm" variant="ghost" aria-label={`${r.household_size}인 가구 삭제`} className="text-danger hover:bg-danger-bg" disabled={del.isPending} onClick={() => { if (window.confirm(`${year}년 ${r.household_size}인 가구 행을 지울까요?`)) del.mutate(r.id); }}><Trash2 /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+/* ───────────── 추가요금·대여용품 ───────────── */
+
+type AddonDraft = { id?: number; kind: string; name: string; unit_label: string; price: string; max_qty: string; note: string; sort: string };
+const EMPTY_ADDON: AddonDraft = { kind: "extra", name: "", unit_label: "", price: "", max_qty: "1", note: "", sort: "0" };
+
+function AddonsTab() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["admin", "mnh", "addons"], queryFn: () => mnhApi.addons() });
+  const rows = q.data?.data.rows ?? [];
+  const kinds = q.data?.data.kinds ?? { extra: "추가 서비스", rental: "대여용품" };
+  const [draft, setDraft] = useState<AddonDraft | null>(null);
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "mnh", "addons"] });
+  const save = useMutation({
+    mutationFn: (d: AddonDraft) => {
+      const body = { kind: d.kind, name: d.name.trim(), unit_label: d.unit_label.trim(), price: Number(d.price),
+        max_qty: Number(d.max_qty), note: d.note.trim() || null, sort: Number(d.sort || 0) } as Partial<MnhAddonItem>;
+      return d.id ? mnhApi.updateAddon(d.id, body) : mnhApi.createAddon({ ...body, is_active: true });
+    },
+    onSuccess: () => { toast.success("저장했어요."); setDraft(null); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const toggle = useMutation({
+    mutationFn: (r: MnhAddonItem) => mnhApi.updateAddon(r.id, { is_active: !r.is_active }),
+    onSuccess: (_, r) => { toast.success(r.is_active ? `${r.name} 판매를 멈췄어요.` : `${r.name}을 다시 판매해요.`); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const del = useMutation({
+    mutationFn: (r: MnhAddonItem) => mnhApi.deleteAddon(r.id),
+    onSuccess: () => { toast.success("지웠어요."); refresh(); },
+    onError: (e, r) => {
+      const code = (e as { response?: { data?: { error_code?: string } } }).response?.data?.error_code;
+      if (code === "IN_USE" && r.is_active) {
+        if (window.confirm(`${getApiErrorMessage(e)}\n지금 판매 중지로 바꿀까요?`)) toggle.mutate(r);
+      } else toast.error(getApiErrorMessage(e));
+    },
+  });
+  const ready = draft && draft.name.trim() && draft.unit_label.trim() && draft.price !== "" && draft.max_qty !== "";
+
+  return (
+    <>
+      <p className="text-sm text-warm-700 bg-info-bg rounded-lg px-4 py-3 mb-4">
+        케어앤이 정하는 가격이에요(바우처 밖, 본인이 추가로 냄). 판매 중인 항목만 회원 신청 화면·안내 계산기에 보여요.
+        가격을 바꿔도 이미 신청한 계약은 신청 때 금액 그대로예요.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <Button size="sm" onClick={() => setDraft({ ...EMPTY_ADDON, sort: String(rows.length ? Math.max(...rows.map((r) => r.sort)) + 10 : 10) })}><Plus />항목 추가</Button>
+      </div>
+
+      {draft && (
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <form className="grid grid-cols-2 md:grid-cols-4 gap-3" onSubmit={(e) => { e.preventDefault(); save.mutate(draft); }}>
+              <Field label="구분">
+                <select className="h-10 w-full rounded-lg border border-warm-200 px-2 text-sm" value={draft.kind} onChange={(e) => setDraft({ ...draft, kind: e.target.value })}>
+                  {Object.entries(kinds).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </Field>
+              <Field label="항목">
+                <Input required maxLength={60} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={draft.kind === "rental" ? "예: 유축기 대여" : "예: 토요일 추가, 큰아이 추가"} />
+              </Field>
+              <Field label="단위">
+                <Input required maxLength={10} value={draft.unit_label} onChange={(e) => setDraft({ ...draft, unit_label: e.target.value })} placeholder={draft.kind === "rental" ? "예: 개" : "예: 일, 명"} />
+              </Field>
+              <Field label="단가(원)">
+                <Input required type="number" min={0} max={100000000} value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} />
+                {draft.price !== "" && <span className="block text-[11px] text-warm-500 mt-0.5">{formatKRW(draft.price)}{draft.unit_label.trim() && ` / ${draft.unit_label.trim()}`}</span>}
+              </Field>
+              <Field label="최대 수량(1~99)">
+                <Input required type="number" min={1} max={99} value={draft.max_qty} onChange={(e) => setDraft({ ...draft, max_qty: e.target.value })} />
+              </Field>
+              <Field label="표시 순서">
+                <Input type="number" min={0} max={9999} value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: e.target.value })} />
+              </Field>
+              <Field label="메모(회원에게도 보여요)" className="col-span-2">
+                <Input maxLength={200} value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} placeholder="예: 반납 때 소모품 비용 별도" />
+              </Field>
+              <div className="col-span-2 md:col-span-4 flex gap-2">
+                <Button type="submit" disabled={save.isPending || !ready}>{draft.id ? "고치기" : "추가"}</Button>
+                <Button type="button" variant="outline" onClick={() => setDraft(null)}>닫기</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>구분</TableHead><TableHead>항목</TableHead><TableHead className="text-right whitespace-nowrap">단가(원/단위)</TableHead>
+                <TableHead className="text-right whitespace-nowrap">최대 수량</TableHead><TableHead>메모</TableHead><TableHead>상태</TableHead>
+                <TableHead className="text-right whitespace-nowrap">계약</TableHead><TableHead className="w-24" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0 && (
+                <TableRow><TableCell colSpan={8} className="text-center text-warm-500 py-10">{q.isLoading ? "불러오는 중…" : "등록한 항목이 없어요. 「항목 추가」로 넣어 주세요."}</TableCell></TableRow>
+              )}
+              {rows.map((r) => (
+                <TableRow key={r.id} className={cn(!r.is_active && "opacity-60")}>
+                  <TableCell className="text-xs text-warm-600 whitespace-nowrap">{kinds[r.kind] ?? r.kind}</TableCell>
+                  <TableCell className="font-semibold">{r.name}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{formatKRW(r.price)}<span className="text-warm-500"> / {r.unit_label}</span></TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{r.max_qty}{r.unit_label}</TableCell>
+                  <TableCell className="text-xs text-warm-500">{r.note}</TableCell>
+                  <TableCell>
+                    <button
+                      type="button"
+                      aria-pressed={r.is_active}
+                      disabled={toggle.isPending}
+                      onClick={() => toggle.mutate(r)}
+                      title={r.is_active ? "누르면 판매를 멈춰요" : "누르면 다시 판매해요"}
+                      className={cn("inline-flex px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap border",
+                        r.is_active ? "bg-brand-50 text-brand-700 border-brand-200" : "bg-warm-100 text-warm-500 border-warm-200")}
+                    >
+                      {r.is_active ? "판매 중" : "중지"}
+                    </button>
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">{r.contracts}건</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" aria-label={`${r.name} 고치기`} onClick={() => setDraft({ id: r.id, kind: r.kind, name: r.name, unit_label: r.unit_label, price: String(r.price), max_qty: String(r.max_qty), note: r.note ?? "", sort: String(r.sort ?? 0) })}><Pencil /></Button>
+                      <Button size="sm" variant="ghost" aria-label={`${r.name} 삭제`} className="text-danger hover:bg-danger-bg" disabled={del.isPending}
+                        onClick={() => {
+                          if (r.contracts > 0) {
+                            if (!r.is_active) toast.info(`${r.name}은 계약 ${r.contracts}건에 쓰여 지울 수 없어요. 판매 중지 상태로 두면 돼요.`);
+                            else if (window.confirm(`${r.name}은 계약 ${r.contracts}건에 쓰여 지울 수 없어요. 판매 중지로 바꿀까요?`)) toggle.mutate(r);
+                          } else if (window.confirm(`${r.name}을 지울까요?`)) del.mutate(r);
+                        }}><Trash2 /></Button>
                     </div>
                   </TableCell>
                 </TableRow>

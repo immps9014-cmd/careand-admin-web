@@ -310,6 +310,20 @@ function SupportCard({ c, closed, onDone }: CardProps) {
       <Row k="서비스 가격" v={c.total_price != null ? formatKRW(c.total_price) : "-"} />
       <Row k="정부지원금" v={c.gov_support != null ? formatKRW(c.gov_support) : "-"} />
       <Row k="본인부담금" v={c.rates_set ? <b>{formatKRW(c.self_pay)}</b> : <span className="text-warn font-semibold">요율 미설정</span>} />
+      {(c.addons?.length ?? 0) > 0 && (
+        <div className="mt-2 pt-2 border-t border-warm-100">
+          <p className="text-xs font-semibold text-warm-600 mb-1">추가요금·대여 <span className="font-normal text-warm-500">(바우처 밖, 신청 때 금액)</span></p>
+          <ul className="space-y-0.5 text-sm">
+            {c.addons!.map((a) => (
+              <li key={`${a.kind}-${a.id}`} className="flex justify-between gap-3">
+                <span>{a.name} <span className="text-xs text-warm-500">{formatKRW(a.price)} × {a.qty}{a.unit_label}</span></span>
+                <span className="whitespace-nowrap">{formatKRW(a.amount)}</span>
+              </li>
+            ))}
+          </ul>
+          <Row k="추가요금 합계" v={<b>{formatKRW(c.addon_total ?? c.addons!.reduce((s, a) => s + a.amount, 0))}</b>} />
+        </div>
+      )}
       {edit === "table" && (
         <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); if (typeId) save.mutate({ support_type_id: Number(typeId) }); }}>
           <label className={labelCls} htmlFor="mnh-type">{c.year}년 기준표</label>
