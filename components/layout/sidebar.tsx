@@ -15,6 +15,7 @@ import {
   Clock,
   KeyRound,
   DollarSign,
+  FileText,
   LayoutDashboard,
   Megaphone,
   MessageCircle,
@@ -54,6 +55,7 @@ const OPS_NAV: NavItem[] = [
   { href: "/care-sessions", area: "care-sessions", label: "케어 진행 현황", icon: Activity },
   { href: "/care-logs", area: "care-logs", label: "AI 일지 검수", icon: ClipboardCheck },
   { href: "/announcements", area: "announcements", label: "공지·푸시", icon: Megaphone },
+  { href: "/contents", area: "contents", label: "안내 콘텐츠", icon: FileText },
   { href: "/workflow", label: "업무흐름도", icon: Workflow },
 ];
 
