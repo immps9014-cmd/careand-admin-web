@@ -109,16 +109,31 @@ function StatusPill({ status, label }: { status: MnhContractSummary["status"]; l
   return <span className={cn("inline-flex px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap", MNH_STATUS_STYLE[status])}>{label}</span>;
 }
 
+/** 출산 전 예비 계약·개시일 확인 요청 표시 */
+function ProvisionalBadges({ r }: { r: { provisional?: boolean; start_change_request?: unknown } }) {
+  if (!r.provisional && !r.start_change_request) return null;
+  return (
+    <span className="inline-flex flex-wrap gap-1 ml-1.5 align-middle">
+      {r.provisional && <span className="inline-flex px-1.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap bg-info-bg text-info">예비</span>}
+      {!!r.start_change_request && <span className="inline-flex px-1.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap bg-warn-bg text-warn">개시일 확인 요청</span>}
+    </span>
+  );
+}
+
 function ContractsTab() {
   const router = useRouter();
   const [status, setStatus] = useState("");
+  const [onlyReq, setOnlyReq] = useState(false);
   const [kw, setKw] = useState("");
   const [q, setQ] = useState("");
   const query = useQuery({
     queryKey: ["admin", "mnh", "contracts", status, q],
     queryFn: () => mnhApi.contracts({ ...(status ? { status } : {}), ...(q ? { q } : {}) }),
   });
-  const rows = query.data?.data ?? [];
+  const allRows = query.data?.data ?? [];
+  const reqCount = allRows.filter((r) => r.start_change_request).length;
+  // 개시일 확인 요청이 있는 계약을 위로
+  const rows = (onlyReq ? allRows.filter((r) => r.start_change_request) : [...allRows].sort((a, b) => Number(!!b.start_change_request) - Number(!!a.start_change_request)));
   const counts = query.data?.counts ?? {};
   const total = Object.values(counts).reduce((a, b) => a + Number(b), 0);
   const needs = rows.filter((r) => r.status === "applied" || (!r.prepaid && r.status === "confirmed")).length;
@@ -139,6 +154,18 @@ function ContractsTab() {
             {f.label} {f.key ? counts[f.key] ?? 0 : total}
           </button>
         ))}
+        {(reqCount > 0 || onlyReq) && (
+          <button
+            onClick={() => setOnlyReq((v) => !v)}
+            aria-pressed={onlyReq}
+            className={cn(
+              "h-8 px-3 rounded-full text-xs font-semibold border",
+              onlyReq ? "bg-warm-800 text-white border-warm-800" : "bg-warn-bg text-warm-800 border-warn hover:bg-white",
+            )}
+          >
+            확인 요청 {reqCount}
+          </button>
+        )}
         <form
           className="flex items-center gap-2 ml-auto w-full sm:w-auto"
           onSubmit={(e) => { e.preventDefault(); setQ(kw.trim()); }}
@@ -147,6 +174,9 @@ function ContractsTab() {
           <Button type="submit" size="sm" variant="outline" aria-label="검색"><Search /></Button>
         </form>
       </div>
+      {reqCount > 0 && !onlyReq && (
+        <p className="text-sm text-warn bg-warn-bg rounded-lg px-4 py-2 mb-4">개시일 확인 요청 {reqCount}건 — 이용자가 출산일을 등록하고 개시일 변경을 요청했어요.</p>
+      )}
       {needs > 0 && !status && (
         <p className="text-sm text-warn bg-warn-bg rounded-lg px-4 py-2 mb-4">처리할 계약 {needs}건 — 담당 배정 또는 본인부담금 선납 확인이 남았어요.</p>
       )}
@@ -174,7 +204,7 @@ function ContractsTab() {
               {rows.map((r) => (
                 <TableRow key={r.id} className="cursor-pointer hover:bg-warm-50" onClick={() => router.push(`/mnh/${r.id}`)}>
                   <TableCell className="font-mono text-xs"><Link href={`/mnh/${r.id}`} className="text-brand-700 hover:underline" onClick={(e) => e.stopPropagation()}>{r.contract_no}</Link></TableCell>
-                  <TableCell className="font-semibold">{r.client_name ?? "-"}</TableCell>
+                  <TableCell className="font-semibold">{r.client_name ?? "-"}<ProvisionalBadges r={r} /></TableCell>
                   <TableCell className="text-xs text-warm-600">{r.support_label ?? "-"}</TableCell>
                   <TableCell className="text-xs whitespace-nowrap">{r.start_date} ~ {r.end_date ?? "?"}<span className="text-warm-500"> · {r.days}일</span></TableCell>
                   <TableCell className="text-right whitespace-nowrap">{r.rates_set ? formatKRW(r.self_pay) : <span className="text-warn text-xs font-semibold">요율 미설정</span>}</TableCell>
@@ -285,7 +315,7 @@ function CalendarRow({ r, days, today, holidays }: { r: MnhCalendarRow; days: st
   return (
     <tr className="border-t border-warm-100">
       <td className="sticky left-0 z-10 bg-white px-3 py-2">
-        <Link href={`/mnh/${r.id}`} className="font-semibold text-warm-800 hover:underline">{r.client_name ?? r.contract_no}</Link>
+        <Link href={`/mnh/${r.id}`} className="font-semibold text-warm-800 hover:underline">{r.client_name ?? r.contract_no}</Link> <ProvisionalBadges r={r} />
         <div className="text-[11px] text-warm-500">{r.caregiver_name ?? "미배정"} · {r.days}일{!r.prepaid && <span className="text-warn"> · 선납 미확인</span>}</div>
       </td>
       {days.map((d) => {

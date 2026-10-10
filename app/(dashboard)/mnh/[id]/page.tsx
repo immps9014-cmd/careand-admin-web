@@ -6,7 +6,7 @@ import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, BriefcaseBusiness, CalendarX2, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BriefcaseBusiness, CalendarClock, CalendarX2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import { ContractDocsCard } from "@/components/domain/mnh-docs";
 import { ContractEvalCard } from "@/components/domain/mnh-eval";
 import { cn, formatKRW } from "@/lib/utils";
 import {
-  mnhApi, conflictMessage, dayLabel, todayKst, MNH_EVENT_LABEL, MNH_STATUS_STYLE, DOW_KO,
+  mnhApi, conflictMessage, dayLabel, todayKst, kstDateTime, MNH_EVENT_LABEL, MNH_STATUS_STYLE, DOW_KO,
   type MnhContractDetail,
 } from "@/lib/api/mnh";
 
@@ -50,6 +50,12 @@ export default function MnhContractPage() {
         제공 요일 {c.weekdays.map((d) => DOW_KO[d % 7]).join("")}
       </p>
       {c.status === "cancelled" && c.cancel_reason && <p className="text-sm bg-warm-100 rounded-lg px-4 py-2 mb-4">취소 사유: {c.cancel_reason}</p>}
+      {c.voucher_warning && (
+        <p role="alert" className="flex items-start gap-2 text-sm text-warm-800 bg-warn-bg rounded-lg px-4 py-2 mb-4">
+          <AlertTriangle className="w-4 h-4 text-warn shrink-0 mt-0.5" />{c.voucher_warning}
+        </p>
+      )}
+      {!closed && (c.provisional || c.start_change_request) && <ProvisionalPanel c={c} onDone={apply} />}
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-5 items-start">
         <div className="space-y-5 min-w-0">
@@ -112,6 +118,91 @@ function useForceable<T>(fn: (vars: T & { force?: boolean }) => Promise<{ data: 
     },
   });
   return m;
+}
+
+/* ───── 출산 전 예비 계약(2단계) ───── */
+
+function ProvisionalPanel({ c, onDone }: CardProps) {
+  const req = c.start_change_request ?? null;
+  const [mode, setMode] = useState<"" | "date" | "reject">("");
+  const [date, setDate] = useState(req?.start_date ?? c.start_date);
+  const [reason, setReason] = useState("");
+  const confirm = useForceable((v: { start_date?: string }) => mnhApi.confirmStart(c.id, v), onDone, () => setMode(""));
+  const reject = useMutation({
+    mutationFn: () => mnhApi.rejectStartRequest(c.id, reason.trim()),
+    onSuccess: (r) => { toast.success(r.message ?? "반려했어요."); onDone(r.data); setMode(""); setReason(""); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const busy = confirm.isPending || reject.isPending;
+  const ask = (start: string, label: string) => {
+    if (window.confirm(`개시일을 ${dayLabel(start)}로 ${label}할까요? 이용자에게 알림이 가요.`)) confirm.mutate({ start_date: start });
+  };
+
+  return (
+    <Card className={cn("mb-5 border-2", req ? "border-warn" : "border-info")}>
+      <CardContent className="p-5">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <CalendarClock className={cn("w-5 h-5", req ? "text-warn" : "text-info")} />
+          <h2 className="text-sm font-bold text-warm-800">{req ? "개시일 확인 요청" : "출산 전 예비 계약"}</h2>
+          {c.provisional && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-info-bg text-info">예비</span>}
+        </div>
+
+        {req ? (
+          <>
+            <div className="grid sm:grid-cols-2 gap-x-6">
+              <Row k="요청 개시일" v={<b>{dayLabel(req.start_date)} <span className="font-normal text-warm-500">({req.start_date})</span></b>} />
+              <Row k="현재 개시일" v={`${dayLabel(c.start_date)} (${c.start_date})`} />
+              <Row k="출산일 차이" v={req.birth_gap != null ? `${req.birth_gap}일` : "-"} />
+              <Row k="개시일 변경" v={req.start_gap != null ? `${req.start_gap}일` : "-"} />
+              <Row k="요청 시각" v={kstDateTime(req.requested_at)} />
+              <Row k="출산일" v={c.delivery_date ? `${c.delivery_date}${c.expected_delivery_date ? ` (예정 ${c.expected_delivery_date})` : ""}` : "-"} />
+            </div>
+            <p className="text-sm text-warm-700 bg-warm-50 rounded-lg px-3 py-2 mt-2">사유: {req.reason || "-"}</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Button size="sm" disabled={busy} onClick={() => ask(req.start_date, "확정")}>요청대로 확정</Button>
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => setMode(mode === "date" ? "" : "date")}>다른 날짜로 확정</Button>
+              <Button size="sm" variant="ghost" disabled={busy} onClick={() => setMode(mode === "reject" ? "" : "reject")}>반려</Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-warm-700">
+              {c.birth_confirmed
+                ? <>출산일 등록됨 <b>{c.delivery_date ?? "-"}</b>{c.expected_delivery_date ? `(예정 ${c.expected_delivery_date})` : ""} — 이용자 확정 대기</>
+                : <>출산 전 예비 계약 — 출산 예정일 <b>{c.expected_delivery_date ?? c.delivery_date ?? "-"}</b>. 이용자가 출산일을 등록하면 개시일을 확정해요.</>}
+            </p>
+            <p className="text-xs text-warm-500 mt-1">현재 개시일 {dayLabel(c.start_date)} ({c.start_date})</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Button size="sm" disabled={busy} onClick={() => ask(c.start_date, "확정")}>지금 확정</Button>
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => setMode(mode === "date" ? "" : "date")}>다른 날짜로 확정</Button>
+            </div>
+          </>
+        )}
+
+        {mode === "date" && (
+          <form className="flex flex-wrap items-end gap-2 mt-3" onSubmit={(e) => { e.preventDefault(); if (date) ask(date, "확정"); }}>
+            <div>
+              <label className={labelCls} htmlFor="mnh-confirm-date">개시일</label>
+              <Input id="mnh-confirm-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-44" required />
+            </div>
+            <Button type="submit" size="sm" disabled={busy || !date}>이 날짜로 확정</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setMode("")}>닫기</Button>
+          </form>
+        )}
+        {mode === "reject" && req && (
+          <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); if (reason.trim()) reject.mutate(); }}>
+            <label className={labelCls} htmlFor="mnh-reject-reason">반려 사유(특이사항에 남아요 · 예비 계약은 유지)</label>
+            <textarea id="mnh-reject-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} rows={2} required
+              className="w-full rounded-lg border border-warm-200 bg-white px-3 py-2 text-sm" placeholder="예: 담당 일정이 맞지 않아 전화로 다시 조율" />
+            <div className="flex gap-2">
+              <Button type="submit" size="sm" variant="danger" disabled={busy || !reason.trim()}>반려</Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => setMode("")}>닫기</Button>
+            </div>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 /* ───── 일정표 ───── */
@@ -233,6 +324,8 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
     case "cancelled": return String(p.reason ?? "");
+    case "birth_confirmed": return `${p.by === "member" ? "이용자" : "기관"} 확정${e.date ? ` · 개시 ${dayLabel(e.date)}` : ""}`;
+    case "start_review": return `${p.start_date ? `${dayLabel(String(p.start_date))} 개시 요청 — ` : ""}${String(p.reason ?? "")}`;
     case "evaluated": return `${p.kind === "org_to_caregiver" ? "기관 → 관리사" : "관리사 → 이용자"} · ${p.timing === "final" ? "종료" : "수시"}`;
     case "doc_issued": case "doc_signed": return DOC_TYPE_LABEL[String(p.doc_type ?? "")] ?? String(p.doc_type ?? "");
     default: return e.date ? dayLabel(e.date) : "";

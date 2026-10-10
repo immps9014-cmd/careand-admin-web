@@ -73,6 +73,21 @@ export interface MnhContractSummary {
   /** 추가요금·대여용품(케어앤 자체 가격, 바우처 밖) — 신청 때 금액 그대로 */
   addons?: MnhContractAddon[];
   addon_total?: number | null;
+  /** 출산 전 신청한 예비 계약(출산일 등록 뒤 개시일 확정) */
+  provisional?: boolean;
+  /** 이용자가 출산일 등록 후 요청한 개시일 변경 — 기관 확인 대기 */
+  start_change_request?: MnhStartChangeRequest | null;
+}
+
+export interface MnhStartChangeRequest {
+  start_date: string;
+  reason: string;
+  /** 예정일과 실제 출산일 차이(일) */
+  birth_gap: number | null;
+  /** 개시일이 바뀌는 날수 */
+  start_gap: number | null;
+  /** ISO(+09:00) */
+  requested_at: string;
 }
 
 export interface MnhContractAddon {
@@ -155,6 +170,11 @@ export interface MnhContractDetail extends MnhContractSummary {
   /** 산모 비상연락처(2026-10-05) — phone 숫자만 */
   client_emergency_contact: { name: string; relation: string; phone: string } | null;
   cancelled_sessions: { date: string; reason: string | null; caregiver_name: string | null }[];
+  /** 출산일 등록 여부(false = 예정일만 있음) */
+  birth_confirmed?: boolean;
+  expected_delivery_date?: string | null;
+  /** 종료일이 출산 후 90일을 넘으면 문구 */
+  voucher_warning?: string | null;
 }
 
 export interface MnhCalendarRow {
@@ -171,6 +191,9 @@ export interface MnhCalendarRow {
   cells: { date: string; seq: number; status: MnhDayStatus; caregiver_name: string | null }[];
   postponed: string[];
   events: MnhEvent[];
+  /** 백엔드가 아직 달력에 안 내려줌 — 내려오면 표시 */
+  provisional?: boolean;
+  start_change_request?: MnhStartChangeRequest | null;
 }
 
 export interface MnhCaregiverOption {
@@ -231,6 +254,10 @@ export const mnhApi = {
     api.delete<{ message: string; result: HolidayResync }>(`/v1/admin/mnh/holidays/${id}`).then((r) => r.data),
   note: (id: number, body: { date?: string; text: string }) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/notes`, body).then((r) => r.data),
+  confirmStart: (id: number, body: { start_date?: string; force?: boolean }) =>
+    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/confirm-start`, body).then((r) => r.data),
+  rejectStartRequest: (id: number, reason: string) =>
+    api.delete<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/start-request`, { data: { reason } }).then((r) => r.data),
   cancel: (id: number, reason: string, refund_amount?: number) =>
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, { reason, ...(refund_amount !== undefined ? { refund_amount } : {}) }).then((r) => r.data),
 };
@@ -273,7 +300,18 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   doc_issued: "서류 발행",
   doc_signed: "서류 서명",
   evaluated: "평가",
+  birth_confirmed: "일정 확정",
+  start_review: "개시일 확인 요청",
 };
+
+/** ISO 시각 → 한국시각 "10/9 14:05" */
+export function kstDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.month}/${p.day} ${p.hour}:${p.minute}`;
+}
 
 export const DOW_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
