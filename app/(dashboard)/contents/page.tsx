@@ -307,7 +307,7 @@ export default function ContentsPage() {
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="max-w-[280px]">
+                      <TableCell className="min-w-[240px] max-w-[340px]">
                         <button type="button" onClick={() => setEditing(r)} className="text-left font-semibold text-warm-800 hover:text-brand-700 hover:underline">
                           {r.title}
                         </button>
@@ -320,12 +320,12 @@ export default function ContentsPage() {
                         {labels.audiences[r.audience] ?? r.audience}
                         <div className="text-xs text-warm-500">{labels.platforms[r.platform] ?? r.platform}</div>
                       </TableCell>
-                      <TableCell className="text-sm">{r.regions?.length ? r.regions.join(", ") : "전국"}</TableCell>
+                      <TableCell className="min-w-[72px] text-sm">{r.regions?.length ? r.regions.join(", ") : "전국"}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs tabular-nums text-warm-600">
                         {r.starts_on || r.ends_on ? `${r.starts_on ?? ""} ~ ${r.ends_on ?? ""}` : "상시"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={r.status === "published" ? "success" : "outline"}>{STATUS_LABEL[r.status] ?? r.status}</Badge>
+                        <Badge className="whitespace-nowrap" variant={r.status === "published" ? "success" : "outline"}>{STATUS_LABEL[r.status] ?? r.status}</Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {r.reviewed ? (
@@ -551,12 +551,12 @@ function ContentEditor({
                   <option value="warn">주의(warn)</option>
                 </select>
               </div>
-              <div className="col-span-2 sm:col-span-1">
+              <div className="col-span-2 sm:col-span-3">
                 <label className={field}>게시 기간</label>
                 <div className="flex items-center gap-1">
-                  <input type="date" className={ctl} value={f.starts_on} onChange={(e) => set("starts_on", e.target.value)} aria-label="시작일" />
+                  <input type="date" className={cn(ctl, "max-w-[180px]")} value={f.starts_on} onChange={(e) => set("starts_on", e.target.value)} aria-label="시작일" />
                   <span className="text-warm-500">~</span>
-                  <input type="date" className={ctl} value={f.ends_on} onChange={(e) => set("ends_on", e.target.value)} aria-label="종료일" />
+                  <input type="date" className={cn(ctl, "max-w-[180px]")} value={f.ends_on} onChange={(e) => set("ends_on", e.target.value)} aria-label="종료일" />
                 </div>
               </div>
             </div>
