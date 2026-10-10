@@ -75,7 +75,8 @@ api.interceptors.response.use(
         );
 
         const newToken = data.access_token;
-        authStore.getState().setTokens(newToken, refreshToken);
+        // 서버가 갱신마다 새 리프레시 토큰을 준다(쓴 토큰은 무효, 2026-10-10)
+        authStore.getState().setTokens(newToken, data.refresh_token ?? refreshToken);
         processQueue(newToken);
 
         if (originalRequest.headers) {
