@@ -15,6 +15,7 @@ import { cn, formatKRW, ko } from "@/lib/utils";
 import { HourlyRequestsChart } from "./_components/hourly-requests-chart";
 import { AgeDistributionCard } from "./_components/age-distribution-card";
 import { DashboardBreakdown } from "@/components/domain/dashboard-breakdown";
+import { DomainBadge, domainFill } from "@/components/domain/domain-badge";
 
 const DOMAIN_CARDS = [
   { key: "senior", label: "요양보호" },
@@ -133,12 +134,27 @@ export default function DashboardPage() {
             <h2 className="text-base font-bold text-warm-800">도메인별 현황</h2>
             <span className="text-[11px] text-warm-500">진행중 매칭 · 주간 요청 · 주간 매출</span>
           </div>
+          {(() => {
+            // 진행중 매칭의 분야 비율 막대 — 분야 색(CAREN-COLOR-01 §3), 칸 사이 2px 틈
+            const parts = DOMAIN_CARDS.map((d) => ({ ...d, n: kpi?.by_domain?.[d.key]?.matches_in_progress ?? 0 })).filter((d) => d.n > 0);
+            const total = parts.reduce((a, d) => a + d.n, 0);
+            if (total === 0) return null;
+            return (
+              <div className="flex h-2.5 gap-0.5 mb-4 rounded-full overflow-hidden" role="img"
+                aria-label={"진행중 매칭 분야 비율: " + parts.map((d) => `${d.label} ${d.n}건`).join(", ")}>
+                {parts.map((d) => (
+                  <div key={d.key} title={`${d.label} ${d.n}건 · ${Math.round((d.n / total) * 100)}%`}
+                    style={{ flexGrow: d.n, background: domainFill(d.key) }} />
+                ))}
+              </div>
+            );
+          })()}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {DOMAIN_CARDS.map((d) => {
               const v = kpi?.by_domain?.[d.key];
               return (
-                <div key={d.key} className="rounded-lg border border-warm-100 p-4">
-                  <div className="text-xs font-semibold text-warm-500 mb-2">{d.label}</div>
+                <div key={d.key} className="rounded-lg border border-warm-100 border-t-[3px] p-4" style={{ borderTopColor: domainFill(d.key) }}>
+                  <div className="mb-2"><DomainBadge domain={d.key} label={d.label} /></div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="font-en text-xl font-bold text-warm-800">{v?.matches_in_progress ?? 0}</span>
                     <span className="text-[11px] text-warm-500">진행중</span>

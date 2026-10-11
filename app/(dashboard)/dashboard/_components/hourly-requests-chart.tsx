@@ -28,8 +28,8 @@ export function HourlyRequestsChart({ data }: Props) {
         >
           <defs>
             <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3F7D52" stopOpacity={0.6} />
-              <stop offset="100%" stopColor="#3F7D52" stopOpacity={0.1} />
+              <stop offset="0%" stopColor="#B94C2E" stopOpacity={0.6} />
+              <stop offset="100%" stopColor="#B94C2E" stopOpacity={0.1} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="#E8E0D2" strokeDasharray="2 4" vertical={false} />

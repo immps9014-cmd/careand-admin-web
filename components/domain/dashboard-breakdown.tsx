@@ -6,6 +6,7 @@ import { Filter } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { fetchBreakdown } from "@/lib/api/dashboard";
 import { formatKRW } from "@/lib/utils";
+import { domainFill } from "./domain-badge";
 
 /**
  * 지점·도메인·기간 필터 현황 (기능 17, 2026-09-28 S5)
@@ -83,7 +84,7 @@ export function DashboardBreakdown() {
               <thead><tr className="text-left text-[11px] text-warm-500 border-b border-warm-100"><th className="py-1.5">도메인</th><th className="py-1.5 text-right">요청</th><th className="py-1.5 text-right">성사</th></tr></thead>
               <tbody>
                 {d.by_domain.map((x) => (
-                  <tr key={x.domain} className="border-b border-warm-50"><td className="py-1.5">{x.label}</td><td className="py-1.5 text-right font-en">{x.requests}</td><td className="py-1.5 text-right font-en">{x.matched}</td></tr>
+                  <tr key={x.domain} className="border-b border-warm-50"><td className="py-1.5"><span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ background: domainFill(x.domain) }} aria-hidden="true" />{x.label}</td><td className="py-1.5 text-right font-en">{x.requests}</td><td className="py-1.5 text-right font-en">{x.matched}</td></tr>
                 ))}
               </tbody>
             </table>
