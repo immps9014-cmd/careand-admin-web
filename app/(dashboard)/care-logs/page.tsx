@@ -199,7 +199,7 @@ export default function CareLogsPage() {
       </div>
 
       {/* 검수 콘솔: 좌측 큐 + 우측 상세 */}
-      <div className="grid grid-cols-[340px_1fr] gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 items-start">
         {/* 좌측: 검수 큐 */}
         <Card className="overflow-hidden">
           <div className="px-5 py-4 flex justify-between items-center border-b border-warm-100">
@@ -310,7 +310,7 @@ export default function CareLogsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-[1.4fr_1fr] gap-6 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6 p-4 sm:p-6">
                 {/* 좌측: 세션 메타 */}
                 <div>
                   <div className="text-[11px] font-extrabold text-warm-500 tracking-wide uppercase mb-3">

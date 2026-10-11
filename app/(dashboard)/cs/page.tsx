@@ -212,7 +212,7 @@ export default function CsPage() {
 
       {/* 후기 탭 — 좌: 평점 요약 / 우: 후기 목록 */}
       {tab === "reviews" && (
-        <div className="grid grid-cols-[300px_1fr] gap-[18px] items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-[18px] items-start">
           {/* 평점 요약 카드 */}
           <Card className="overflow-hidden">
             {/* 큰 평균 평점 */}

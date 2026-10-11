@@ -168,7 +168,7 @@ export default function CaregiverApprovalPage() {
       </div>
 
       {/* 콘솔: 목록 + 상세 */}
-      <div className="grid grid-cols-[340px_1fr] gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 items-start">
         {/* 목록 */}
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between px-1 mb-0.5">
@@ -277,7 +277,7 @@ export default function CaregiverApprovalPage() {
               </div>
 
               {/* 상세 본문 */}
-              <div className="p-6 grid grid-cols-[1.35fr_1fr] gap-6">
+              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-[1.35fr_1fr] gap-6">
                 {/* 좌: 도메인 / 특기 / 제출 서류 안내 */}
                 <div className="space-y-5">
                   <div>

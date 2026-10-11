@@ -176,7 +176,7 @@ export default function SettlementsPage() {
       </div>
 
       {/* 정산 사이클 파이프라인 (현재 목록 기준) */}
-      <Card className="flex items-stretch overflow-hidden mb-5 p-0">
+      <Card className="grid grid-cols-2 sm:flex sm:items-stretch overflow-hidden mb-5 p-0">
         {PIPELINE.map((step, i) => {
           const list = byStatus(step.key);
           const count = list.length;
@@ -195,8 +195,9 @@ export default function SettlementsPage() {
             <div
               key={step.key}
               className={cn(
-                "relative flex-1 px-5 py-4 flex flex-col justify-center",
-                i !== PIPELINE.length - 1 && "border-r border-warm-100",
+                "relative flex-1 px-4 sm:px-5 py-4 flex flex-col justify-center",
+                i !== PIPELINE.length - 1 && "sm:border-r border-warm-100",
+                i < 2 && "max-sm:border-b", i % 2 === 0 && "max-sm:border-r",
                 step.cur && "bg-gradient-to-b from-brand-50/60 to-white"
               )}
             >
@@ -213,7 +214,7 @@ export default function SettlementsPage() {
                 <span className="absolute left-0 right-0 bottom-0 h-[3px] bg-brand-500" />
               )}
               {i !== PIPELINE.length - 1 && (
-                <span className="absolute -right-[9px] top-1/2 -translate-y-1/2 z-10 w-[18px] h-[18px] rounded-full bg-white border border-warm-200 flex items-center justify-center text-warm-500">
+                <span className="max-sm:hidden absolute -right-[9px] top-1/2 -translate-y-1/2 z-10 w-[18px] h-[18px] rounded-full bg-white border border-warm-200 flex items-center justify-center text-warm-500">
                   <ChevronRight className="w-3 h-3" />
                 </span>
               )}

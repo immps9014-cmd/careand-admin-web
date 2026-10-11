@@ -231,7 +231,7 @@ export default function ContractsPage() {
 
       {/* 주간 일정 보드 */}
       {view === "board" && (
-        <div className="grid grid-cols-7 gap-2.5 max-lg:grid-cols-[repeat(7,minmax(128px,1fr))] max-lg:overflow-x-auto max-lg:pb-2">
+        <div className="grid grid-cols-7 gap-2.5 max-lg:grid-cols-[repeat(7,minmax(150px,1fr))] max-lg:overflow-x-auto max-lg:pb-2">
           {DOW.map((label, dow) => {
             const visits = (byDow[dow] ?? []).slice().sort((a, b) =>
               (a.scheduled_start ?? "").localeCompare(b.scheduled_start ?? "")
