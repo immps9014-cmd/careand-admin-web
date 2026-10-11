@@ -77,7 +77,7 @@ export function MonthlyClose() {
       {q.data?.length === 0 && <div className="py-6 text-center text-sm text-warm-500">아직 만든 결산이 없습니다.</div>}
       {(q.data?.length ?? 0) > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[720px] whitespace-nowrap text-sm">
             <thead>
               <tr className="text-left text-[11px] text-warm-500 border-b border-warm-100">
                 <th className="py-2">월</th><th className="py-2 text-right">매출</th><th className="py-2 text-right">결제</th>

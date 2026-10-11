@@ -118,8 +118,8 @@ export default function ReportsPage() {
   }));
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-end mb-7">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end mb-7">
         <div>
           <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
             통계 리포트
@@ -138,7 +138,7 @@ export default function ReportsPage() {
       <MonthlyClose />
 
       {/* 실시간 통계 3종 */}
-      <div className="grid grid-cols-3 gap-4 mb-[18px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-[18px]">
         {/* 운영 통계 */}
         <Card className="flex flex-col overflow-hidden">
           <div className="flex items-center gap-2.5 px-[18px] py-[15px] border-b border-warm-100">
@@ -272,7 +272,7 @@ export default function ReportsPage() {
       </div>
 
       {/* 시각화: 평점 분포 + 도메인별 매칭 분포 */}
-      <div className="grid grid-cols-[1.5fr_1fr] gap-4 mb-[18px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4 mb-[18px]">
         <Card className="p-6">
           <div className="mb-2">
             <h2 className="text-base font-bold text-warm-800">평점 분포</h2>
@@ -299,7 +299,7 @@ export default function ReportsPage() {
             {models?.summary.total ?? 0}개 모델
           </span>
         </div>
-        <Table>
+        <Table className="min-w-[600px] whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>모델</TableHead>
