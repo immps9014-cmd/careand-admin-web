@@ -153,7 +153,9 @@ export default function DashboardPage() {
             {DOMAIN_CARDS.map((d) => {
               const v = kpi?.by_domain?.[d.key];
               return (
-                <div key={d.key} className="rounded-lg border border-warm-100 border-t-[3px] p-4" style={{ borderTopColor: domainFill(d.key) }}>
+                <div key={d.key} className="relative overflow-hidden rounded-lg border border-warm-100 p-4 pt-5">
+                  {/* 분야 색 띠 — 둥근 모서리에 잘리는 직선 띠(CAREN-COLOR-01 §3) */}
+                  <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1" style={{ background: domainFill(d.key) }} />
                   <div className="mb-2"><DomainBadge domain={d.key} label={d.label} /></div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="font-en text-xl font-bold text-warm-800">{v?.matches_in_progress ?? 0}</span>
