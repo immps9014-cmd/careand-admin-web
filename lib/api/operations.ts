@@ -224,6 +224,8 @@ export interface MatchingDetailData {
   extra_categories?: string[];
   /** 산후: 산모의 아기(신생아) */
   newborns?: { name: string; gender: "M" | "F"; birth_date: string; birth_weight_g: number }[];
+  /** 병원 간병 환자 — 병원·병동·거동·질환(10-12). 다른 분야는 null */
+  patient?: { hospital_name: string; ward_room: string | null; mobility: "independent" | "assisted" | "bedridden" | null; diseases: string[] } | null;
   /** 산모신생아: 가정 정보·희망사항·희망 제공인력 (2026-10-05) */
   care_profile?: {
     postnatal_center?: { used: boolean | null; days?: number | null };

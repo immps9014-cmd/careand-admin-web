@@ -44,6 +44,9 @@ const STATUS_PILL: Record<string, { cls: string; dot: string; label: string }> =
 const MODE_LABEL = (mode: string) =>
   mode === "emergency" ? "긴급" : mode === "recurring" ? "정기" : "일반";
 
+/** 병원 간병 환자 거동(nursing_patients.mobility) — 앱 등록 화면과 같은 말 */
+const MOBILITY_LABEL: Record<string, string> = { independent: "혼자 가능", assisted: "부분 도움", bedridden: "거동 불가" };
+
 const DOMAIN_TABS = [
   { key: "", label: "전체 도메인" },
   { key: "senior", label: "요양보호" },
@@ -560,7 +563,16 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                 ))}
                 {data.care_profile && <CareProfileRows p={data.care_profile} />}
                 <MDRow label="대상자 정보">{(data.senior?.gender === "M" ? "남성" : data.senior?.gender === "F" ? "여성" : "-")}{data.senior?.care_grade ? ` · ${data.senior.care_grade}` : ""}</MDRow>
-                <MDRow label="주소">{data.address?.address || data.address?.label || "-"}</MDRow>
+                {data.patient ? (
+                  <>
+                    <MDRow label="병원·병동">{[data.patient.hospital_name, data.patient.ward_room].filter(Boolean).join(" · ")}</MDRow>
+                    <MDRow label="병원 주소">{data.address?.address || "-"}</MDRow>
+                    {data.patient.mobility && <MDRow label="거동">{MOBILITY_LABEL[data.patient.mobility] ?? data.patient.mobility}</MDRow>}
+                    {data.patient.diseases.length > 0 && <MDRow label="질환">{data.patient.diseases.join(", ")}</MDRow>}
+                  </>
+                ) : (
+                  <MDRow label="주소">{data.address?.address || data.address?.label || "-"}</MDRow>
+                )}
                 {data.address?.entry_note && <MDRow label="출입 안내">{data.address.entry_note}</MDRow>}
                 {data.special_request && <MDRow label="요청사항">{data.special_request}</MDRow>}
                 {data.senior?.special_notes && <MDRow label="특이사항">{data.senior.special_notes}</MDRow>}
