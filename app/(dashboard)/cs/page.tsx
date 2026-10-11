@@ -26,6 +26,7 @@ import { csApi, type CsReview } from "@/lib/api/cs";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, formatTimeAgo, cn } from "@/lib/utils";
 import { CareIssuesTab } from "@/components/domain/care-issues";
+import { domainFill } from "@/components/domain/domain-badge";   // 후기 작성자 아이콘 = 그 돌봄의 분야 색(2026-10-11)
 
 function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   const dim = size === "md" ? "w-4 h-4" : "w-3.5 h-3.5";
@@ -42,20 +43,6 @@ function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) 
       ))}
     </span>
   );
-}
-
-// 후기 작성자 아바타 배경 — 작성자명 기반 결정적 색상
-const AVATAR_BG = [
-  "bg-brand-500",
-  "bg-info",
-  "bg-warn",
-  "bg-brand-600",
-  "bg-warm-500",
-];
-function avatarBg(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h + name.charCodeAt(i)) % AVATAR_BG.length;
-  return AVATAR_BG[h];
 }
 
 export default function CsPage() {
@@ -316,10 +303,9 @@ export default function CsPage() {
                   )}
                 >
                   <div
-                    className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-none",
-                      avatarBg(r.reviewer_name)
-                    )}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-none"
+                    style={{ background: domainFill(r.service_domain) }}
+                    title={r.service_domain ?? undefined}
                   >
                     {r.reviewer_name?.[0] ?? "?"}
                   </div>
