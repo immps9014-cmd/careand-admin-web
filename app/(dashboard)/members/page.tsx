@@ -161,6 +161,7 @@ function MembersPageInner() {
   const [status, setStatus] = useState("");
   const [sort, setSort] = useState("recent");
   const [ppMode, setPpMode] = useState(""); // 산모신생아 이용 방식 필터(voucher|hourly|unset)
+  const [ageBand, setAgeBand] = useState(""); // 나이대 필터(회원 생년월일, 만 나이)
   const [detailId, setDetailId] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [blacklistOpen, setBlacklistOpen] = useState(false);
@@ -173,13 +174,14 @@ function MembersPageInner() {
   }, [urlQ]);
 
   const query = useQuery({
-    queryKey: ["admin", "members", role, q, status, sort, ppMode],
+    queryKey: ["admin", "members", role, q, status, sort, ppMode, ageBand],
     queryFn: () =>
       operationsApi.members({
         ...(role ? { role } : {}),
         ...(q ? { q } : {}),
         ...(status ? { status } : {}),
         ...(ppMode ? { postpartum_mode: ppMode } : {}),
+        ...(ageBand ? { age_band: ageBand } : {}),
         sort,
       }),
   });
@@ -289,6 +291,7 @@ function MembersPageInner() {
 
         <StatusFilter value={status} onChange={setStatus} />
         <StatusFilter value={ppMode} onChange={setPpMode} opts={PP_MODE_OPTS} label="바우처" />
+        <StatusFilter value={ageBand} onChange={setAgeBand} opts={AGE_BAND_OPTS} label="나이대" />
         <SortFilter value={sort} onChange={setSort} />
 
         <div className="flex-1" />
@@ -1247,6 +1250,19 @@ const STATUS_OPTS = [
   { key: "active", label: "활성" },
   { key: "suspended", label: "정지" },
   { key: "withdrawn", label: "탈퇴" },
+];
+
+/** 나이대 필터 — 회원 생년월일(users.birth_date) 기준 만 나이, 오늘 KST(2026-10-11~). 미입력=생년월일 없는 회원 */
+const AGE_BAND_OPTS = [
+  { key: "", label: "전체" },
+  { key: "under20", label: "20세 미만" },
+  { key: "20s", label: "20대" },
+  { key: "30s", label: "30대" },
+  { key: "40s", label: "40대" },
+  { key: "50s", label: "50대" },
+  { key: "60s", label: "60대" },
+  { key: "70plus", label: "70세 이상" },
+  { key: "unknown", label: "미입력" },
 ];
 
 /** 산모신생아 이용 방식 필터 — 가입 때 고른 값(2026-10-11~). 미선택=산모신생아를 골랐지만 방식이 없는 회원(이전 가입자 등) */
