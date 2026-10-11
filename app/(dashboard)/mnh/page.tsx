@@ -99,6 +99,8 @@ function MnhPage() {
 const STATUS_FILTERS = [
   { key: "", label: "전체" },
   { key: "applied", label: "신청" },
+  { key: "unpaid", label: "선납 대기" },   // 신청·배정 완료 중 본인부담금 선납 전(대시보드 카드와 같은 묶음)
+  { key: "ongoing", label: "진행 중" },    // 배정 완료+서비스 중
   { key: "confirmed", label: "배정 완료" },
   { key: "active", label: "서비스 중" },
   { key: "completed", label: "종료" },
@@ -122,7 +124,13 @@ function ProvisionalBadges({ r }: { r: { provisional?: boolean; start_change_req
 
 function ContractsTab() {
   const router = useRouter();
-  const [status, setStatus] = useState("");
+  const sp = useSearchParams();
+  // 대시보드 바우처 카드에서 넘어오면 /mnh?tab=contracts&status=ongoing|applied|unpaid
+  const urlStatus = sp.get("status") ?? "";
+  const [status, setStatus] = useState(STATUS_FILTERS.some((f) => f.key === urlStatus) ? urlStatus : "");
+  useEffect(() => {
+    if (STATUS_FILTERS.some((f) => f.key === urlStatus)) setStatus(urlStatus);
+  }, [urlStatus]);
   const [onlyReq, setOnlyReq] = useState(false);
   const [kw, setKw] = useState("");
   const [q, setQ] = useState("");
@@ -135,7 +143,8 @@ function ContractsTab() {
   // 개시일 확인 요청이 있는 계약을 위로
   const rows = (onlyReq ? allRows.filter((r) => r.start_change_request) : [...allRows].sort((a, b) => Number(!!b.start_change_request) - Number(!!a.start_change_request)));
   const counts = query.data?.counts ?? {};
-  const total = Object.values(counts).reduce((a, b) => a + Number(b), 0);
+  // 전체 = 실제 상태 5가지 합(ongoing·unpaid 는 겹치는 묶음이라 빼고 센다)
+  const total = Object.entries(counts).filter(([k]) => k !== "ongoing" && k !== "unpaid").reduce((a, [, b]) => a + Number(b), 0);
   const needs = rows.filter((r) => r.status === "applied" || (!r.prepaid && r.status === "confirmed")).length;
 
   return (

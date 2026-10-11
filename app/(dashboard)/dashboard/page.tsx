@@ -93,11 +93,19 @@ export default function DashboardPage() {
         <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
         <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined}
           subLabel={kpi?.voucher_revenue_this_week ? `바우처 선납 ${formatKRW(kpi.voucher_revenue_this_week)} 포함` : undefined} />
-        {/* 산모신생아 바우처 계약 — 큰 숫자=진행 중(확정+서비스 중), 누르면 바우처 계약 화면 */}
-        <button type="button" onClick={() => router.push("/mnh")} className="text-left rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" aria-label="바우처 계약 화면으로">
+        {/* 산모신생아 바우처 계약 — 카드=진행 중 목록, 아래 두 숫자=신청 대기·선납 대기 목록(계약 화면 같은 필터) */}
+        <div className="relative rounded-xl">
           <KpiCard label="바우처 계약 (진행 중)" value={kpi?.mnh_contracts?.ongoing ?? 0} icon={Baby} iconColor="info"
-            subLabel={kpi?.mnh_contracts ? `신청 대기 ${kpi.mnh_contracts.applied} · 선납 대기 ${kpi.mnh_contracts.unpaid}` : undefined} />
-        </button>
+            footer={kpi?.mnh_contracts && (
+              <span className="relative z-20 inline-flex gap-2">
+                <button type="button" onClick={() => router.push("/mnh?tab=contracts&status=applied")} className="hover:text-brand-600 hover:underline">신청 대기 {kpi.mnh_contracts.applied}</button>
+                <span aria-hidden>·</span>
+                <button type="button" onClick={() => router.push("/mnh?tab=contracts&status=unpaid")} className="hover:text-brand-600 hover:underline">선납 대기 {kpi.mnh_contracts.unpaid}</button>
+              </span>
+            )} />
+          <button type="button" onClick={() => router.push("/mnh?tab=contracts&status=ongoing")}
+            className="absolute inset-0 z-10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" aria-label="진행 중 바우처 계약 목록" />
+        </div>
       </div>
 
       <Card className="mb-6">

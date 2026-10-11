@@ -1,4 +1,5 @@
 import { cn, formatCompact } from "@/lib/utils";
+import type { ReactNode } from "react";
 import { ChevronRight, LucideIcon, TrendingDown, TrendingUp } from "lucide-react";
 
 interface KpiCardProps {
@@ -10,9 +11,11 @@ interface KpiCardProps {
   subLabel?: string;
   cta?: string;
   iconColor?: "brand" | "danger" | "warn" | "info";
+  /** subLabel 자리에 링크·버튼 등을 둘 때(2026-10-11, 바우처 카드) */
+  footer?: ReactNode;
 }
 
-export function KpiCard({ label, value, icon: Icon, variant = "default", trend, subLabel, cta, iconColor = "brand" }: KpiCardProps) {
+export function KpiCard({ label, value, icon: Icon, variant = "default", trend, subLabel, cta, iconColor = "brand", footer }: KpiCardProps) {
   const isBrand = variant === "brand";
   const isAlert = variant === "alert";
   const isHighlighted = isBrand || isAlert;
@@ -25,8 +28,9 @@ export function KpiCard({ label, value, icon: Icon, variant = "default", trend, 
         <div className={cn("w-8 h-8 rounded-md flex items-center justify-center", isHighlighted ? "bg-white/15 text-white" : iconColor === "danger" ? "bg-danger-bg text-danger" : iconColor === "warn" ? "bg-warn-bg text-warn" : iconColor === "info" ? "bg-info-bg text-info" : "bg-brand-50 text-brand-600")}><Icon className="w-4 h-4" /></div>
       </div>
       <div className={cn("font-en text-3xl font-extrabold leading-none tracking-tight", isHighlighted ? "text-white" : "text-warm-800")}>{formattedValue}</div>
-      {subLabel && <div className={cn("mt-2.5 text-xs font-semibold", isHighlighted ? "text-white/90 bg-white/15 px-2.5 py-1 rounded-full w-fit" : "text-warm-500")}>{subLabel}</div>}
-      {!subLabel && trend && (<div className={cn("mt-2 flex items-center gap-1 text-xs font-semibold", isHighlighted ? "text-white/80" : trend.pct >= 0 ? "text-brand-600" : "text-danger")}>{trend.pct >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}<span>{trend.pct > 0 ? "+" : ""}{trend.pct}% {trend.label}</span></div>)}
+      {footer && <div className="mt-2.5 text-xs font-semibold text-warm-500">{footer}</div>}
+      {!footer && subLabel && <div className={cn("mt-2.5 text-xs font-semibold", isHighlighted ? "text-white/90 bg-white/15 px-2.5 py-1 rounded-full w-fit" : "text-warm-500")}>{subLabel}</div>}
+      {!footer && !subLabel && trend && (<div className={cn("mt-2 flex items-center gap-1 text-xs font-semibold", isHighlighted ? "text-white/80" : trend.pct >= 0 ? "text-brand-600" : "text-danger")}>{trend.pct >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}<span>{trend.pct > 0 ? "+" : ""}{trend.pct}% {trend.label}</span></div>)}
       {cta && <div className="absolute bottom-4 right-4 flex items-center gap-0.5 text-[11.5px] font-bold text-white/90">{cta} <ChevronRight className="w-3.5 h-3.5" /></div>}
     </div>
   );
