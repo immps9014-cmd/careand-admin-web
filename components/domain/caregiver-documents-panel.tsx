@@ -2,9 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Eye, FileCheck2, Landmark, XCircle, CheckCircle2, Phone, UserRound, HeartHandshake } from "lucide-react";
+import { Eye, FileCheck2, Landmark, XCircle, CheckCircle2, Phone, HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { operationsApi, type CgDocStatus } from "@/lib/api/operations";
+import { CaregiverAvatarPicker } from "@/components/domain/caregiver-avatar-picker";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -139,7 +140,7 @@ export function CaregiverDocumentsPanel({ caregiverId }: { caregiverId: number }
           <span className="text-danger font-semibold">미등록</span>
         )}
       </div>
-      {d.extras && <ExtrasBlock x={d.extras} />}
+      {d.extras && <ExtrasBlock x={d.extras} caregiverId={caregiverId} onChanged={() => qc.invalidateQueries({ queryKey: ["admin", "caregiver-docs", caregiverId] })} />}
     </div>
   );
 }
@@ -148,7 +149,7 @@ const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const TIMES: Record<string, string> = { day: "주간", evening: "저녁", night: "야간", live_in: "입주·숙식" };
 
 /** 프로필 사진·비상연락처·희망사항 — 승인 전 확인용 */
-function ExtrasBlock({ x }: { x: NonNullable<import("@/lib/api/operations").CgDocuments["extras"]> }) {
+function ExtrasBlock({ x, caregiverId, onChanged }: { x: NonNullable<import("@/lib/api/operations").CgDocuments["extras"]>; caregiverId: number; onChanged: () => void }) {
   const p = x.work_preferences;
   const pref = p ? [
     p.days.length ? p.days.map((n) => DAYS[n - 1]).join("·") : null,
@@ -157,10 +158,8 @@ function ExtrasBlock({ x }: { x: NonNullable<import("@/lib/api/operations").CgDo
   ].filter(Boolean).join(" / ") : "";
   return (
     <div className="mt-3 flex gap-3 rounded-lg border border-warm-100 p-3">
-      <div className="w-16 h-16 shrink-0 rounded-full bg-warm-100 overflow-hidden grid place-items-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {x.photo_url ? <img src={x.photo_url} alt="프로필 사진" className="w-full h-full object-cover" /> : <UserRound className="w-7 h-7 text-warm-400" />}
-      </div>
+      {/* 사진·캐릭터 — 사진이 없으면 관리자가 캐릭터를 골라 줄 수 있다(2026-10-11) */}
+      <CaregiverAvatarPicker caregiverId={caregiverId} photoUrl={x.photo_url} avatarKey={x.avatar_key} onChanged={onChanged} />
       <div className="min-w-0 flex-1 space-y-1 text-[12.5px] text-warm-700">
         {x.missing.length > 0 && (
           <p className="text-danger font-semibold">미입력: {x.missing.map((m) => (m === "photo" ? "프로필 사진" : "비상연락처")).join(", ")}</p>

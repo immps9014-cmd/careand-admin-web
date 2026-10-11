@@ -56,6 +56,7 @@ export interface CgDocuments {
     emergency_contact: { name: string; relation: string; phone: string } | null;
     work_preferences: { days: number[]; times: string[]; regions: string | null; note: string | null } | null;
     photo_url: string | null;
+    avatar_key?: string | null;
     missing: ("emergency_contact" | "photo")[];
   };
 }
@@ -279,6 +280,9 @@ export interface MemberSummary {
 
 export interface CaregiverDetail {
   id: number;
+  /** 프로필 사진(서명 링크)·사진 대신 고른 캐릭터(c1~c8) — 2026-10-11 */
+  photo_url?: string | null;
+  avatar_key?: string | null;
   status: "pending" | "active" | "suspended" | "rejected" | "leave";
   gender: "M" | "F" | null;
   birth_date: string | null;

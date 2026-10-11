@@ -49,6 +49,7 @@ import { operationsApi, type CaregiverDetail, type CreateMemberInput, type Membe
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/store";
+import { CaregiverAvatarPicker } from "@/components/domain/caregiver-avatar-picker";
 import { ExportMembersButton } from "@/components/domain/export-members-button";
 import { BlacklistModal, blacklistApi } from "@/components/domain/blacklist-modal";
 
@@ -674,6 +675,10 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                     </div>
 
                     <div className="rounded-lg border border-warm-100 px-4 mb-4">
+                      {/* 프로필 사진·캐릭터(2026-10-11) — 사진이 없으면 캐릭터를 골라 줄 수 있다 */}
+                      <DRow label="프로필 사진">
+                        <CaregiverAvatarPicker caregiverId={cg.id} photoUrl={cg.photo_url} avatarKey={cg.avatar_key} onChanged={invalidate} size={48} />
+                      </DRow>
                       <DRow label="자격번호">
                         <span className="font-en font-semibold inline-flex items-center gap-1.5">
                           <IdCard className="w-3.5 h-3.5 text-warm-500" />{cg.license_no || "미제출"}
