@@ -172,6 +172,13 @@ function MembersPageInner() {
   useEffect(() => {
     if (urlQ) setQ(urlQ);
   }, [urlQ]);
+  // 대시보드 나이대 막대에서 넘어올 때 — /members?age_band=50s&role=service|guardian_all|caregiver
+  const urlAge = searchParams.get("age_band") ?? "";
+  const urlRole = searchParams.get("role") ?? "";
+  useEffect(() => {
+    if (urlAge) setAgeBand(urlAge);
+    if (urlRole) setRole(urlRole);
+  }, [urlAge, urlRole]);
 
   const query = useQuery({
     queryKey: ["admin", "members", role, q, status, sort, ppMode, ageBand],
@@ -289,6 +296,13 @@ function MembersPageInner() {
           ))}
         </div>
 
+        {/* 탭에 없는 대상(대시보드 나이대 막대에서 넘어옴) — 눌러서 해제 */}
+        {VIRTUAL_ROLE_LABEL[role] && (
+          <button type="button" onClick={() => setRole("")}
+            className="inline-flex items-center gap-1 rounded-full bg-info-bg px-3 py-1.5 text-xs font-semibold text-info hover:opacity-80" title="대상 필터 해제">
+            대상: {VIRTUAL_ROLE_LABEL[role]} <X className="w-3.5 h-3.5" />
+          </button>
+        )}
         <StatusFilter value={status} onChange={setStatus} />
         <StatusFilter value={ppMode} onChange={setPpMode} opts={PP_MODE_OPTS} label="바우처" />
         <StatusFilter value={ageBand} onChange={setAgeBand} opts={AGE_BAND_OPTS} label="나이대" />
@@ -1251,6 +1265,9 @@ const STATUS_OPTS = [
   { key: "suspended", label: "정지" },
   { key: "withdrawn", label: "탈퇴" },
 ];
+
+/** 탭에 없는 대상 — 대시보드 「나이대별 회원 분포」 전체·보호자 탭과 같은 기준(서버 role=service|guardian_all) */
+const VIRTUAL_ROLE_LABEL: Record<string, string> = { service: "보호자+돌봄전문가", guardian_all: "보호자 전체(요청자 포함)" };
 
 /** 나이대 필터 — 회원 생년월일(users.birth_date) 기준 만 나이, 오늘 KST(2026-10-11~). 미입력=생년월일 없는 회원 */
 const AGE_BAND_OPTS = [
