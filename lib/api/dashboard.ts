@@ -7,6 +7,8 @@ export interface DashboardKpi {
   revenue_this_week: number;
   /** 그중 산모신생아 바우처 선납(환불 차감) — 결제 기록 밖이라 따로 더한 금액 */
   voucher_revenue_this_week?: number;
+  /** 산모신생아 바우처 계약 — ongoing=확정+서비스 중, applied=신청(확인 전), unpaid=본인부담금 선납 전 */
+  mnh_contracts?: { ongoing: number; applied: number; unpaid: number };
   revenue_change_pct: number;
   high_alerts_unresolved: number;
   pending_caregivers: number;
