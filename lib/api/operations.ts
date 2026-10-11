@@ -534,6 +534,10 @@ export const operationsApi = {
   updateMemberCredentials: (id: number, payload: { email?: string; phone?: string; password?: string }) =>
     api.patch(`/v1/admin/members/${id}/credentials`, payload),
 
+  // 회원 생년월일 수정(null=지움) — 돌봄전문가는 서버가 자격 정보 생년월일도 맞춘다
+  updateMemberBirthDate: (id: number, birth_date: string | null) =>
+    api.patch(`/v1/admin/members/${id}/birth-date`, { birth_date }),
+
   // 보호자 산모신생아 이용 방식 수정(null=미선택으로 지움)
   updateMemberPostpartumMode: (id: number, mode: "voucher" | "hourly" | null) =>
     api.patch(`/v1/admin/members/${id}/postpartum-mode`, { mode }),

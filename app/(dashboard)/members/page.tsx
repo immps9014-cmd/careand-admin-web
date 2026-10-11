@@ -523,6 +523,14 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  const [birthEdit, setBirthEdit] = useState<string | null>(null); // 수정 중인 생년월일(YYYY-MM-DD, ""=지우기)
+  useEffect(() => setBirthEdit(null), [id]); // 다른 회원을 열면 편집 닫기
+  const saveBirth = useMutation({
+    mutationFn: (v: string | null) => operationsApi.updateMemberBirthDate(id, v),
+    onSuccess: (_r, v) => { toast.success(v ? "생년월일을 저장했습니다." : "생년월일을 지웠습니다."); setBirthEdit(null); invalidate(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
   const savePpMode = useMutation({
     mutationFn: (mode: "voucher" | "hourly" | null) => operationsApi.updateMemberPostpartumMode(id!, mode),
     onSuccess: (_r, mode) => { toast.success(mode ? `이용 방식을 「${PP_MODE_LABEL[mode]}」로 바꿨습니다.` : "이용 방식을 미선택으로 되돌렸습니다."); invalidate(); },
@@ -601,12 +609,35 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                 <DRow label="역할"><Badge variant={ROLE_BADGE[data.role]?.variant ?? "outline"}>{ROLE_BADGE[data.role]?.label ?? data.role}</Badge></DRow>
                 <DRow label="계정 상태">{data.status}</DRow>
                 <DRow label="생년월일">
-                  {data.birth_date ? (
-                    <span className="font-en">{data.birth_date} <span className="text-warm-500">(만 {koreanAge(data.birth_date)}세)</span></span>
+                  {birthEdit !== null ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <input
+                        type="date"
+                        aria-label="생년월일"
+                        value={birthEdit}
+                        min="1900-01-01"
+                        max={new Date(Date.now() + 9 * 3600e3 - 864e5).toISOString().slice(0, 10)}
+                        onChange={(e) => setBirthEdit(e.target.value)}
+                        className="h-8 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 font-en focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                      />
+                      <Button size="sm" variant="brand" disabled={saveBirth.isPending || birthEdit === (data.birth_date ?? "")}
+                        onClick={() => saveBirth.mutate(birthEdit || null)}>저장</Button>
+                      <Button size="sm" variant="outline" disabled={saveBirth.isPending} onClick={() => setBirthEdit(null)}>취소</Button>
+                    </span>
                   ) : (
-                    <span className="text-warm-500">입력 안 함</span>
+                    <span className="inline-flex items-center gap-2">
+                      {data.birth_date ? (
+                        <span className="font-en">{data.birth_date} <span className="text-warm-500">(만 {koreanAge(data.birth_date)}세)</span></span>
+                      ) : (
+                        <span className="text-warm-500">입력 안 함</span>
+                      )}
+                      <button type="button" onClick={() => setBirthEdit(data.birth_date ?? "")} className="text-xs font-semibold text-brand-600 hover:underline">수정</button>
+                    </span>
                   )}
                 </DRow>
+                {birthEdit !== null && data.role === "caregiver" && (
+                  <p className="pb-2 text-[11px] text-warm-500">돌봄전문가는 자격 정보의 생년월일도 같은 값으로 바뀌어요(지우기는 회원정보만).</p>
+                )}
                 <DRow label="가입일"><span className="font-en">{formatDate(data.created_at)}</span></DRow>
                 {data.withdrawn_at && (
                   <DRow label="탈퇴일"><span className="font-en text-danger">{formatDate(data.withdrawn_at)}</span></DRow>
