@@ -19,7 +19,7 @@ import { DomainBadge, domainFill } from "@/components/domain/domain-badge";
 
 const DOMAIN_CARDS = [
   { key: "senior", label: "요양보호" },
-  { key: "nursing", label: "간병" },
+  { key: "nursing", label: "병원 간병" },
   { key: "living_support", label: "생활지원" },
   { key: "postpartum", label: "산모신생아" },
   { key: "childcare", label: "아이돌봄" },

@@ -61,7 +61,7 @@ function StatRow({
 // 분야 색은 DOMAIN_COLOR(domain-badge.tsx) 하나만 쓴다 — CAREN-COLOR-01 §3
 const DOMAIN_SLICES = [
   { key: "senior", name: "요양보호" },
-  { key: "nursing", name: "간병" },
+  { key: "nursing", name: "병원 간병" },
   { key: "living_support", name: "생활지원" },
   { key: "postpartum", name: "산모신생아" },
   { key: "childcare", name: "아이돌봄" },

@@ -1,19 +1,19 @@
 // SSOT: 돌봄전문가 직군(service domain) ↔ 한글 라벨
-// senior=요양보호, nursing=간병, housekeeping=가사, postpartum=산모신생아
-// (레거시 별칭: care=간병, companion=동행)
+// senior=요양보호, nursing=병원 간병(10-12 가입 화면과 통일), housekeeping=가사, postpartum=산모신생아
+// (레거시 별칭: care=병원 간병, companion=동행)
 // service_domains(복수, 돌봄전문가 본인의 직군)와 service_domain(단수, 요청/세션 유형)
 // 모두 동일 분류를 쓰므로 이 한 곳에서 라벨을 관리한다.
 
 export const DOMAIN_LABEL: Record<string, string> = {
   senior: "요양보호",
-  nursing: "간병",
+  nursing: "병원 간병",
   housekeeping: "가사",
   living_support: "생활지원",
   postpartum: "산모신생아",
   childcare: "아이돌봄",
   mental_care: "마음돌봄",
   companion: "동행",
-  care: "간병",
+  care: "병원 간병",
 };
 
 /** 단일 도메인 코드 → 한글 라벨 (빈 값은 "-") */
