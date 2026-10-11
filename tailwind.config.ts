@@ -39,15 +39,15 @@ const config: Config = {
         },
         // ===== Semantic =====
         danger: {
-          DEFAULT: "#EF4444",
+          DEFAULT: "#B91C1C", // 글자 대비 4.5:1 이상(옛 #EF4444 3.8:1) — CAREN-COLOR-01 §9
           bg: "#FEF2F2",
         },
         warn: {
-          DEFAULT: "#F59E0B",
+          DEFAULT: "#B45309", // 옛 #F59E0B 2.2:1
           bg: "#FFFBEB",
         },
         info: {
-          DEFAULT: "#3B82F6",
+          DEFAULT: "#2563EB", // 옛 #3B82F6 3.7:1
           bg: "#EFF6FF",
         },
         // ===== shadcn/ui 호환 =====
@@ -70,7 +70,7 @@ const config: Config = {
           foreground: "#973E27",
         },
         destructive: {
-          DEFAULT: "#EF4444",
+          DEFAULT: "#B91C1C", // 글자 대비 4.5:1 이상(옛 #EF4444 3.8:1) — CAREN-COLOR-01 §9
           foreground: "#FFFFFF",
         },
         border: "#E2DFDA",

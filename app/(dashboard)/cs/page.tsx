@@ -383,7 +383,7 @@ export default function CsPage() {
                         className={cn(
                           "ml-auto h-[30px] px-3 rounded-md text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap transition-colors",
                           r.is_negative
-                            ? "bg-danger text-white hover:bg-red-600"
+                            ? "bg-danger text-white hover:bg-red-800"
                             : "border border-warm-200 bg-white text-warm-600 hover:bg-warm-50"
                         )}
                       >
