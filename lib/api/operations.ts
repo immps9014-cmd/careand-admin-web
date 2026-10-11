@@ -304,6 +304,8 @@ export interface GuardianDetail {
   /** 가입 때 고른 주로 이용할 서비스(선택 순서, 첫 항목=대표) */
   services?: string[];
   postpartum_mode?: "voucher" | "hourly" | null;
+  /** 가입 의도(care|housekeeping|postpartum|childcare|mental_care) */
+  intent?: string;
   seniors: { name: string; care_grade: number | null }[];
   patients: { name: string; hospital_name: string | null }[];
 }
@@ -520,6 +522,10 @@ export const operationsApi = {
   // 슈퍼관리자 전용: 회원 로그인 ID(이메일)·연락처·비밀번호 관리
   updateMemberCredentials: (id: number, payload: { email?: string; phone?: string; password?: string }) =>
     api.patch(`/v1/admin/members/${id}/credentials`, payload),
+
+  // 보호자 산모신생아 이용 방식 수정(null=미선택으로 지움)
+  updateMemberPostpartumMode: (id: number, mode: "voucher" | "hourly" | null) =>
+    api.patch(`/v1/admin/members/${id}/postpartum-mode`, { mode }),
 
   // 매칭 변경: 담당 돌봄전문가 교체 / 일정 날짜 수정 (requestId 기준)
   updateMatch: (requestId: number, payload: { caregiver_id?: number; scheduled_start?: string }) =>

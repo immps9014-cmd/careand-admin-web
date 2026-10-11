@@ -515,6 +515,12 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
 
+  const savePpMode = useMutation({
+    mutationFn: (mode: "voucher" | "hourly" | null) => operationsApi.updateMemberPostpartumMode(id!, mode),
+    onSuccess: (_r, mode) => { toast.success(mode ? `이용 방식을 「${PP_MODE_LABEL[mode]}」로 바꿨습니다.` : "이용 방식을 미선택으로 되돌렸습니다."); invalidate(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+
   const [cgDomainsEdit, setCgDomainsEdit] = useState<string[] | null>(null);
   const saveCgDomains = useMutation({
     mutationFn: ({ cgId, service_domains }: { cgId: number; service_domains: string }) =>
@@ -792,9 +798,30 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                           <span className="text-warm-500">가입 때 선택 안 함</span>
                         )}
                       </DRow>
-                      {data.guardian.services?.includes("postpartum") && (
+                      {(data.guardian.services?.includes("postpartum") || data.guardian.intent === "postpartum") && (
                         <DRow label="산모신생아 이용 방식">
-                          {data.guardian.postpartum_mode ? PP_MODE_LABEL[data.guardian.postpartum_mode] : <span className="text-warm-500">가입 때 선택 안 함</span>}
+                          {/* 누르면 바로 저장(상담 뒤 바로잡기·이전 가입자 채우기) */}
+                          <span className="inline-flex rounded-md bg-warm-100 p-0.5" role="radiogroup" aria-label="산모신생아 이용 방식">
+                            {([["voucher", "정부 바우처"], ["hourly", "시간 단위"], [null, "미선택"]] as const).map(([v, label]) => {
+                              const on = (data.guardian!.postpartum_mode ?? null) === v;
+                              return (
+                                <button
+                                  key={label}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={on}
+                                  disabled={savePpMode.isPending}
+                                  onClick={() => { if (!on) savePpMode.mutate(v); }}
+                                  className={cn(
+                                    "px-2.5 py-1 text-xs font-semibold rounded transition-colors disabled:opacity-60",
+                                    on ? (v === "voucher" ? "bg-info-bg text-info shadow-sm" : "bg-white text-warm-800 shadow-sm") : "text-warm-500 hover:text-warm-800"
+                                  )}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </span>
                         </DRow>
                       )}
                       <DRow label="관계">{data.guardian.relation || "-"}</DRow>
