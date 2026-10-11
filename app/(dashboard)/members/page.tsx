@@ -52,6 +52,7 @@ import { useAuth } from "@/lib/auth/store";
 import { CaregiverAvatarPicker } from "@/components/domain/caregiver-avatar-picker";
 import { ExportMembersButton } from "@/components/domain/export-members-button";
 import { BlacklistModal, blacklistApi } from "@/components/domain/blacklist-modal";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const ORG_STATUS: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
   pending: { variant: "warn", label: "승인 대기" },
@@ -127,9 +128,7 @@ function ServiceBadges({ services, ppMode }: { services: string[]; ppMode?: stri
   return (
     <span className="inline-flex flex-wrap gap-1">
       {services.map((d, i) => (
-        <Badge key={d} variant={i === 0 ? "brand" : "outline"} title={i === 0 ? "대표 서비스" : undefined}>
-          {DOMAIN_LABEL[d] ?? d}
-        </Badge>
+        <DomainBadge key={d} domain={d} solid={i === 0} title={i === 0 ? "대표 서비스" : undefined} />
       ))}
       {ppMode && (
         <Badge variant={ppMode === "voucher" ? "info" : "outline"} title="산모신생아 이용 방식">
@@ -396,7 +395,7 @@ function MembersPageInner() {
                       (m.service_domains || "").split(",").filter(Boolean).length > 0 ? (
                         <span className="inline-flex flex-wrap gap-1">
                           {(m.service_domains || "").split(",").filter(Boolean).map((d) => (
-                            <Badge key={d} variant="brand">{DOMAIN_LABEL[d] ?? d}</Badge>
+                            <DomainBadge key={d} domain={d} />
                           ))}
                         </span>
                       ) : (
@@ -700,7 +699,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                         {cgDomainsEdit === null ? (
                           <span className="inline-flex flex-wrap gap-1 items-center justify-end">
                             {(cg.service_domains || "").split(",").filter(Boolean).map((d) => (
-                              <Badge key={d} variant="brand">{DOMAIN_LABEL[d] ?? d}</Badge>
+                              <DomainBadge key={d} domain={d} />
                             ))}
                             {!cg.service_domains && <span className="text-warm-500">-</span>}
                             <button type="button" onClick={() => setCgDomainsEdit((cg.service_domains || "").split(",").filter(Boolean))} className="text-xs font-semibold text-brand-600 hover:underline ml-1">수정</button>

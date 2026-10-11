@@ -26,6 +26,7 @@ import { CaregiverDocumentsPanel } from "@/components/domain/caregiver-documents
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, cn } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const STATUS_TABS: { key: string; label: string }[] = [
   { key: "pending", label: "승인 대기" },
@@ -290,7 +291,7 @@ export default function CaregiverApprovalPage() {
                     <div className="text-[11px] font-extrabold text-warm-500 uppercase tracking-wide mb-2.5">서비스 도메인 · 특기</div>
                     <div className="flex flex-wrap gap-1.5">
                       {(selected.service_domains || "senior").split(",").map((d) => (
-                        <Badge key={d} variant="brand">{DOMAIN_LABEL[d] ?? d}</Badge>
+                        <DomainBadge key={d} domain={d} />
                       ))}
                       {selected.specialties.length === 0 && (
                         <span className="text-warm-500 text-xs self-center">등록된 특기 없음</span>

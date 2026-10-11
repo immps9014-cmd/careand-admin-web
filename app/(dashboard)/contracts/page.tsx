@@ -20,6 +20,7 @@ import {
 import { operationsApi } from "@/lib/api/operations";
 import { cn, formatDateTime, formatKRW } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -55,11 +56,6 @@ const VISIT_STYLE: Record<string, { border: string; bg: string; text: string; do
   completed: { border: "border-l-brand-400", bg: "bg-white", text: "text-brand-600", dot: "bg-brand-400" },
   cancelled: { border: "border-l-warm-400", bg: "bg-white", text: "text-warm-500", dot: "bg-warm-400" },
   no_show: { border: "border-l-danger", bg: "bg-white", text: "text-danger", dot: "bg-danger" },
-};
-
-// 도메인 배지 색 (매칭 페이지와 동일 규칙)
-const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", childcare: "info", mental_care: "outline", companion: "outline",
 };
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
@@ -438,9 +434,7 @@ export default function ContractsPage() {
                     </TableCell>
                     <TableCell className="font-medium text-warm-700">{c.senior_name}</TableCell>
                     <TableCell>
-                      <Badge variant={DOMAIN_BADGE[c.service_domain] ?? "outline"}>
-                        {DOMAIN_LABEL[c.service_domain] ?? c.service_domain}
-                      </Badge>
+                      <DomainBadge domain={c.service_domain} />
                       <VoucherBadge voucher={c.voucher} className="ml-1" />
                     </TableCell>
                     <TableCell className="font-en text-warm-600 text-xs">

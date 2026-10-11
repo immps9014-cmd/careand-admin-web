@@ -23,6 +23,7 @@ import { KpiCard } from "@/components/domain/kpi-card";
 import { operationsApi } from "@/lib/api/operations";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const TABS = [
   { key: "", label: "진행 전체" },
@@ -130,7 +131,7 @@ export default function CareSessionsPage() {
                   </TableCell>
                   <TableCell className="text-warm-700">{s.caregiver_name}</TableCell>
                   <TableCell>
-                    <Badge variant="brand">{DOMAIN_LABEL[s.service_domain] ?? s.service_domain}</Badge>
+                    <DomainBadge domain={s.service_domain} />
                     <VoucherBadge voucher={s.voucher} className="ml-1" />
                   </TableCell>
                   <TableCell className="text-warm-600 font-en text-xs">

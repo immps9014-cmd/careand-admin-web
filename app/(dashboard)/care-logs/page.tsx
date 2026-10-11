@@ -22,6 +22,7 @@ import { operationsApi } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const TABS: { key: string; label: string }[] = [
   { key: "pending", label: "검수 대기" },
@@ -33,16 +34,6 @@ const REVIEW_BADGE: Record<string, { variant: "warn" | "success" | "danger"; lab
   pending: { variant: "warn", label: "검수 대기" },
   approved: { variant: "success", label: "승인" },
   rejected: { variant: "danger", label: "반려" },
-};
-
-const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand",
-  nursing: "info",
-  living_support: "success",
-  postpartum: "warn",
-  childcare: "info",
-  mental_care: "outline",
-  companion: "outline",
 };
 
 const AVATAR_BG: Record<string, string> = {
@@ -257,9 +248,7 @@ export default function CareLogsPage() {
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-en text-[11.5px] font-bold text-warm-500">#{log.id}</span>
-                    <Badge variant={DOMAIN_BADGE[log.service_domain] ?? "outline"} className="text-[10px] px-2 py-0">
-                      {DOMAIN_LABEL[log.service_domain] ?? log.service_domain ?? "-"}
-                    </Badge>
+                    <DomainBadge domain={log.service_domain} className="text-[10px] px-2 py-0" />
                     {flagged && (
                       <span className="ml-auto text-[9.5px] font-extrabold text-white bg-danger rounded px-1.5 py-0.5">
                         시간 0분

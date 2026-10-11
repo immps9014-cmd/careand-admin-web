@@ -23,6 +23,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
+import { DomainBadge } from "@/components/domain/domain-badge";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -37,11 +38,6 @@ const STATUS_PILL: Record<string, { cls: string; dot: string; label: string }> =
   matched: { cls: "bg-brand-50 text-brand-700", dot: "bg-brand-500", label: "매칭됨" },
   expired: { cls: "bg-danger-bg text-danger", dot: "bg-danger", label: "만료" },
   cancelled: { cls: "bg-warm-100 text-warm-500", dot: "bg-warm-400", label: "취소" },
-};
-
-// 도메인 배지 색상 (mockup: dom-senior=purple, dom-nursing=info, dom-house=ok)
-const DOMAIN_BADGE: Record<string, "brand" | "info" | "success" | "warn" | "outline"> = {
-  senior: "brand", nursing: "info", living_support: "success", postpartum: "warn", childcare: "info", mental_care: "outline", companion: "outline",
 };
 
 // 아바타 배경 (도메인 기반)
@@ -281,9 +277,7 @@ export default function MatchingPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={DOMAIN_BADGE[row.service_domain] ?? "outline"}>
-                        {DOMAIN_LABEL[row.service_domain] ?? row.service_domain}
-                      </Badge>
+                      <DomainBadge domain={row.service_domain} />
                       <VoucherBadge voucher={row.voucher} className="ml-1" />
                       {row.category && (
                         <div className="mt-1 text-[11px] text-warm-500">{[row.category, ...(row.extra_categories ?? [])].join(" + ")}</div>
