@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
-import { paymentsApi, type PaymentPeriod, type PaymentRow } from "@/lib/api/payments";
+import { paymentsApi, type PaymentListParams, type PaymentPeriod, type PaymentRow } from "@/lib/api/payments";
+import { ExportPaymentsButton } from "@/components/domain/export-payments-button";
 import { cn, formatKRW, formatDateTime } from "@/lib/utils";
 
 /**
@@ -69,18 +70,18 @@ export default function PaymentsPage() {
   useEffect(() => setPage(1), [period, from, to, kind, allStatus, q]);
 
   const customReady = period !== "custom" || (!!from && !!to);
+  // 화면 필터 = 엑셀 다운로드 필터(쪽 번호만 빼고)
+  const filters: PaymentListParams = {
+    period,
+    ...(period === "custom" ? { from, to } : {}),
+    ...(kind ? { kind } : {}),
+    ...(allStatus ? { status: "all" as const } : {}),
+    ...(q ? { q } : {}),
+  };
   const query = useQuery({
     queryKey: ["admin", "payments", period, from, to, kind, allStatus, q, page],
     enabled: customReady,
-    queryFn: () =>
-      paymentsApi.list({
-        period,
-        ...(period === "custom" ? { from, to } : {}),
-        ...(kind ? { kind } : {}),
-        ...(allStatus ? { status: "all" as const } : {}),
-        ...(q ? { q } : {}),
-        page,
-      }),
+    queryFn: () => paymentsApi.list({ ...filters, page }),
   });
   const s = query.data?.summary;
   const rows = query.data?.data ?? [];
@@ -88,9 +89,13 @@ export default function PaymentsPage() {
 
   return (
     <div className="p-4 sm:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">결제 내역</h1>
-        <p className="text-sm text-warm-500 mt-1">카드 결제와 산모신생아 바우처 본인부담금 선납·환불을 한곳에서 봅니다. 기간은 한국 시각 기준이에요.</p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">결제 내역</h1>
+          <p className="text-sm text-warm-500 mt-1">카드 결제와 산모신생아 바우처 본인부담금 선납·환불을 한곳에서 봅니다. 기간은 한국 시각 기준이에요.</p>
+        </div>
+        {/* 슈퍼관리자에게만 보인다(개인정보 다운로드 권한) */}
+        <ExportPaymentsButton params={filters} rangeLabel={s ? `${s.from} ~ ${s.to}, ${meta?.total ?? 0}건` : undefined} disabled={!customReady} />
       </div>
 
       {/* 기간 */}
