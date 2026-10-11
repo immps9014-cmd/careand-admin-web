@@ -275,6 +275,7 @@ export default function ContractsPage() {
                             <span className={cn("w-1.5 h-1.5 rounded-full", st.dot)} />
                             {STATUS_PILL[v.status]?.label ?? v.status}
                           </div>
+                          {v.voucher && <VoucherBadge voucher={v.voucher} className="mt-1.5 px-1.5 py-0 text-[10px]" />}
                         </div>
                       );
                     })
@@ -330,7 +331,15 @@ export default function ContractsPage() {
                         onClick={() => setDetailReqId(v.request_id)}
                         className={cn("w-full text-left rounded border border-l-[3px] px-1.5 py-1 leading-tight hover:shadow-card transition-shadow cursor-pointer", st.border, st.bg, v.status === "cancelled" && "opacity-70")}
                       >
-                        <span className="block font-en text-[10px] font-extrabold text-warm-800">{v.scheduled_start ? timeLabel(v.scheduled_start) : "-"}</span>
+                        <span className="block font-en text-[10px] font-extrabold text-warm-800">
+                          {v.scheduled_start ? timeLabel(v.scheduled_start) : "-"}
+                          {/* 좁은 칸이라 글자만 — 「바우처」=바우처 계약, 「대상」=바우처 대상 가정 */}
+                          {v.voucher && (
+                            <span className={cn("ml-1 font-sans font-bold", v.voucher === "contract" ? "text-info" : "text-warn")} title={v.voucher === "contract" ? "바우처 계약 방문" : "바우처 대상 가정"}>
+                              {v.voucher === "contract" ? "바우처" : "대상"}
+                            </span>
+                          )}
+                        </span>
                         <span className={cn("block text-[10px] font-semibold text-warm-600 truncate", v.status === "cancelled" && "line-through text-warm-500")}>{v.senior_name}</span>
                       </button>
                     );
