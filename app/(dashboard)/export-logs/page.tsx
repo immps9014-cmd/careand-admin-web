@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { exportLogsApi, type ExportLogRow } from "@/lib/api/export-logs";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import { cn, formatDateTime } from "@/lib/utils";
 
 /**
@@ -65,11 +66,18 @@ export default function ExportLogsPage() {
 
   return (
     <div className="p-4 sm:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">다운로드 기록</h1>
-        <p className="text-sm text-warm-500 mt-1">
-          회원·결제·정산·목록 엑셀을 누가, 언제, 무슨 사유로, 몇 건 받았는지 봅니다. 사유 없이 시도하거나 권한이 없어 막힌 기록도 함께 보여요.
-        </p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">다운로드 기록</h1>
+          <p className="text-sm text-warm-500 mt-1">
+            회원·결제·정산·목록 엑셀을 누가, 언제, 무슨 사유로, 몇 건 받았는지 봅니다. 사유 없이 시도하거나 권한이 없어 막힌 기록도 함께 보여요.
+          </p>
+        </div>
+        {/* 지금 필터 그대로 — 이 다운로드도 기록에 「다운로드 기록」으로 남는다 */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/export-logs"
+          params={{ period, ...(period === "custom" ? { from, to } : {}), ...(result ? { result } : {}), ...(actor ? { actor_id: actor } : {}), ...(kind ? { kind } : {}) }}
+          title="다운로드 기록 엑셀" scopeLabel={s ? `${s.from} ~ ${s.to}, ${meta?.total ?? 0}건` : undefined}
+          fallbackName="careand_export-logs.xlsx" placeholder="예: 분기 개인정보 접근 점검" disabled={!ready} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-3" role="group" aria-label="기간">
