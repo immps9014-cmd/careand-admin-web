@@ -21,6 +21,7 @@ import { KpiCard } from "@/components/domain/kpi-card";
 import { operationsApi } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const TABS: { key: string; label: string }[] = [
   { key: "pending", label: "검수 대기" },
@@ -153,6 +154,12 @@ export default function CareLogsPage() {
         <p className="text-sm text-warm-500 mt-1">
           C:Writer가 생성한 케어 일지를 검토하고 보호자 앱 발송을 승인·반려합니다
         </p>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/care-logs) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/care-logs" params={{ review_status: reviewStatus }} title="AI 일지 검수 엑셀"
+          scopeLabel={`검수: ${reviewStatus}`} fallbackName="careand_care-logs.xlsx" />
       </div>
 
       {/* 요약 스트립 */}

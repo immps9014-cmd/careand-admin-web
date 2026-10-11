@@ -16,6 +16,7 @@ import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { EpdsTab } from "@/components/domain/mnh-epds";
 import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { cn, formatKRW } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import {
   mnhApi, MNH_STATUS_STYLE, DOW_KO, todayKst,
   type HolidayResync, type MnhAddonItem, type MnhCalendarRow, type MnhContractSummary, type MnhIncomeCriterion, type MnhLabels, type MnhSupportType,
@@ -149,6 +150,12 @@ function ContractsTab() {
 
   return (
     <>
+      <div className="-mt-2 mb-3 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 상태·검색 그대로, 슈퍼관리자만(사유·감사로그) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/mnh-contracts" params={{ ...(status ? { status } : {}), ...(q ? { q } : {}) }}
+          title="바우처 계약 엑셀" scopeLabel={`상태: ${STATUS_FILTERS.find((f) => f.key === status)?.label ?? "전체"}${q ? ` · 검색: ${q}` : ""}`}
+          fallbackName="careand_mnh-contracts.xlsx" />
+      </div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {STATUS_FILTERS.map((f) => (
           <button

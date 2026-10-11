@@ -22,6 +22,7 @@ import { operationsApi, type MatchingDetailData } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -153,6 +154,12 @@ export default function MatchingPage() {
             {String(now.getHours()).padStart(2, "0")}:{String(now.getMinutes()).padStart(2, "0")}
           </span>
         </div>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/matching) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/matching" params={{ ...(status ? { status } : {}), ...(domain ? { domain } : {}) }} title="매칭 요청 엑셀"
+          scopeLabel={`상태: ${status || "전체"} · 분야: ${domain || "전체"}`} fallbackName="careand_matching.xlsx" />
       </div>
 
       {/* 수동 개입 필요 스트립 */}

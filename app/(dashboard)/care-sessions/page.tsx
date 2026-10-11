@@ -22,6 +22,7 @@ import {
 import { KpiCard } from "@/components/domain/kpi-card";
 import { operationsApi } from "@/lib/api/operations";
 import { cn, formatDateTime } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const TABS = [
   { key: "", label: "진행 전체" },
@@ -73,6 +74,12 @@ export default function CareSessionsPage() {
         <p className="text-sm text-warm-500 mt-1">
           매칭 완료 후 출근·진행·퇴근까지, AI 일지 검수 전 단계의 케어를 실시간 관리합니다.
         </p>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/care-sessions) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/care-sessions" params={{ ...(status ? { status } : {}) }} title="케어 진행 현황 엑셀"
+          scopeLabel={`상태: ${status || "전체"}`} fallbackName="careand_care-sessions.xlsx" />
       </div>
 
       {/* KPI */}

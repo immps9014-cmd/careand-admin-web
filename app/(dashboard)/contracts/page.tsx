@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { operationsApi } from "@/lib/api/operations";
 import { cn, formatDateTime, formatKRW } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -194,6 +195,12 @@ export default function ContractsPage() {
             목록
           </button>
         </div>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/contracts) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/contracts" params={{ ...(status ? { status } : {}) }} title="계약·일정 엑셀"
+          scopeLabel={`상태: ${status || "전체"}`} fallbackName="careand_contracts.xlsx" />
       </div>
 
       {/* 요약 스트립 */}

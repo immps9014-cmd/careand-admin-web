@@ -25,6 +25,7 @@ import { operationsApi } from "@/lib/api/operations";
 import { CaregiverDocumentsPanel } from "@/components/domain/caregiver-documents-panel";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, cn } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const STATUS_TABS: { key: string; label: string }[] = [
   { key: "pending", label: "승인 대기" },
@@ -142,6 +143,12 @@ export default function CaregiverApprovalPage() {
         <p className="text-sm text-warm-500 mt-1">
           신규 돌봄전문가의 자격증·서류를 검토하고 승인·반려합니다. 제출 서류(신분증·통장 사본·범죄경력 회보서)는 열람 사유를 남기고 원본을 확인합니다.
         </p>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/caregivers) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/caregivers" params={{ status }} title="돌봄전문가 자격검증 엑셀"
+          scopeLabel={`상태: ${status}`} fallbackName="careand_caregivers.xlsx" />
       </div>
 
       {/* SLA / 현황 요약 */}

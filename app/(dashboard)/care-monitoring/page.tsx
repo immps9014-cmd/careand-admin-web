@@ -17,6 +17,7 @@ import { dashboardApi, type RecentAlert } from "@/lib/api/dashboard";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { toast } from "sonner";
 import { ko, cn } from "@/lib/utils";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 
 const SEVERITIES = [
   { key: "all", label: "전체" },
@@ -151,6 +152,12 @@ export default function CareMonitoringPage() {
             {String(now.getMinutes()).padStart(2, "0")}
           </span>
         </div>
+      </div>
+
+      <div className="-mt-3 mb-4 flex justify-end">
+        {/* 엑셀(.xlsx) — 지금 필터 그대로, 슈퍼관리자만(사유·감사로그, 서버 exports/list/monitoring) */}
+        <ExportXlsxButton endpoint="/v1/admin/exports/list/monitoring" params={{ status: statusFilter, ...(severity !== "all" ? { severity } : {}) }} title="위험 알림 엑셀"
+          scopeLabel={`상태: ${statusFilter} · 위험도: ${severity}`} fallbackName="careand_monitoring.xlsx" />
       </div>
 
       {/* Triage summary */}
