@@ -110,8 +110,11 @@ const ROLE_AVATAR: Record<string, string> = {
   admin: "bg-warm-600",
 };
 
-/** 요청자가 가입 때 고른 이용 서비스 — 선택 순서대로, 첫 항목(대표 서비스)만 강조 */
-function ServiceBadges({ services }: { services: string[] }) {
+/** 산모신생아 이용 방식(앱 가입 카드, 2026-10-11) */
+const PP_MODE_LABEL: Record<string, string> = { voucher: "정부 바우처", hourly: "시간 단위" };
+
+/** 요청자가 가입 때 고른 이용 서비스 — 선택 순서대로, 첫 항목(대표 서비스)만 강조. 산모신생아 이용 방식이 있으면 끝에 붙인다 */
+function ServiceBadges({ services, ppMode }: { services: string[]; ppMode?: string | null }) {
   return (
     <span className="inline-flex flex-wrap gap-1">
       {services.map((d, i) => (
@@ -119,6 +122,11 @@ function ServiceBadges({ services }: { services: string[] }) {
           {DOMAIN_LABEL[d] ?? d}
         </Badge>
       ))}
+      {ppMode && (
+        <Badge variant={ppMode === "voucher" ? "info" : "outline"} title="산모신생아 이용 방식">
+          {PP_MODE_LABEL[ppMode] ?? ppMode}
+        </Badge>
+      )}
     </span>
   );
 }
@@ -366,7 +374,7 @@ function MembersPageInner() {
                         <span className="text-warm-500 text-xs">미등록</span>
                       )
                     ) : m.role === "guardian" && (m.services?.length ?? 0) > 0 ? (
-                      <ServiceBadges services={m.services!} />
+                      <ServiceBadges services={m.services!} ppMode={m.postpartum_mode} />
                     ) : (
                       <span className="text-warm-600 text-sm">{ROLE_BADGE[er]?.label ?? m.role}</span>
                     )}
@@ -781,6 +789,11 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                           <span className="text-warm-500">가입 때 선택 안 함</span>
                         )}
                       </DRow>
+                      {data.guardian.services?.includes("postpartum") && (
+                        <DRow label="산모신생아 이용 방식">
+                          {data.guardian.postpartum_mode ? PP_MODE_LABEL[data.guardian.postpartum_mode] : <span className="text-warm-500">가입 때 선택 안 함</span>}
+                        </DRow>
+                      )}
                       <DRow label="관계">{data.guardian.relation || "-"}</DRow>
                       <DRow label="연락처(주소)"><span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-warm-500" />{data.guardian.contact_address || "-"}</span></DRow>
                       <DRow label="돌봄 대상">

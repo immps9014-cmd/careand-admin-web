@@ -249,6 +249,8 @@ export interface Member {
   service_domains?: string | null;
   /** 요청자가 가입 때 고른 주로 이용할 서비스(선택 순서, 첫 항목=대표). 비-요청자 null */
   services?: string[] | null;
+  /** 산모신생아 이용 방식(가입 때 선택) — voucher 정부 바우처 · hourly 시간 단위. 2026-10-11 이전 가입자는 null */
+  postpartum_mode?: "voucher" | "hourly" | null;
   created_at: string;
   /** 탈퇴(소프트삭제) 일시 — 활성 회원은 null */
   withdrawn_at?: string | null;
@@ -301,6 +303,7 @@ export interface GuardianDetail {
   contact_address: string | null;
   /** 가입 때 고른 주로 이용할 서비스(선택 순서, 첫 항목=대표) */
   services?: string[];
+  postpartum_mode?: "voucher" | "hourly" | null;
   seniors: { name: string; care_grade: number | null }[];
   patients: { name: string; hospital_name: string | null }[];
 }
