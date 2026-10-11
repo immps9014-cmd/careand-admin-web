@@ -4,6 +4,10 @@
 // 본 시리즈(돌봄전문가)는 브랜드색 채움, 비교(팀 평균)는 회색 점선. 꼭짓점마다 큰 투명 히트영역 + 키보드 포커스로 값 표시.
 // 값은 옆의 축별 표에도 그대로 있어 툴팁 없이도 읽힌다. 자료 없는 축(null)은 중심점(0)으로 그리고 「자료 없음」 표시.
 import { useState } from "react";
+import { DOMAIN_COLOR } from "./domain-badge";
+
+// 산모신생아 평가 전용 차트 — 분야 색(산모 채움, CAREN-COLOR-01 §3)
+const PP = DOMAIN_COLOR.postpartum.fill;
 
 export interface HexAxis { key: string; label: string; score: number | null; enough?: boolean }
 
@@ -44,12 +48,12 @@ export function HexagonChart({ axes, compare, size = 260, mini = false, title, f
         {cmp && (
           <polygon points={poly(cmp.map((a) => a.score))} fill="none" stroke="#736D64" strokeWidth={2} strokeDasharray="5 4" strokeLinejoin="round" />
         )}
-        <polygon points={poly(axes.map((a) => a.score))} fill="#D5603E" fillOpacity={0.18} stroke="#D5603E" strokeWidth={2} strokeLinejoin="round" />
+        <polygon points={poly(axes.map((a) => a.score))} fill={PP} fillOpacity={0.18} stroke={PP} strokeWidth={2} strokeLinejoin="round" />
         {axes.map((a, i) => {
           const [x, y] = pt(i, a.score ?? 0);
           return (
             <g key={a.key}>
-              <circle cx={x} cy={y} r={hover === i ? 6 : 4.5} fill={a.score === null ? "#fff" : "#D5603E"} stroke={a.score === null ? "#736D64" : "#fff"} strokeWidth={2} />
+              <circle cx={x} cy={y} r={hover === i ? 6 : 4.5} fill={a.score === null ? "#fff" : PP} stroke={a.score === null ? "#736D64" : "#fff"} strokeWidth={2} />
               {!mini && (
                 <circle cx={x} cy={y} r={16} fill="transparent" tabIndex={0} aria-label={`${a.label} ${a.score ?? "자료 없음"}`}
                   onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
@@ -91,7 +95,7 @@ export function HexagonChart({ axes, compare, size = 260, mini = false, title, f
       </svg>
       {!mini && (
         <figcaption className="flex flex-wrap justify-center gap-4 text-xs text-warm-600 mt-1">
-          <span className="inline-flex items-center gap-1.5"><svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="#D5603E" strokeWidth="2" /></svg>{title ?? "이 돌봄전문가"}</span>
+          <span className="inline-flex items-center gap-1.5"><svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke={PP} strokeWidth="2" /></svg>{title ?? "이 돌봄전문가"}</span>
           {cmp && <span className="inline-flex items-center gap-1.5"><svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="#736D64" strokeWidth="2" strokeDasharray="5 3" /></svg>팀 평균</span>}
         </figcaption>
       )}
