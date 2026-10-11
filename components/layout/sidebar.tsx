@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
+  Receipt,
   ArrowRightLeft,
   BadgeCheck,
   BarChart3,
@@ -44,6 +45,7 @@ const MAIN_NAV: NavItem[] = [
   { href: "/members", area: "members", label: "회원 관리", icon: Users },
   { href: "/matching", area: "matching", label: "매칭 관리", icon: ArrowRightLeft },
   { href: "/care-monitoring", area: "monitoring", label: "케어 모니터링", icon: ClipboardList },
+  { href: "/payments", area: "payments", label: "결제 내역", icon: Receipt },
   { href: "/settlements", area: "settlements", label: "정산", icon: DollarSign },
 ];
 

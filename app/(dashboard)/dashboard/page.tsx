@@ -108,8 +108,7 @@ export default function DashboardPage() {
         <KpiLink href="/contracts?status=ongoing&view=list" label="진행중 매칭 목록">
           <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
         </KpiLink>
-        {/* 결제 건별 목록 화면은 아직 없어 매출이 나오는 리포트로 */}
-        <KpiLink href="/reports" label="매출 리포트">
+        <KpiLink href="/payments?period=this_week" label="이번 주 결제 내역">
           <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined}
             subLabel={kpi?.voucher_revenue_this_week ? `바우처 선납 ${formatKRW(kpi.voucher_revenue_this_week)} 포함` : undefined} />
         </KpiLink>
