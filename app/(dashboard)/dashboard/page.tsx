@@ -218,7 +218,7 @@ export default function DashboardPage() {
                 <h2 className="text-base font-bold text-warm-800">시간대별 매칭 요청</h2>
                 <p className="text-[11px] text-warm-500 mt-0.5">오늘 06시 ~ 22시</p>
               </div>
-              <div className="inline-flex bg-warm-100 p-1 rounded-md">
+              <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap">
                 <button className="px-3 py-1.5 text-xs font-semibold text-warm-800 bg-white shadow-sm rounded">오늘</button>
                 <button className="px-3 py-1.5 text-xs font-semibold text-warm-600">7일</button>
                 <button className="px-3 py-1.5 text-xs font-semibold text-warm-600">30일</button>

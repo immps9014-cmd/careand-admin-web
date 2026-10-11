@@ -67,7 +67,7 @@ export default function CareSessionsPage() {
   const sm = query.data?.summary;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight flex items-center gap-2">
           <Activity className="w-6 h-6 text-brand-500" /> 케어 진행 현황
@@ -84,7 +84,7 @@ export default function CareSessionsPage() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard variant="brand" label="진행중" value={sm?.in_progress ?? 0} icon={PlayCircle} />
         <KpiCard label="예정" value={sm?.scheduled ?? 0} icon={Clock} iconColor="info" />
         <KpiCard label="완료·검수대기" value={sm?.completed_pending ?? 0} icon={ClipboardCheck} iconColor="warn" subLabel="AI 일지 검수 필요" />

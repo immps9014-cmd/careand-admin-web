@@ -130,7 +130,7 @@ export default function CaregiverApprovalPage() {
   const firstDomain = (c: typeof rows[number]) => (c.service_domains || "senior").split(",")[0];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* 헤더 */}
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">돌봄전문가 자격 검증</h1>

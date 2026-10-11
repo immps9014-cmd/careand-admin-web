@@ -14,7 +14,7 @@ const ROLE_CARDS = [
 
 export default function WorkflowIndexPage() {
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">업무흐름도</h1>
         <p className="text-sm text-warm-500 mt-1">

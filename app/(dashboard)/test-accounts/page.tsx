@@ -43,7 +43,7 @@ export default function TestAccountsPage() {
     setShown((s) => { const n = new Set(s); if (n.has(a.id)) n.delete(a.id); else n.add(a.id); return n; });
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">테스트 계정</h1>
         <p className="text-sm text-warm-500 mt-1">

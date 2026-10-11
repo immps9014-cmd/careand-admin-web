@@ -137,7 +137,7 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* 헤더 */}
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">

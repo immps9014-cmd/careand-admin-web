@@ -122,7 +122,7 @@ export default function PaymentsPage() {
 
       {/* 종류·상태·검색 */}
       <div className="flex flex-wrap items-center gap-2 mb-5">
-        <div className="inline-flex bg-warm-100 p-1 rounded-md" role="group" aria-label="종류">
+        <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap" role="group" aria-label="종류">
           {KINDS.map((k) => (
             <button key={k.key || "all"} type="button" aria-pressed={kind === k.key} onClick={() => setKind(k.key)}
               className={cn("px-3 py-1.5 text-xs font-semibold rounded", kind === k.key ? "bg-white text-warm-800 shadow-sm" : "text-warm-600 hover:text-warm-800")}>

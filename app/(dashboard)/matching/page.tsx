@@ -128,9 +128,9 @@ export default function MatchingPage() {
   ).length;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* 헤더 */}
-      <div className="flex justify-between items-end mb-7">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end mb-7">
         <div>
           <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">매칭 관리</h1>
           <p className="text-sm text-warm-500 mt-1">

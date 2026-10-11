@@ -98,7 +98,7 @@ export default function ExportLogsPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-5">
-        <div className="inline-flex bg-warm-100 p-1 rounded-md" role="group" aria-label="결과">
+        <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap" role="group" aria-label="결과">
           {RESULTS.map((r) => (
             <button key={r.key || "all"} type="button" aria-pressed={result === r.key} onClick={() => setResult(r.key)}
               className={cn("px-3 py-1.5 text-xs font-semibold rounded", result === r.key ? "bg-white text-warm-800 shadow-sm" : "text-warm-600 hover:text-warm-800")}>

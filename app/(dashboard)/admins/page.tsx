@@ -53,7 +53,7 @@ export default function AdminsPage() {
   const areas = Object.entries(q.data?.areas ?? {});
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">관리자 계정 · 권한</h1>
         <p className="text-sm text-warm-500 mt-1">관리자 계정을 만들고 권한 5단계(슈퍼관리자 · 지점장 · CS 담당자 · 데이터 분석가 · 개발자)를 지정합니다. 모든 변경은 감사로그에 남습니다.</p>

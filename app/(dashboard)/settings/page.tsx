@@ -40,7 +40,7 @@ export default function SettingsPage() {
   const initial = (user?.name ?? "?").trim().charAt(0) || "?";
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-6">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-warm-900">설정</h1>
         <p className="mt-1 text-sm text-warm-500">내 계정 정보와 운영 설정을 확인합니다.</p>

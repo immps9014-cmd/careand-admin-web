@@ -41,7 +41,7 @@ export function AgeDistributionCard() {
             <h2 className="text-base font-bold text-warm-800">나이대별 회원 분포</h2>
             <p className="text-[11px] text-warm-500 mt-0.5">회원 생년월일 기준 만 나이 · 탈퇴·운영자·기관 제외 · 막대를 누르면 회원 목록</p>
           </div>
-          <div className="inline-flex bg-warm-100 p-1 rounded-md" role="tablist" aria-label="회원 구분">
+          <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap" role="tablist" aria-label="회원 구분">
             {ROLES.map((r) => (
               <button
                 key={r.key}

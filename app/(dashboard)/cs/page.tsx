@@ -104,7 +104,7 @@ export default function CsPage() {
     stats != null ? Math.max(0, stats.reviews_total - stats.reviews_negative) : 0;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-7">
         <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
           후기 · CS 관리
@@ -144,7 +144,7 @@ export default function CsPage() {
 
       {/* 툴바: 탭 + 부정 후기 필터 */}
       <div className="flex items-center gap-2 mb-5">
-        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+        <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap">
           <button
             onClick={() => setTab("reviews")}
             className={cn(

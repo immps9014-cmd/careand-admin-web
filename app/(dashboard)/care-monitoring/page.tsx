@@ -132,9 +132,9 @@ export default function CareMonitoringPage() {
     rows.find((a) => a.id === selectedId) ?? rows[0] ?? null;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="flex justify-between items-end mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
             케어 모니터링
@@ -201,7 +201,7 @@ export default function CareMonitoringPage() {
 
       {/* Filter toolbar */}
       <div className="flex items-center mb-5">
-        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+        <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap">
           {SEVERITIES.map((s) => (
             <button
               key={s.key}
@@ -227,7 +227,7 @@ export default function CareMonitoringPage() {
         </div>
         <div className="flex-1" />
         <span className="text-xs font-bold text-warm-500 mr-2">상태</span>
-        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+        <div className="inline-flex max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap">
           {[{ k: "unresolved", l: "미해결" }, { k: "resolved", l: "처리완료" }, { k: "all", l: "전체" }].map((o) => (
             <button key={o.k} onClick={() => setStatusFilter(o.k)}
               className={cn("px-3 py-1.5 text-sm font-semibold rounded transition-colors",

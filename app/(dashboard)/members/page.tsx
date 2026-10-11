@@ -209,8 +209,8 @@ function MembersPageInner() {
   ];
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-end mb-7">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end mb-7">
         <div>
           <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">
             회원 · 돌봄전문가 통합관리
@@ -269,7 +269,7 @@ function MembersPageInner() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="inline-flex shrink-0 bg-warm-100 p-1 rounded-md">
+        <div className="inline-flex shrink-0 max-w-full overflow-x-auto bg-warm-100 p-1 rounded-md [&>*]:shrink-0 [&>*]:whitespace-nowrap">
           {TABS.map((t) => (
             <button
               key={t.key || "all"}
@@ -868,7 +868,7 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
                       {(data.guardian.services?.includes("postpartum") || data.guardian.intent === "postpartum") && (
                         <DRow label="산모신생아 이용 방식">
                           {/* 누르면 바로 저장(상담 뒤 바로잡기·이전 가입자 채우기) */}
-                          <span className="inline-flex rounded-md bg-warm-100 p-0.5" role="radiogroup" aria-label="산모신생아 이용 방식">
+                          <span className="inline-flex max-w-full overflow-x-auto rounded-md bg-warm-100 p-0.5 [&>*]:shrink-0 [&>*]:whitespace-nowrap" role="radiogroup" aria-label="산모신생아 이용 방식">
                             {([["voucher", "정부 바우처"], ["hourly", "시간 단위"], [null, "미선택"]] as const).map(([v, label]) => {
                               const on = (data.guardian!.postpartum_mode ?? null) === v;
                               return (
