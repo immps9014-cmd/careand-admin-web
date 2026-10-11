@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Receipt,
+  FileDown,
   ArrowRightLeft,
   BadgeCheck,
   BarChart3,
@@ -68,6 +69,7 @@ const AI_NAV: NavItem[] = [
   { href: "/cs", area: "cs", label: "CS / 분쟁", icon: MessageCircle },
   { href: "/reports", area: "reports", label: "리포트", icon: BarChart3 },
   { href: "/admins", area: "admins", label: "관리자 계정·권한", icon: UserCog },
+  { href: "/export-logs", area: "exports", label: "다운로드 기록", icon: FileDown },
   { href: "/test-accounts", area: "test-accounts", label: "테스트 계정", icon: KeyRound },
 ];
 
