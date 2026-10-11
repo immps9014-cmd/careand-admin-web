@@ -200,7 +200,7 @@ export default function ContractsPage() {
       </div>
 
       {/* 요약 스트립 */}
-      <div className="flex gap-3 mb-5">
+      <div className="grid grid-cols-2 gap-3 sm:flex mb-5">
         {summary.map((s) => (
           <Card key={s.label} className="flex-1 flex items-center gap-3 px-4 py-3.5">
             {s.dot && <span className={cn("w-2.5 h-2.5 rounded-full flex-none", s.dot)} />}
@@ -213,7 +213,7 @@ export default function ContractsPage() {
       </div>
 
       {/* 상태 필터 */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-5">
         {TABS.map((t) => (
           <Button
             key={t.key || "all"}
@@ -231,7 +231,7 @@ export default function ContractsPage() {
 
       {/* 주간 일정 보드 */}
       {view === "board" && (
-        <div className="grid grid-cols-7 gap-2.5">
+        <div className="grid grid-cols-7 gap-2.5 max-lg:grid-cols-[repeat(7,minmax(128px,1fr))] max-lg:overflow-x-auto max-lg:pb-2">
           {DOW.map((label, dow) => {
             const visits = (byDow[dow] ?? []).slice().sort((a, b) =>
               (a.scheduled_start ?? "").localeCompare(b.scheduled_start ?? "")
@@ -304,7 +304,7 @@ export default function ContractsPage() {
 
       {/* 월간 달력 뷰 — 예약(방문)만 표시, 클릭 시 상세 */}
       {view === "month" && (
-        <Card className="p-4">
+        <Card className="p-4 overflow-x-auto">
           {/* 월 네비게이션 */}
           <div className="flex items-center justify-between mb-3">
             <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-md text-warm-500 hover:bg-warm-100" aria-label="이전 달">
@@ -318,13 +318,13 @@ export default function ContractsPage() {
             </button>
           </div>
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+          <div className="grid grid-cols-7 gap-1.5 mb-1.5 min-w-[560px]">
             {DOW.map((d, i) => (
               <div key={d} className={cn("text-center text-[11px] font-bold py-1", i === 0 ? "text-danger" : i === 6 ? "text-info" : "text-warm-500")}>{d}</div>
             ))}
           </div>
           {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-1.5 min-w-[560px]">
             {monthGridCells.map((cell, idx) => {
               if (!cell) return <div key={`e${idx}`} className="min-h-[92px]" />;
               const visits = (byDate[dayKey(cell)] ?? []).slice().sort((a, b) =>

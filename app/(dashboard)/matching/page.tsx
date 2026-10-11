@@ -189,7 +189,7 @@ export default function MatchingPage() {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-5">
         {DOMAIN_TABS.map((d) => (
           <Button
             key={d.key || "all"}

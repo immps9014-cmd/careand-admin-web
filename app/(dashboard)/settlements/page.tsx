@@ -223,7 +223,7 @@ export default function SettlementsPage() {
       </Card>
 
       {/* 툴바: 단계 탭 + 원천징수율 안내 */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         {TABS.map((t) => (
           <Button
             key={t.key || "all"}

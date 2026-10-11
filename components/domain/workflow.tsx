@@ -87,8 +87,10 @@ export function FlowChart({ steps }: { steps: Step[] }) {
   const rows: { i: number; s: Step }[][] = [];
   for (let i = 0; i < units.length; i += COLS) rows.push(units.slice(i, i + COLS));
 
+  // 폭이 고정된 지그재그 흐름도 — 좁은 화면에선 줄이지 않고 가로 스크롤
   return (
-    <div className="mx-auto" style={{ width: ROW_W, maxWidth: "100%" }}>
+    <div className="overflow-x-auto pb-2">
+    <div className="mx-auto" style={{ width: ROW_W, minWidth: ROW_W }}>
       {rows.map((row, ri) => {
         const even = ri % 2 === 0;
         const disp = even ? row : [...row].reverse();
@@ -122,6 +124,7 @@ export function FlowChart({ steps }: { steps: Step[] }) {
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

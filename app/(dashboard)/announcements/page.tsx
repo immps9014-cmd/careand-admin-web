@@ -148,7 +148,7 @@ export default function AnnouncementsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-[400px_1fr] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 items-start">
         {/* 발송 폼 */}
         <Card className="p-6 h-fit">
           <h2 className="text-base font-bold text-warm-800 flex items-center gap-2 mb-5">
