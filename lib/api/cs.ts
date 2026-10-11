@@ -115,6 +115,7 @@ export interface CareIssueRow {
   caregiver_name: string;
   reporter_name: string;
   reporter_phone: string | null;
+  service_domain?: string | null;
   service_label: string;
   handled_by_name: string | null;
   caregiver_issue_count: number;

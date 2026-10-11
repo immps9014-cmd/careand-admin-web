@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { careIssueApi, type CareIssueRow } from "@/lib/api/cs";
+import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 const STATUS_TABS = [
   { key: "active", label: "처리 전" },
@@ -89,7 +90,7 @@ function IssueCard({ i, statuses }: { i: CareIssueRow; statuses: Record<string, 
             <dt className="text-warm-500">돌봄전문가</dt>
             <dd>{i.caregiver_name}{i.caregiver_issue_count > 1 && <b className="ml-1 text-danger">누적 {i.caregiver_issue_count}건</b>}</dd>
             <dt className="text-warm-500">요청</dt>
-            <dd><Link href={`/matching?request=${i.request_id}`} className="text-brand-700 hover:underline">#{i.request_id}</Link> · {i.service_label}</dd>
+            <dd><Link href={`/matching?request=${i.request_id}`} className="text-brand-700 hover:underline">#{i.request_id}</Link> · {(i.service_domain && DOMAIN_LABEL[i.service_domain]) || i.service_label}</dd>
             {i.handled_by_name && (<><dt className="text-warm-500">처리</dt><dd>{i.handled_by_name}{i.handled_at ? ` · ${kst(i.handled_at)}` : ""}</dd></>)}
           </dl>
         </div>
