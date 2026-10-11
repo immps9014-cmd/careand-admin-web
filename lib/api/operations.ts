@@ -478,7 +478,7 @@ export const operationsApi = {
     api.post(`/v1/admin/matching/requests/${requestId}/manual-assign`, { caregiver_id: caregiverId, force }),
 
   // #19
-  async members(params?: { role?: string; q?: string; status?: string; sort?: string; page?: number }): Promise<
+  async members(params?: { role?: string; q?: string; status?: string; sort?: string; page?: number; postpartum_mode?: string }): Promise<
     Paginated<Member> & { summary: MemberSummary }
   > {
     const { data } = await api.get<ApiResponse<Member[]> & { summary: MemberSummary }>(

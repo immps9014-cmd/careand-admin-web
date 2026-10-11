@@ -152,6 +152,7 @@ function MembersPageInner() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [sort, setSort] = useState("recent");
+  const [ppMode, setPpMode] = useState(""); // 산모신생아 이용 방식 필터(voucher|hourly|unset)
   const [detailId, setDetailId] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [blacklistOpen, setBlacklistOpen] = useState(false);
@@ -164,12 +165,13 @@ function MembersPageInner() {
   }, [urlQ]);
 
   const query = useQuery({
-    queryKey: ["admin", "members", role, q, status, sort],
+    queryKey: ["admin", "members", role, q, status, sort, ppMode],
     queryFn: () =>
       operationsApi.members({
         ...(role ? { role } : {}),
         ...(q ? { q } : {}),
         ...(status ? { status } : {}),
+        ...(ppMode ? { postpartum_mode: ppMode } : {}),
         sort,
       }),
   });
@@ -278,6 +280,7 @@ function MembersPageInner() {
         </div>
 
         <StatusFilter value={status} onChange={setStatus} />
+        <StatusFilter value={ppMode} onChange={setPpMode} opts={PP_MODE_OPTS} label="바우처" />
         <SortFilter value={sort} onChange={setSort} />
 
         <div className="flex-1" />
@@ -1173,7 +1176,25 @@ const STATUS_OPTS = [
   { key: "withdrawn", label: "탈퇴" },
 ];
 
-function StatusFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+/** 산모신생아 이용 방식 필터 — 가입 때 고른 값(2026-10-11~). 미선택=산모신생아를 골랐지만 방식이 없는 회원(이전 가입자 등) */
+const PP_MODE_OPTS = [
+  { key: "", label: "전체" },
+  { key: "voucher", label: "정부 바우처" },
+  { key: "hourly", label: "시간 단위" },
+  { key: "unset", label: "산모·미선택" },
+];
+
+function StatusFilter({
+  value,
+  onChange,
+  opts = STATUS_OPTS,
+  label = "상태",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  opts?: { key: string; label: string }[];
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -1182,17 +1203,17 @@ function StatusFilter({ value, onChange }: { value: string; onChange: (v: string
     window.addEventListener("click", h);
     return () => window.removeEventListener("click", h);
   }, [open]);
-  const cur = STATUS_OPTS.find((o) => o.key === value) ?? STATUS_OPTS[0];
+  const cur = opts.find((o) => o.key === value) ?? opts[0];
   return (
     <div ref={ref} className="relative">
       <Button variant="outline" size="sm" onClick={() => setOpen((o) => !o)}>
         <Filter className="w-4 h-4" />
-        상태: {cur.label}
+        {label}: {cur.label}
         <ChevronDown className="w-3.5 h-3.5" />
       </Button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 w-32 rounded-lg border border-warm-200 bg-white shadow-lg py-1">
-          {STATUS_OPTS.map((o) => (
+        <div className="absolute left-0 top-full mt-1 z-50 w-36 rounded-lg border border-warm-200 bg-white shadow-lg py-1">
+          {opts.map((o) => (
             <button key={o.key || "all"} type="button"
               onClick={() => { onChange(o.key); setOpen(false); }}
               className={cn("w-full text-left px-3 py-1.5 text-sm hover:bg-warm-50 transition-colors",
