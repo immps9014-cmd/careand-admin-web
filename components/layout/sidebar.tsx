@@ -76,7 +76,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const user = useAuth((s) => s.user);
   // 권한 5단계(S2-3): 조회 권한 없는 메뉴 숨김. 권한 정보가 없는 옛 로그인 정보면 그대로 보여 주고 서버가 막는다
   const perms = user?.admin_permissions;
-  const visible = (items: NavItem[]) => items.filter((i) => !perms || !i.area || perms[i.area]?.read);
+  // 로그인 뒤 새로 생긴 영역(예: 결제 내역 10-11)은 저장된 권한 목록에 없다 — 다시 로그인할 때까지 보여 주고 서버가 막는다
+  const visible = (items: NavItem[]) => items.filter((i) => !perms || !i.area || !(i.area in perms) || perms[i.area]?.read);
 
   return (
     <aside
