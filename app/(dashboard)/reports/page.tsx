@@ -20,19 +20,17 @@ import { cn, formatKRW } from "@/lib/utils";
 import { DomainDistributionChart } from "./_components/domain-distribution-chart";
 import { RatingDistributionChart } from "./_components/rating-distribution-chart";
 import { MonthlyClose } from "@/components/domain/monthly-close";
+import { downloadXlsx, type XlsxCell } from "@/lib/xlsx";
 
-/** 클라이언트 측 CSV 다운로드 (실데이터 기반) */
-function downloadCsv(filename: string, rows: (string | number)[][]) {
-  const csv = rows
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+/** 클라이언트 측 엑셀(.xlsx) 다운로드 (실데이터 기반, 2026-10-11 CSV에서 변경) — 집계라 개인정보 없음.
+ *  1행=제목·기준 시각(KST), 2행=머리글(굵게·고정), 정수는 천 단위 쉼표 */
+function downloadReport(filename: string, title: string, rows: XlsxCell[][], widths: number[]) {
+  const now = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ");
+  downloadXlsx(filename, title, [[`케어앤 ${title} · ${now} 기준(한국 시각)`], ...rows], {
+    headerRow: 2,
+    numberCols: widths.map((_, i) => i).slice(1),
+    widths,
+  });
 }
 
 function StatRow({
@@ -162,7 +160,7 @@ export default function ReportsPage() {
             disabled={!kpi}
             onClick={() =>
               kpi &&
-              downloadCsv("careand_운영통계.csv", [
+              downloadReport("careand_운영통계.xlsx", "운영 통계", [
                 ["항목", "값"],
                 ["오늘 매칭", kpi.matches_today],
                 ["진행중 매칭", kpi.matches_in_progress],
@@ -173,12 +171,12 @@ export default function ReportsPage() {
                 ["활성 돌봄전문가", kpi.active_caregivers],
                 ["승인 대기 돌봄전문가", kpi.pending_caregivers],
                 ["미해결 고위험 알림", kpi.high_alerts_unresolved],
-              ])
+              ], [22, 14])
             }
             className="flex items-center justify-center gap-1.5 py-3 border-t border-warm-100 bg-warm-50/60 text-xs font-bold text-warm-600 hover:text-brand-600 disabled:opacity-50 disabled:hover:text-warm-600 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            CSV 다운로드
+            엑셀 다운로드
           </button>
         </Card>
 
@@ -210,7 +208,7 @@ export default function ReportsPage() {
             disabled={!cs}
             onClick={() =>
               cs &&
-              downloadCsv("careand_서비스품질.csv", [
+              downloadReport("careand_서비스품질.xlsx", "서비스 품질", [
                 ["평점", "건수"],
                 ...[5, 4, 3, 2, 1].map((r) => [
                   `★${r}`,
@@ -218,12 +216,12 @@ export default function ReportsPage() {
                 ]),
                 ["평균 평점", cs.reviews_avg],
                 ["부정 후기", cs.reviews_negative],
-              ])
+              ], [14, 10])
             }
             className="flex items-center justify-center gap-1.5 py-3 border-t border-warm-100 bg-warm-50/60 text-xs font-bold text-warm-600 hover:text-brand-600 disabled:opacity-50 disabled:hover:text-warm-600 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            CSV 다운로드
+            엑셀 다운로드
           </button>
         </Card>
 
@@ -251,7 +249,7 @@ export default function ReportsPage() {
             disabled={!models}
             onClick={() =>
               models &&
-              downloadCsv("careand_AI모델성능.csv", [
+              downloadReport("careand_AI모델성능.xlsx", "AI 모델 성능", [
                 ["모델", "버전", "상태", "정확도", "평균지연(ms)"],
                 ...models.data.map((m) => [
                   m.model_name,
@@ -260,12 +258,12 @@ export default function ReportsPage() {
                   m.accuracy,
                   m.avg_latency_ms,
                 ]),
-              ])
+              ], [24, 12, 10, 10, 14])
             }
             className="flex items-center justify-center gap-1.5 py-3 border-t border-warm-100 bg-warm-50/60 text-xs font-bold text-warm-600 hover:text-brand-600 disabled:opacity-50 disabled:hover:text-warm-600 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            CSV 다운로드
+            엑셀 다운로드
           </button>
         </Card>
       </div>
