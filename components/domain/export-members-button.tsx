@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Download, X } from "lucide-react";
+import { FileSpreadsheet, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api, getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/store";
 
 /**
- * 회원 CSV 다운로드 — 슈퍼관리자 전용, 다운로드 사유 필수, 이름·이메일·휴대폰 마스킹
+ * 회원 엑셀(.xlsx) 다운로드(2026-10-11 CSV에서 변경) — 슈퍼관리자 전용, 다운로드 사유 필수, 이름·이메일·휴대폰 마스킹
  * (사업계획서 3.3 · 기능 19, 2026-09-28 구현계획 S2-5). 사유와 건수는 서버 감사로그에 남는다.
  */
 export function ExportMembersButton() {
@@ -28,14 +28,14 @@ export function ExportMembersButton() {
         headers: { "X-Access-Reason": encodeURIComponent(reason.trim()) },
         responseType: "blob",
       });
-      const name = /filename="([^"]+)"/.exec(res.headers["content-disposition"] ?? "")?.[1] ?? "careand_members.csv";
+      const name = /filename="([^"]+)"/.exec(res.headers["content-disposition"] ?? "")?.[1] ?? "careand_members.xlsx";
       const url = URL.createObjectURL(res.data as Blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = name;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("마스킹된 회원 목록을 내려받았습니다. 다운로드 기록이 남았습니다.");
+      toast.success("마스킹된 회원 목록 엑셀을 내려받았습니다. 다운로드 기록이 남았습니다.");
       setOpen(false);
       setReason("");
     } catch (e: unknown) {
@@ -54,14 +54,14 @@ export function ExportMembersButton() {
   return (
     <>
       <Button variant="outline" size="md" onClick={() => setOpen(true)}>
-        <Download className="w-4 h-4" />
-        CSV 다운로드
+        <FileSpreadsheet className="w-4 h-4" />
+        엑셀 다운로드
       </Button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="export-title">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between mb-2">
-              <h2 id="export-title" className="text-lg font-bold text-warm-800">회원 목록 다운로드</h2>
+              <h2 id="export-title" className="text-lg font-bold text-warm-800">회원 목록 엑셀</h2>
               <button type="button" aria-label="닫기" onClick={() => setOpen(false)} className="p-1 text-warm-500 hover:text-warm-700">
                 <X className="w-4 h-4" />
               </button>
