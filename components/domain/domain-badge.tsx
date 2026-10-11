@@ -16,6 +16,11 @@ export const DOMAIN_COLOR: Record<string, { fill: string; tint: string; ink: str
 };
 const FALLBACK = { fill: "#6E6757", tint: "#EFEDEA", ink: "#4F4A40" };
 
+/** 분야 채움색(흰 글자 4.8:1 이상) — 이름 아이콘 바탕 등 */
+export function domainFill(domain: string | null | undefined): string {
+  return (domain && DOMAIN_COLOR[domain]?.fill) || FALLBACK.fill;
+}
+
 export function DomainBadge({ domain, label, solid, className, title }: { domain: string | null | undefined; label?: string; solid?: boolean; className?: string; title?: string }) {
   if (!domain) return null;
   const c = DOMAIN_COLOR[domain] ?? FALLBACK;

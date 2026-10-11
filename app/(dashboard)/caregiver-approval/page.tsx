@@ -26,7 +26,7 @@ import { CaregiverDocumentsPanel } from "@/components/domain/caregiver-documents
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDate, cn } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
-import { DomainBadge } from "@/components/domain/domain-badge";
+import { DomainBadge, domainFill } from "@/components/domain/domain-badge";
 
 const STATUS_TABS: { key: string; label: string }[] = [
   { key: "pending", label: "승인 대기" },
@@ -49,13 +49,6 @@ const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "o
 };
 
 // 아바타 배경 (도메인 기반, 첫 도메인 사용)
-const AVATAR_BG: Record<string, string> = {
-  senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
-  postpartum: "bg-warn",
-  childcare: "bg-info",
-  mental_care: "bg-warm-400",
-};
-
 // 도메인별 인정 자격증 종류 (백엔드 config/service_domains.php qualification.accepted_types 미러).
 // 제출 자격종류가 도메인 인정 범위인지 담당자가 확인하는 보조.
 const DOMAIN_CREDENTIALS: Record<string, string[]> = {
@@ -206,7 +199,7 @@ export default function CaregiverApprovalPage() {
                   sel ? "border-brand-500 ring-2 ring-brand-500/20" : "border-warm-200/60"
                 )}
               >
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-none", AVATAR_BG[dom] ?? "bg-warm-500")}>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-none")} style={{ background: domainFill(dom) }}>
                   {c.name?.[0] ?? "?"}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -244,7 +237,7 @@ export default function CaregiverApprovalPage() {
             <>
               {/* 상세 헤더 */}
               <div className="px-6 py-5 border-b border-warm-100 flex items-start gap-4">
-                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-extrabold flex-none", AVATAR_BG[firstDomain(selected)] ?? "bg-warm-500")}>
+                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-extrabold flex-none")} style={{ background: domainFill(firstDomain(selected)) }}>
                   {selected.name?.[0] ?? "?"}
                 </div>
                 <div className="min-w-0">

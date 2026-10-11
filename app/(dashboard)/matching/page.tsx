@@ -23,7 +23,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
-import { DomainBadge } from "@/components/domain/domain-badge";
+import { DomainBadge, domainFill } from "@/components/domain/domain-badge";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
@@ -41,11 +41,6 @@ const STATUS_PILL: Record<string, { cls: string; dot: string; label: string }> =
 };
 
 // 아바타 배경 (도메인 기반)
-const AVATAR_BG: Record<string, string> = {
-  senior: "bg-brand-500", nursing: "bg-info", living_support: "bg-brand-600",
-  postpartum: "bg-warn", childcare: "bg-info", mental_care: "bg-warm-400", companion: "bg-warm-500",
-};
-
 const MODE_LABEL = (mode: string) =>
   mode === "emergency" ? "긴급" : mode === "recurring" ? "정기" : "일반";
 
@@ -265,7 +260,7 @@ export default function MatchingPage() {
                     <TableCell className="font-en font-semibold text-warm-700">#{row.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-none", AVATAR_BG[row.service_domain] ?? "bg-warm-500")}>
+                        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-none")} style={{ background: domainFill(row.service_domain) }}>
                           {row.senior_name?.[0] ?? "?"}
                         </div>
                         <div className="min-w-0">

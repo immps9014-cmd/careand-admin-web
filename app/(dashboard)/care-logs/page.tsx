@@ -22,7 +22,7 @@ import { operationsApi } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
-import { DomainBadge } from "@/components/domain/domain-badge";
+import { DomainBadge, domainFill } from "@/components/domain/domain-badge";
 
 const TABS: { key: string; label: string }[] = [
   { key: "pending", label: "검수 대기" },
@@ -34,16 +34,6 @@ const REVIEW_BADGE: Record<string, { variant: "warn" | "success" | "danger"; lab
   pending: { variant: "warn", label: "검수 대기" },
   approved: { variant: "success", label: "승인" },
   rejected: { variant: "danger", label: "반려" },
-};
-
-const AVATAR_BG: Record<string, string> = {
-  senior: "bg-brand-500",
-  nursing: "bg-info",
-  living_support: "bg-brand-600",
-  postpartum: "bg-warn",
-  childcare: "bg-info",
-  mental_care: "bg-warm-400",
-  companion: "bg-warm-500",
 };
 
 // 케어시간 0분 = 그대로 발송하면 안 되는 품질 이상 일지
@@ -288,9 +278,9 @@ export default function CareLogsPage() {
               <div className="px-6 py-5 flex items-center gap-4 border-b border-warm-100">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center text-white text-base font-bold flex-none",
-                    AVATAR_BG[selected.service_domain] ?? "bg-warm-500"
+                    "w-12 h-12 rounded-xl flex items-center justify-center text-white text-base font-bold flex-none"
                   )}
+                style={{ background: domainFill(selected.service_domain) }}
                 >
                   {selected.caregiver_name?.[0] ?? "?"}
                 </div>
