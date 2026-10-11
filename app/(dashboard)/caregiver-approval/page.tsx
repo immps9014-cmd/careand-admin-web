@@ -32,6 +32,12 @@ const STATUS_TABS: { key: string; label: string }[] = [
   { key: "rejected", label: "반려됨" },
 ];
 
+/** 대시보드 KPI 카드에서 넘어온 필터(?key=) — useSearchParams 대신 첫 렌더 뒤 한 번 읽는다(Suspense 경계 없이) */
+function readUrlParam(key: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) ?? "";
+}
+
 const STATUS_BADGE: Record<string, { variant: "warn" | "success" | "danger" | "outline"; label: string }> = {
   pending: { variant: "warn", label: "대기" },
   active: { variant: "success", label: "활성" },
@@ -73,6 +79,10 @@ const REQUIRED_DOCS = ["신분증", "통장 사본", "범죄경력 회보서"];
 
 export default function CaregiverApprovalPage() {
   const [status, setStatus] = useState("pending");
+  useEffect(() => {
+    const st = readUrlParam("status");
+    if (STATUS_TABS.some((t) => t.key === st)) setStatus(st);
+  }, []);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const qc = useQueryClient();
 

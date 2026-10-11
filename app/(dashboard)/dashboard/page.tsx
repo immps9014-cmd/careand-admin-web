@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRightLeft, Baby, Clock, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,6 +53,15 @@ function getRegionBarColor(row: { status: string; supply_rate_pct: number }) {
   return "bg-gradient-to-r from-warn to-[#A86A0A]";
 }
 
+/** KPI 카드 전체를 누를 수 있게 — 키보드 포커스 링 포함 */
+function KpiLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} aria-label={label} className="block rounded-xl transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
+      {children}
+    </Link>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [now, setNow] = useState(new Date());
@@ -88,11 +98,21 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-        <KpiCard variant="alert" label="미해결 위험 알림" value={kpi?.high_alerts_unresolved ?? 0} icon={AlertTriangle} subLabel={alertSubLabel} cta="즉시 확인" />
-        <KpiCard label="검수 대기 돌봄전문가" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
-        <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
-        <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined}
-          subLabel={kpi?.voucher_revenue_this_week ? `바우처 선납 ${formatKRW(kpi.voucher_revenue_this_week)} 포함` : undefined} />
+        {/* 카드를 누르면 같은 기준의 목록(2026-10-11) — 숫자와 목록 건수가 같다 */}
+        <KpiLink href="/care-monitoring?status=unresolved&severity=high_up" label="미해결 위험 알림 목록">
+          <KpiCard variant="alert" label="미해결 위험 알림" value={kpi?.high_alerts_unresolved ?? 0} icon={AlertTriangle} subLabel={alertSubLabel} cta="즉시 확인" />
+        </KpiLink>
+        <KpiLink href="/caregiver-approval?status=pending" label="승인 대기 돌봄전문가 목록">
+          <KpiCard label="검수 대기 돌봄전문가" value={kpi?.pending_caregivers ?? 0} icon={Clock} />
+        </KpiLink>
+        <KpiLink href="/contracts?status=ongoing&view=list" label="진행중 매칭 목록">
+          <KpiCard label="진행중 매칭" value={kpi?.matches_in_progress ?? 0} icon={ArrowRightLeft} />
+        </KpiLink>
+        {/* 결제 건별 목록 화면은 아직 없어 매출이 나오는 리포트로 */}
+        <KpiLink href="/reports" label="매출 리포트">
+          <KpiCard label="이번 주 매출" value={kpi ? formatKRW(kpi.revenue_this_week) : "0"} icon={DollarSign} trend={kpi && kpi.revenue_change_pct != null ? { pct: kpi.revenue_change_pct, label: "전주 대비" } : undefined}
+            subLabel={kpi?.voucher_revenue_this_week ? `바우처 선납 ${formatKRW(kpi.voucher_revenue_this_week)} 포함` : undefined} />
+        </KpiLink>
         {/* 산모신생아 바우처 계약 — 카드=진행 중 목록, 아래 두 숫자=신청 대기·선납 대기 목록(계약 화면 같은 필터) */}
         <div className="relative rounded-xl">
           <KpiCard label="바우처 계약 (진행 중)" value={kpi?.mnh_contracts?.ongoing ?? 0} icon={Baby} iconColor="info"

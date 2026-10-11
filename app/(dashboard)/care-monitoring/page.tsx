@@ -20,11 +20,18 @@ import { ko, cn } from "@/lib/utils";
 
 const SEVERITIES = [
   { key: "all", label: "전체" },
+  { key: "high_up", label: "높음 이상" },   // 높음+긴급 — 대시보드 「미해결 위험 알림」과 같은 묶음
   { key: "critical", label: "긴급" },
   { key: "high", label: "높음" },
   { key: "mid", label: "중간" },
   { key: "low", label: "낮음" },
 ] as const;
+
+/** 대시보드 KPI 카드에서 넘어온 필터(?key=) — useSearchParams 대신 첫 렌더 뒤 한 번 읽는다(Suspense 경계 없이) */
+function readUrlParam(key: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) ?? "";
+}
 
 const RISK_DESC: Record<string, string> = {
   fall: "활동량 급감 · 낙상 위험 신호 감지",
@@ -82,6 +89,11 @@ export default function CareMonitoringPage() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const sev = readUrlParam("severity"), st = readUrlParam("status");
+    if (SEVERITIES.some((x) => x.key === sev)) setSeverity(sev);
+    if (st) setStatusFilter(st);
+  }, []);
   useEffect(() => { setPage(1); }, [severity, statusFilter]);
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({

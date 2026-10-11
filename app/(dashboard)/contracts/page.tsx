@@ -22,11 +22,18 @@ import { cn, formatDateTime, formatKRW } from "@/lib/utils";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "전체" },
+  { key: "ongoing", label: "확정+진행중" },   // 대시보드 「진행중 매칭」과 같은 묶음
   { key: "confirmed", label: "확정" },
   { key: "in_progress", label: "진행중" },
   { key: "completed", label: "완료" },
   { key: "cancelled", label: "취소" },
 ];
+
+/** 대시보드 KPI 카드에서 넘어온 필터(?key=) — useSearchParams 대신 첫 렌더 뒤 한 번 읽는다(Suspense 경계 없이) */
+function readUrlParam(key: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) ?? "";
+}
 
 // 상태 → 표/요약 색 구분 (mockup: 확정=info, 진행중=brand, 완료=success, 취소=회색)
 const STATUS_PILL: Record<
@@ -70,6 +77,11 @@ function dateLabel(iso: string | Date) {
 export default function ContractsPage() {
   const [status, setStatus] = useState("");
   const [view, setView] = useState<"board" | "month" | "list">("board");
+  useEffect(() => {
+    const st = readUrlParam("status"), v = readUrlParam("view");
+    if (TABS.some((t) => t.key === st)) setStatus(st);
+    if (v === "list" || v === "month" || v === "board") setView(v);
+  }, []);
   const [detailReqId, setDetailReqId] = useState<number | null>(null);
   // 월간 뷰 기준 달(1일 자정)
   const [monthCursor, setMonthCursor] = useState(() => {
