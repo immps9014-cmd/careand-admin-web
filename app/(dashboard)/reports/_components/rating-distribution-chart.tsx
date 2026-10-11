@@ -22,9 +22,10 @@ interface Props {
 
 const BAR_COLOR = (rating: string) => {
   const r = Number(rating);
-  if (r <= 2) return "#EF4444"; // danger
-  if (r === 3) return "#F59E0B"; // warn
-  return "#10B981"; // brand
+  // 상태 색 — tailwind danger·warn 과 같은 값, 높은 점수는 green-700(분야 색과 겹치지 않게)
+  if (r <= 2) return "#B91C1C"; // danger
+  if (r === 3) return "#B45309"; // warn
+  return "#15803D"; // good
 };
 
 export function RatingDistributionChart({ data }: Props) {

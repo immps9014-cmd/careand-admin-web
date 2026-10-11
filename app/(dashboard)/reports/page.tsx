@@ -21,6 +21,7 @@ import { DomainDistributionChart } from "./_components/domain-distribution-chart
 import { RatingDistributionChart } from "./_components/rating-distribution-chart";
 import { MonthlyClose } from "@/components/domain/monthly-close";
 import { downloadXlsx, type XlsxCell } from "@/lib/xlsx";
+import { domainFill } from "@/components/domain/domain-badge";
 
 /** 클라이언트 측 엑셀(.xlsx) 다운로드 (실데이터 기반, 2026-10-11 CSV에서 변경) — 집계라 개인정보 없음.
  *  1행=제목·기준 시각(KST), 2행=머리글(굵게·고정), 정수는 천 단위 쉼표 */
@@ -57,22 +58,24 @@ function StatRow({
   );
 }
 
+// 분야 색은 DOMAIN_COLOR(domain-badge.tsx) 하나만 쓴다 — CAREN-COLOR-01 §3
 const DOMAIN_SLICES = [
-  { key: "senior", name: "요양보호", color: "#10B981" },
-  { key: "nursing", name: "간병", color: "#3B82F6" },
-  { key: "living_support", name: "생활지원", color: "#22C55E" },
-  { key: "postpartum", name: "산모신생아", color: "#F59E0B" },
-  { key: "childcare", name: "아이돌봄", color: "#3B82F6" },
-  { key: "mental_care", name: "마음돌봄", color: "#8B5CF6" },
-];
+  { key: "senior", name: "요양보호" },
+  { key: "nursing", name: "간병" },
+  { key: "living_support", name: "생활지원" },
+  { key: "postpartum", name: "산모신생아" },
+  { key: "childcare", name: "아이돌봄" },
+  { key: "mental_care", name: "마음돌봄" },
+].map((d) => ({ ...d, color: domainFill(d.key) }));
 
 function fmtLatency(ms: number) {
   return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
 }
 function accuracyColor(pct: number) {
-  if (pct >= 90) return "#22C55E";
-  if (pct >= 85) return "#3B82F6";
-  return "#F59E0B";
+  // 상태 색(분야 색과 겹치지 않게) — 좋음 green-700 · 보통 info · 낮음 warn
+  if (pct >= 90) return "#15803D";
+  if (pct >= 85) return "#2563EB";
+  return "#B45309";
 }
 
 export default function ReportsPage() {
