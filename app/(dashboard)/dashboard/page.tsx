@@ -86,8 +86,8 @@ export default function DashboardPage() {
   const alertSubLabel = alertData.length > 0 ? `위급 ${critCount} · 주의 ${warnCount} · 관찰 ${watchCount}` : undefined;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-end mb-7">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end mb-7">
         <div>
           <h1 className="text-2xl font-extrabold text-warm-800 tracking-tight">실시간 운영 대시보드</h1>
           <p className="text-sm text-warm-500 mt-1">전체 매칭, 매출, AI 알림을 한눈에 모니터링</p>
@@ -172,8 +172,8 @@ export default function DashboardPage() {
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-base font-bold text-warm-800">사업 KPI</h2>
-            <span className="text-[11px] text-warm-500">중소기업 스마트서비스 협약 핵심성과지표 · 전체 기간</span>
+            <h2 className="text-base font-bold text-warm-800 shrink-0">사업 KPI</h2>
+            <span className="text-[11px] text-warm-500 text-right">중소기업 스마트서비스 협약 핵심성과지표 · 전체 기간</span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {(bizKpiQuery.data?.data ?? []).map((k) => {
@@ -210,10 +210,10 @@ export default function DashboardPage() {
       {/* 지점·도메인·기간 필터(기능 17, S5) */}
       <DashboardBreakdown />
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex flex-wrap gap-3 justify-between items-center mb-5">
               <div>
                 <h2 className="text-base font-bold text-warm-800">시간대별 매칭 요청</h2>
                 <p className="text-[11px] text-warm-500 mt-0.5">오늘 06시 ~ 22시</p>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <HourlyRequestsChart data={hourlyQuery.data?.data || []} />
-            <div className="mt-4 pt-4 border-t border-warm-100 flex gap-8">
+            <div className="mt-4 pt-4 border-t border-warm-100 grid grid-cols-2 gap-4 sm:flex sm:gap-8">
               <div>
                 <div className="text-[11px] text-warm-500">피크</div>
                 <div className="font-en text-base font-bold text-warm-800 mt-0.5">{hourlyQuery.data?.peak_hour ?? "-"}시 · {hourlyQuery.data?.peak_count ?? 0}건</div>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
           <h2 className="text-base font-bold text-warm-800">지역별 수요 예측 · 다음 7일</h2>
           <span className="font-en text-[11px] text-warm-500 px-2.5 py-1 bg-warm-100 rounded-full">AI 모델 v1.3.2</span>
         </div>
-        <Table>
+        <Table className="min-w-[560px] whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>지역</TableHead>

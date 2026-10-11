@@ -8,6 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { dashboardApi, type AgeRole } from "@/lib/api/dashboard";
 import { cn } from "@/lib/utils";
 
+// 좁은 화면에서 축 글자가 겹치지 않게 양끝 띠만 짧게(표·툴팁은 원래 이름)
+const shortBand = (l: string) => l.replace(/^(\d+)세 미만$/, "<$1").replace(/^(\d+)세 이상$/, "$1+");
+
 const ROLES: { key: AgeRole; label: string }[] = [
   { key: "all", label: "전체" },
   { key: "guardian", label: "보호자" },
@@ -63,7 +66,7 @@ export function AgeDistributionCard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={rows} margin={{ top: 18, right: 8, left: 0, bottom: 4 }} barCategoryGap="28%">
                 <CartesianGrid stroke="#EFEDEA" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6E6757" }} tickLine={false} axisLine={{ stroke: "#D9D4CB", strokeWidth: 1 }} interval={0} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6E6757" }} tickFormatter={shortBand} tickLine={false} axisLine={{ stroke: "#D9D4CB", strokeWidth: 1 }} interval={0} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#9A917F" }} tickLine={false} axisLine={false} width={28} />
                 <Tooltip
                   cursor={{ fill: "#F7F6F4" }}
