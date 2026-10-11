@@ -110,6 +110,14 @@ const ROLE_AVATAR: Record<string, string> = {
   admin: "bg-warm-600",
 };
 
+/** 만 나이(오늘 KST 기준) — 생년월일 YYYY-MM-DD */
+function koreanAge(ymd: string): number {
+  const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  const [y, m, d] = ymd.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return ty - y - (tm < m || (tm === m && td < d) ? 1 : 0);
+}
+
 /** 산모신생아 이용 방식(앱 가입 카드, 2026-10-11) */
 const PP_MODE_LABEL: Record<string, string> = { voucher: "정부 바우처", hourly: "시간 단위" };
 
@@ -592,6 +600,13 @@ function MemberDetailModal({ id, onClose }: { id: number; onClose: () => void })
               <div className="rounded-lg border border-warm-100 bg-warm-50/60 px-4 mb-5">
                 <DRow label="역할"><Badge variant={ROLE_BADGE[data.role]?.variant ?? "outline"}>{ROLE_BADGE[data.role]?.label ?? data.role}</Badge></DRow>
                 <DRow label="계정 상태">{data.status}</DRow>
+                <DRow label="생년월일">
+                  {data.birth_date ? (
+                    <span className="font-en">{data.birth_date} <span className="text-warm-500">(만 {koreanAge(data.birth_date)}세)</span></span>
+                  ) : (
+                    <span className="text-warm-500">입력 안 함</span>
+                  )}
+                </DRow>
                 <DRow label="가입일"><span className="font-en">{formatDate(data.created_at)}</span></DRow>
                 {data.withdrawn_at && (
                   <DRow label="탈퇴일"><span className="font-en text-danger">{formatDate(data.withdrawn_at)}</span></DRow>

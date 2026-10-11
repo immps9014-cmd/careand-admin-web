@@ -319,6 +319,8 @@ export interface GuardianDetail {
   patients: { name: string; hospital_name: string | null }[];
 }
 export interface MemberDetailData extends Member {
+  /** 생년월일(선택, YYYY-MM-DD) — 2026-10-11부터 가입·계정 정보에서 받음 */
+  birth_date?: string | null;
   caregiver: CaregiverDetail | null;
   guardian: GuardianDetail | null;
   organization: OrganizationDetail | null;
