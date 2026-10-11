@@ -12,6 +12,7 @@ import { AlertItem } from "@/components/domain/alert-item";
 import { dashboardApi } from "@/lib/api/dashboard";
 import { cn, formatKRW, ko } from "@/lib/utils";
 import { HourlyRequestsChart } from "./_components/hourly-requests-chart";
+import { AgeDistributionCard } from "./_components/age-distribution-card";
 import { DashboardBreakdown } from "@/components/domain/dashboard-breakdown";
 
 const DOMAIN_CARDS = [
@@ -239,6 +240,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AgeDistributionCard />
 
       <Card>
         <div className="px-6 py-5 flex justify-between items-center border-b border-warm-100">

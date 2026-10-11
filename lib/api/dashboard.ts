@@ -81,7 +81,21 @@ export interface RecentAlert {
   detected_ago: string;
 }
 
+/** 나이대별 회원 분포 — GET /v1/admin/dashboard/age-distribution */
+export type AgeRole = "all" | "guardian" | "caregiver";
+export interface AgeDistribution {
+  role: AgeRole;
+  bands: { key: string; label: string; count: number }[];
+  unknown: number;
+  total: number;
+}
+
 export const dashboardApi = {
+  async ageDistribution(role: AgeRole = "all"): Promise<AgeDistribution> {
+    const { data } = await api.get("/v1/admin/dashboard/age-distribution", { params: { role } });
+    return data.data;
+  },
+
   async kpi(): Promise<{ data: DashboardKpi; updated_at: string }> {
     const { data } = await api.get("/v1/admin/dashboard/kpi");
     return data;
