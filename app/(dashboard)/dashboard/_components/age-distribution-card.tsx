@@ -63,6 +63,8 @@ export function AgeDistributionCard() {
                 <Tooltip
                   cursor={{ fill: "#F7F6F4" }}
                   contentStyle={{ backgroundColor: "#FFFFFF", border: "1px solid #E8E0D2", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 12px rgba(58,53,43,0.08)" }}
+                  itemStyle={{ color: "#3A352B" }}
+                  labelStyle={{ color: "#6E6757", fontWeight: 600 }}
                   formatter={(v: number) => [`${v}명${known ? ` (${Math.round((v / known) * 100)}%)` : ""}`, "회원"]}
                 />
                 <Bar dataKey="count" fill={BAR} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false}>
