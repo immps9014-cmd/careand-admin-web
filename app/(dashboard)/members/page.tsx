@@ -251,14 +251,14 @@ function MembersPageInner() {
         />
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <div className="inline-flex bg-warm-100 p-1 rounded-md">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="inline-flex shrink-0 bg-warm-100 p-1 rounded-md">
           {TABS.map((t) => (
             <button
               key={t.key || "all"}
               onClick={() => setRole(t.key)}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded transition-colors",
+                "inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded transition-colors",
                 role === t.key
                   ? "bg-white text-warm-800 shadow-sm"
                   : "text-warm-600 hover:text-warm-800"
