@@ -1,10 +1,12 @@
 "use client";
+import Link from "next/link";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, List, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { VoucherBadge } from "@/components/domain/voucher-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -411,6 +413,7 @@ export default function ContractsPage() {
                       <Badge variant={DOMAIN_BADGE[c.service_domain] ?? "outline"}>
                         {DOMAIN_LABEL[c.service_domain] ?? c.service_domain}
                       </Badge>
+                      <VoucherBadge voucher={c.voucher} className="ml-1" />
                     </TableCell>
                     <TableCell className="font-en text-warm-600 text-xs">
                       {c.scheduled_start ? formatDateTime(c.scheduled_start) : "-"}
@@ -491,7 +494,13 @@ function ContractDetailModal({ requestId, onClose }: { requestId: number; onClos
                 <div className="w-12 h-12 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg font-extrabold flex-none">{data.recipient_name?.[0] ?? "?"}</div>
                 <div className="min-w-0">
                   <div className="text-lg font-extrabold text-warm-800 truncate">{data.recipient_name}{data.guardian_name ? ` (${data.guardian_name})` : ""}</div>
-                  <div className="text-xs text-warm-500 mt-0.5">{DOMAIN_LABEL[data.service_domain] ?? data.service_domain}</div>
+                  <div className="text-xs text-warm-500 mt-0.5">
+                    {DOMAIN_LABEL[data.service_domain] ?? data.service_domain}
+                    <VoucherBadge voucher={data.voucher} className="ml-1.5" />
+                    {data.mnh_contract_id && (
+                      <Link href={`/mnh/${data.mnh_contract_id}`} className="ml-1.5 font-semibold text-brand-600 hover:underline">계약 보기 →</Link>
+                    )}
+                  </div>
                 </div>
                 <span className={cn("ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full flex-none", STATUS_PILL[data.status]?.cls ?? "bg-warm-100 text-warm-600")}>
                   {STATUS_PILL[data.status]?.label ?? data.status}

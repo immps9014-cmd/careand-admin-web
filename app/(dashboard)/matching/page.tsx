@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
 
 import { Fragment, useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertTriangle, UserPlus, Search, BadgeCheck, X, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { VoucherBadge } from "@/components/domain/voucher-badge";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -275,6 +277,7 @@ export default function MatchingPage() {
                       <Badge variant={DOMAIN_BADGE[row.service_domain] ?? "outline"}>
                         {DOMAIN_LABEL[row.service_domain] ?? row.service_domain}
                       </Badge>
+                      <VoucherBadge voucher={row.voucher} className="ml-1" />
                       {row.category && (
                         <div className="mt-1 text-[11px] text-warm-500">{[row.category, ...(row.extra_categories ?? [])].join(" + ")}</div>
                       )}
@@ -535,6 +538,10 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                   <div className="text-xs text-warm-500 mt-0.5">
                     {DOMAIN_LABEL[data.service_domain] ?? data.service_domain} · {MODE_LABEL(data.mode)}
                     {data.mode === "emergency" && <span className="ml-1.5 text-[10px] font-extrabold text-warn bg-warn-bg px-1.5 py-px rounded">긴급</span>}
+                    <VoucherBadge voucher={data.voucher} className="ml-1.5" />
+                    {data.mnh_contract_id && (
+                      <Link href={`/mnh/${data.mnh_contract_id}`} className="ml-1.5 font-semibold text-brand-600 hover:underline">계약 보기 →</Link>
+                    )}
                   </div>
                 </div>
                 <span className={cn("ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full flex-none", STATUS_PILL[data.status]?.cls ?? "bg-warm-100 text-warm-600")}>

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { Activity, Clock, PlayCircle, ClipboardCheck, MapPin, MapPinOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { VoucherBadge } from "@/components/domain/voucher-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -123,6 +124,7 @@ export default function CareSessionsPage() {
                   <TableCell className="text-warm-700">{s.caregiver_name}</TableCell>
                   <TableCell>
                     <Badge variant="brand">{DOMAIN_LABEL[s.service_domain] ?? s.service_domain}</Badge>
+                    <VoucherBadge voucher={s.voucher} className="ml-1" />
                   </TableCell>
                   <TableCell className="text-warm-600 font-en text-xs">
                     {s.scheduled_start ? formatDateTime(s.scheduled_start) : "-"}

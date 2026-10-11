@@ -63,6 +63,8 @@ export interface CgDocuments {
 /* ===== #21 계약·일정 ===== */
 export interface Contract {
   id: number;
+  /** contract=바우처 계약 방문 · eligible=바우처 대상 가정 */
+  voucher?: "contract" | "eligible" | null;
   request_id: number;
   caregiver_name: string;
   senior_name: string;
@@ -93,6 +95,8 @@ export interface CareLog {
 }
 export interface CareSession {
   id: number;
+  /** contract=바우처 계약 방문 · eligible=바우처 대상 가정 */
+  voucher?: "contract" | "eligible" | null;
   status: "scheduled" | "in_progress" | "completed" | "cancelled";
   review_status: "pending" | "approved" | "rejected";
   caregiver_name: string;
@@ -175,6 +179,8 @@ export interface AnnouncementRecipient {
 /* ===== #18 매칭 모니터링 ===== */
 export interface MatchingRequest {
   id: number;
+  /** contract=바우처 계약 방문 · eligible=바우처 대상 가정 */
+  voucher?: "contract" | "eligible" | null;
   senior_name: string;
   guardian_name: string | null;
   mode: string;
@@ -202,6 +208,9 @@ export interface MatchingCandidate {
 }
 export interface MatchingDetailData {
   id: number;
+  /** contract=바우처 계약 방문 · eligible=바우처 대상 가정 */
+  voucher?: "contract" | "eligible" | null;
+  mnh_contract_id?: number | null;
   recipient_name: string;
   guardian_name: string | null;
   service_domain: string;
