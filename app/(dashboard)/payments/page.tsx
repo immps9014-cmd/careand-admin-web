@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DOMAIN_LABEL } from "@/lib/caregiverType";
 import { paymentsApi, type PaymentListParams, type PaymentPeriod, type PaymentRow } from "@/lib/api/payments";
-import { ExportPaymentsButton } from "@/components/domain/export-payments-button";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import { cn, formatKRW, formatDateTime } from "@/lib/utils";
 
 /**
@@ -95,7 +95,9 @@ export default function PaymentsPage() {
           <p className="text-sm text-warm-500 mt-1">카드 결제와 산모신생아 바우처 본인부담금 선납·환불을 한곳에서 봅니다. 기간은 한국 시각 기준이에요.</p>
         </div>
         {/* 슈퍼관리자에게만 보인다(개인정보 다운로드 권한) */}
-        <ExportPaymentsButton params={filters} rangeLabel={s ? `${s.from} ~ ${s.to}, ${meta?.total ?? 0}건` : undefined} disabled={!customReady} />
+        <ExportXlsxButton endpoint="/v1/admin/exports/payments" params={{ ...filters }} title="결제 내역 엑셀"
+          scopeLabel={s ? `${s.from} ~ ${s.to}, ${meta?.total ?? 0}건` : undefined} fallbackName="careand_payments.xlsx"
+          placeholder="예: 10월 매출 마감 확인" disabled={!customReady} />
       </div>
 
       {/* 기간 */}

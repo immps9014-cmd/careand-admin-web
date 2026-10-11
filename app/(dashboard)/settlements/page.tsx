@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { KpiCard } from "@/components/domain/kpi-card";
+import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import { cn, formatKRW, formatDateTime } from "@/lib/utils";
 import {
   Users,
@@ -129,13 +130,19 @@ export default function SettlementsPage() {
         </div>
         {/* 홈택스 신고 API 미연동 — 동작 없는 버튼 노출 금지(INV-8).
             연동(Phase 3.1)까지 비활성 + "준비중" 명시 표기 */}
-        <span title="홈택스 신고 API 연동은 준비 중입니다 (Phase 3 예정)">
-          <Button variant="primary" size="md" disabled aria-disabled="true">
-            <FileCheck className="w-4 h-4" />
-            홈택스 일괄 신고
-            <span className="ml-1 text-[10px] font-bold">(준비중)</span>
-          </Button>
-        </span>
+        <div className="flex items-center gap-2">
+          {/* 엑셀(.xlsx) — 지금 상태 탭 그대로, 슈퍼관리자만(사유·감사로그) */}
+          <ExportXlsxButton endpoint="/v1/admin/exports/settlements" params={status ? { status } : {}} title="정산 엑셀"
+            scopeLabel={`상태: ${TABS.find((t) => t.key === status)?.label ?? "전체"}`} fallbackName="careand_settlements.xlsx"
+            placeholder="예: 9월 정산 마감·세무 신고 자료" />
+          <span title="홈택스 신고 API 연동은 준비 중입니다 (Phase 3 예정)">
+            <Button variant="primary" size="md" disabled aria-disabled="true">
+              <FileCheck className="w-4 h-4" />
+              홈택스 일괄 신고
+              <span className="ml-1 text-[10px] font-bold">(준비중)</span>
+            </Button>
+          </span>
+        </div>
       </div>
 
       {/* 정산 요약 (실데이터) — 총 실지급 강조, 원천징수 차감 강조 */}
