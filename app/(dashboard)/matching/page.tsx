@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { operationsApi, type MatchingDetailData } from "@/lib/api/operations";
+import { operationsApi, type MatchingDetailData, type AdminCaregiver } from "@/lib/api/operations";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -96,7 +96,8 @@ export default function MatchingPage() {
 
   const caregivers = useQuery({
     queryKey: ["admin", "caregivers", "active"],
-    queryFn: () => operationsApi.caregivers({ status: "active" }),
+    // 서버 기본 20명/쪽 — 첫 쪽만 받으면 나머지 활동 인력을 배정할 수 없었음(10-12). 서버 상한 100
+    queryFn: () => operationsApi.caregivers({ status: "active", per_page: 100 }),
   });
 
   const assign = useMutation({
@@ -341,11 +342,11 @@ export default function MatchingPage() {
                             className="h-9 rounded-md border border-warm-200 bg-white px-3 text-sm min-w-[200px]"
                           >
                             <option value="">활성 돌봄전문가 선택</option>
-                            {caregivers.data?.data.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name} (평점 {c.rating_avg.toFixed(1)}, {c.completed_sessions}회)
-                              </option>
-                            ))}
+                            <CaregiverOptions
+                              list={caregivers.data?.data}
+                              domain={row.service_domain}
+                              render={(c) => `${c.name} (평점 ${c.rating_avg.toFixed(1)}, ${c.completed_sessions}회)`}
+                            />
                           </select>
                           <Button
                             size="sm"
@@ -491,6 +492,20 @@ function MDRow({ label, children }: { label: string; children: React.ReactNode }
 
 const toLocalDT = (s: string | null | undefined) => (s ? s.slice(0, 16).replace(" ", "T") : "");
 
+/** 배정 후보 드롭다운 — 이 요청 분야를 하는 인력을 먼저(「○○ 가능」), 나머지는 「다른 분야」로 나눠 잘못 배정하지 않게(10-12) */
+function CaregiverOptions({ list, domain, render }: { list?: AdminCaregiver[]; domain: string; render: (c: AdminCaregiver) => string }) {
+  const all = list ?? [];
+  const fits = (c: AdminCaregiver) => (c.service_domains ?? "").split(",").includes(domain);
+  const same = all.filter(fits), other = all.filter((c) => !fits(c));
+  const opt = (c: AdminCaregiver) => <option key={c.id} value={c.id}>{render(c)}</option>;
+  return (
+    <>
+      <optgroup label={`${DOMAIN_LABEL[domain] ?? domain} 가능 (${same.length}명)`}>{same.map(opt)}</optgroup>
+      {other.length > 0 && <optgroup label={`다른 분야 (${other.length}명)`}>{other.map(opt)}</optgroup>}
+    </>
+  );
+}
+
 function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -504,7 +519,8 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
   });
   const caregivers = useQuery({
     queryKey: ["admin", "caregivers", "active"],
-    queryFn: () => operationsApi.caregivers({ status: "active" }),
+    // 서버 기본 20명/쪽 — 첫 쪽만 받으면 나머지 활동 인력을 배정할 수 없었음(10-12). 서버 상한 100
+    queryFn: () => operationsApi.caregivers({ status: "active", per_page: 100 }),
   });
   const [edit, setEdit] = useState<null | { caregiverId: number; start: string }>(null);
   const save = useMutation({
@@ -606,11 +622,11 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                           onChange={(e) => setEdit({ ...edit, caregiverId: Number(e.target.value) })}
                           className="w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                         >
-                          {(caregivers.data?.data ?? []).map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}{c.service_domains ? ` (${(c.service_domains).split(",").map((d) => DOMAIN_LABEL[d] ?? d).join("·")})` : ""}
-                            </option>
-                          ))}
+                          <CaregiverOptions
+                            list={caregivers.data?.data}
+                            domain={data.service_domain}
+                            render={(c) => `${c.name}${c.service_domains ? ` (${c.service_domains.split(",").map((d) => DOMAIN_LABEL[d] ?? d).join("·")})` : ""}`}
+                          />
                         </select>
                       </div>
                       <div>

@@ -407,7 +407,7 @@ function unwrap<T>(data: ApiResponse<T[]>): Paginated<T> {
 
 export const operationsApi = {
   // #20
-  async caregivers(params?: { status?: string; page?: number }): Promise<Paginated<AdminCaregiver>> {
+  async caregivers(params?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<AdminCaregiver>> {
     const { data } = await api.get<ApiResponse<AdminCaregiver[]>>("/v1/admin/caregivers", { params });
     return unwrap(data);
   },
