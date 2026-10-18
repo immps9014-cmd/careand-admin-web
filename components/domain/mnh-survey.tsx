@@ -52,10 +52,10 @@ export function SurveyTab() {
       </p>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="flex gap-1" role="tablist" aria-label="기간">
+        <div className="flex flex-wrap gap-1" role="tablist" aria-label="기간">
           {[...PERIODS, { key: "custom", label: "직접 지정" }].map((p) => (
             <button key={p.key} type="button" role="tab" aria-selected={period === p.key} onClick={() => setPeriod(p.key)}
-              className={cn("px-3 py-1.5 rounded-full text-sm font-semibold border",
+              className={cn("px-3 py-1.5 rounded-full text-sm font-semibold border whitespace-nowrap",
                 period === p.key ? "bg-warm-800 text-white border-warm-800" : "bg-white text-warm-700 border-warm-200 hover:bg-warm-50")}>
               {p.label}
             </button>
@@ -229,7 +229,10 @@ function QuestionRow({ q }: { q: MnhSurveySummary["questions"][number] }) {
   const low = q.avg != null && q.avg < 3;
   return (
     <li className="grid grid-cols-1 md:grid-cols-[1fr_260px_56px] gap-1.5 md:gap-3 md:items-center">
-      <span className="text-sm text-warm-700">{q.label}</span>
+      <span className="text-sm text-warm-700">
+        {q.label}
+        {q.other.filter((o) => o.n > 0).map((o) => <span key={o.label} className="ml-1.5 text-xs text-warm-500 whitespace-nowrap">· {o.label} {o.n}명</span>)}
+      </span>
       <span className="flex h-3 rounded-full overflow-hidden bg-warm-100" role="img"
         aria-label={`5점 ${q.dist["5"]}명, 4점 ${q.dist["4"]}명, 3점 ${q.dist["3"]}명, 2점 ${q.dist["2"]}명, 1점 ${q.dist["1"]}명`}>
         {["5", "4", "3", "2", "1"].map((k) => total > 0 && q.dist[k] > 0 && (
@@ -238,14 +241,13 @@ function QuestionRow({ q }: { q: MnhSurveySummary["questions"][number] }) {
       </span>
       <span className={cn("text-sm font-bold tabular-nums md:text-right", low ? "text-danger" : "text-warm-800")}>
         {fmt(q.avg)}
-        {q.other.filter((o) => o.n > 0).map((o) => <span key={o.label} className="block text-[11px] font-normal text-warm-500 whitespace-nowrap">{o.label} {o.n}</span>)}
       </span>
     </li>
   );
 }
 
-// 5점 → 1점: 브랜드 진한색 → 옅은색 → 중립 → 위험색
-const DIST_CLS: Record<string, string> = { "5": "bg-brand-700", "4": "bg-brand-500", "3": "bg-warm-300", "2": "bg-danger/60", "1": "bg-danger" };
+// 5점 → 1점: 파랑(좋음) → 옅은 파랑 → 중립 → 옅은 빨강 → 빨강. 브랜드 코랄은 위험색과 헷갈려 쓰지 않는다.
+const DIST_CLS: Record<string, string> = { "5": "bg-info", "4": "bg-info/50", "3": "bg-warm-300", "2": "bg-danger/50", "1": "bg-danger" };
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
