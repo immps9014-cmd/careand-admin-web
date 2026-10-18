@@ -93,14 +93,18 @@ export interface MnhStartChangeRequest {
 }
 
 export interface MnhContractAddon {
-  id: number;
+  id: number | null;   // null = 협의해 직접 적은 항목(custom)
   kind: string;
   name: string;
   unit_label: string;
   price: number;
   qty: number;
   amount: number;
+  note?: string | null;
+  custom?: boolean;
 }
+
+export type MnhCustomAddon = { kind: string; name: string; unit_label: string; price: number; qty: number };
 
 /** 소득 판정 기준표(기준중위소득 150%·건보료 본인부담 상한) */
 export interface MnhIncomeCriterion {
@@ -262,6 +266,8 @@ export const mnhApi = {
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/confirm-start`, body).then((r) => r.data),
   rejectStartRequest: (id: number, reason: string) =>
     api.delete<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/start-request`, { data: { reason } }).then((r) => r.data),
+  setAddons: (id: number, body: { items: { id: number; qty: number }[]; custom: MnhCustomAddon[] }) =>
+    api.put<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/addons`, body).then((r) => r.data),
   cancelQuote: (id: number, notice_date?: string) =>
     api.get<Ok<MnhCancelQuote>>(`/v1/admin/mnh/contracts/${id}/cancel-quote`, { params: notice_date ? { notice_date } : {} }).then((r) => r.data),
   cancel: (id: number, body: { reason: string; refund_amount?: number; penalty_amount?: number; notice_date?: string }) =>
@@ -318,6 +324,7 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   holiday_changed: "공휴일 변경",
   start_changed: "일정 변경",
   note: "특이사항",
+  addons_changed: "추가 서비스·대여 변경",
   cancelled: "계약 취소",
   completed: "서비스 종료",
   doc_issued: "서류 발행",

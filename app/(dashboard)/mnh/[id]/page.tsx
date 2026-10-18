@@ -76,6 +76,7 @@ export default function MnhContractPage() {
         <div className="space-y-5 min-w-0">
           <ClientCard c={c} />
           <SupportCard c={c} closed={closed} onDone={apply} />
+          <AddonsCard c={c} closed={closed} onDone={apply} />
           <PrepaidCard c={c} closed={closed} onDone={apply} refetch={() => q.refetch()} />
           <CaregiverCard c={c} closed={closed} onDone={apply} />
           {!closed && <SettingsCard c={c} onDone={apply} />}
@@ -329,6 +330,7 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "prepaid": return `${formatKRW(Number(p.amount ?? 0))} · ${String(p.method ?? "")}${p.receipt_no ? ` · 영수증 ${String(p.receipt_no)}` : ""}`;
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
+    case "addons_changed": return `${formatKRW(Number(p.before ?? 0))} → ${formatKRW(Number(p.after ?? 0))} · ${String(p.count ?? 0)}개 항목`;
     case "cancelled": return `${String(p.reason ?? "")}${p.notice_date ? ` · ${dayLabel(String(p.notice_date))} 통지` : ""}${p.penalty_amount ? ` · 위약금 ${formatKRW(Number(p.penalty_amount))}` : ""}`;
     case "birth_confirmed": return `${p.by === "member" ? "이용자" : "기관"} 확정${e.date ? ` · 개시 ${dayLabel(e.date)}` : ""}`;
     case "start_review": return `${p.start_date ? `${dayLabel(String(p.start_date))} 개시 요청 — ` : ""}${String(p.reason ?? "")}`;
@@ -386,6 +388,109 @@ function ClientCard({ c }: { c: MnhContractDetail }) {
   );
 }
 
+/* ───── 추가 서비스·대여(계약서 별지 ③④, CAREN-MNH-02 C) ───── */
+
+type CustomRow = { kind: string; name: string; unit_label: string; price: string; qty: string };
+
+function AddonsCard({ c, closed, onDone }: CardProps) {
+  const list = c.addons ?? [];
+  const [edit, setEdit] = useState(false);
+  const [qty, setQty] = useState<Record<number, string>>({});
+  const [custom, setCustom] = useState<CustomRow[]>([]);
+  const catalog = useQuery({ queryKey: ["admin", "mnh", "addons"], queryFn: () => mnhApi.addons(), enabled: edit });
+  const kinds = catalog.data?.data.kinds ?? { extra: "추가 서비스", rental: "대여용품" };
+  const start = () => {
+    setQty(Object.fromEntries(list.filter((a) => a.id != null).map((a) => [a.id as number, String(a.qty)])));
+    setCustom(list.filter((a) => a.id == null).map((a) => ({ kind: a.kind, name: a.name, unit_label: a.unit_label, price: String(a.price), qty: String(a.qty) })));
+    setEdit(true);
+  };
+  const save = useMutation({
+    mutationFn: () => mnhApi.setAddons(c.id, {
+      items: Object.entries(qty).map(([id, q]) => ({ id: Number(id), qty: Number(q || 0) })).filter((x) => x.qty > 0),
+      custom: custom.filter((x) => x.name.trim()).map((x) => ({ kind: x.kind, name: x.name.trim(), unit_label: x.unit_label.trim() || "회", price: Number(x.price || 0), qty: Number(x.qty || 1) })),
+    }),
+    onSuccess: (r) => { toast.success(r.message ?? "저장했어요."); setEdit(false); onDone(r.data); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  // 계약에 이미 있는 항목은 판매 중지여도 보이고(신청 때 금액), 새로 넣을 수 있는 건 판매 중인 항목만
+  const inContract = new Map(list.filter((a) => a.id != null).map((a) => [a.id as number, a]));
+  const rows = (catalog.data?.data.rows ?? []).filter((r) => r.is_active || inContract.has(r.id));
+  const setCustomAt = (i: number, patch: Partial<CustomRow>) => setCustom(custom.map((x, k) => (k === i ? { ...x, ...patch } : x)));
+
+  return (
+    <Section title="추가 서비스 · 대여" aside={!closed && !edit && <Button size="sm" variant="ghost" onClick={start}>수정</Button>}>
+      <p className="text-xs text-warm-500 mb-2">바우처 밖이라 전액 본인부담 · 계약서 별지 ③④에 그대로 들어가요.</p>
+      {!edit && (list.length === 0 ? <p className="text-sm text-warm-500">없음</p> : (
+        <>
+          <ul className="space-y-0.5 text-sm">
+            {list.map((a, i) => (
+              <li key={`${a.kind}-${a.id ?? `c${i}`}`} className="flex justify-between gap-3">
+                <span>
+                  {a.name}{a.custom && <span className="ml-1 text-[11px] text-warm-500">(협의)</span>}{" "}
+                  <span className="text-xs text-warm-500">{formatKRW(a.price)} × {a.qty}{a.unit_label}</span>
+                </span>
+                <span className="whitespace-nowrap">{formatKRW(a.amount)}</span>
+              </li>
+            ))}
+          </ul>
+          <Row k="합계" v={<b>{formatKRW(c.addon_total ?? list.reduce((s, a) => s + a.amount, 0))}</b>} />
+        </>
+      ))}
+      {edit && (
+        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+          {catalog.isLoading && <p className="text-sm text-warm-500">불러오는 중…</p>}
+          {catalog.data && rows.length === 0 && (
+            <p className="text-sm text-warm-500">가격표가 비어 있어요. 「산모신생아 › 추가요금·대여용품」에서 먼저 등록하거나 아래에 직접 적으세요.</p>
+          )}
+          {rows.length > 0 && (
+            <ul className="space-y-1.5">
+              {rows.map((r) => {
+                const kept = inContract.get(r.id);
+                return (
+                  <li key={r.id} className="flex items-center gap-2 text-sm">
+                    <span className="flex-1 min-w-0">
+                      <span className="text-[11px] text-warm-500 mr-1">{kinds[r.kind] ?? r.kind}</span>{r.name}
+                      <span className="block text-xs text-warm-500">
+                        {formatKRW(kept ? kept.price : r.price)} / {r.unit_label}{kept && kept.price !== r.price && " (계약 때 금액)"}{!r.is_active && " · 판매 중지"}
+                      </span>
+                    </span>
+                    <Input aria-label={`${r.name} 수량`} inputMode="numeric" className="w-16 text-right" value={qty[r.id] ?? ""} placeholder="0"
+                      onChange={(e) => setQty({ ...qty, [r.id]: e.target.value.replace(/[^0-9]/g, "") })} />
+                    <span className="w-6 text-xs text-warm-500">{r.unit_label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="pt-2 border-t border-warm-100 space-y-2">
+            <p className="text-xs font-semibold text-warm-600">협의해 직접 적는 항목</p>
+            {custom.map((x, i) => (
+              <div key={i} className="grid grid-cols-[auto_1fr] gap-1.5 items-center">
+                <select aria-label="종류" className={cn(selectCls, "w-24")} value={x.kind} onChange={(e) => setCustomAt(i, { kind: e.target.value })}>
+                  {Object.entries(kinds).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                </select>
+                <Input aria-label="항목 이름" maxLength={60} value={x.name} placeholder="항목 이름" onChange={(e) => setCustomAt(i, { name: e.target.value })} />
+                <div className="col-span-2 flex gap-1.5 items-center">
+                  <Input aria-label="단가(원)" inputMode="numeric" value={x.price} placeholder="단가(원)" onChange={(e) => setCustomAt(i, { price: e.target.value.replace(/[^0-9]/g, "") })} />
+                  <Input aria-label="수량" inputMode="numeric" className="w-16 text-right" value={x.qty} onChange={(e) => setCustomAt(i, { qty: e.target.value.replace(/[^0-9]/g, "") })} />
+                  <Input aria-label="단위" maxLength={10} className="w-16" value={x.unit_label} onChange={(e) => setCustomAt(i, { unit_label: e.target.value })} />
+                  <Button type="button" size="sm" variant="ghost" aria-label="이 항목 빼기" onClick={() => setCustom(custom.filter((_, k) => k !== i))}>✕</Button>
+                </div>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" disabled={custom.length >= 10}
+              onClick={() => setCustom([...custom, { kind: "extra", name: "", unit_label: "회", price: "", qty: "1" }])}>＋ 직접 적기</Button>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEdit(false)}>닫기</Button>
+            <Button type="submit" size="sm" variant="outline" disabled={save.isPending}>저장</Button>
+          </div>
+        </form>
+      )}
+    </Section>
+  );
+}
+
 /* ───── 지원유형·금액 ───── */
 
 function SupportCard({ c, closed, onDone }: CardProps) {
@@ -409,20 +514,6 @@ function SupportCard({ c, closed, onDone }: CardProps) {
       <Row k="서비스 가격" v={c.total_price != null ? formatKRW(c.total_price) : "-"} />
       <Row k="정부지원금" v={c.gov_support != null ? formatKRW(c.gov_support) : "-"} />
       <Row k="본인부담금" v={c.rates_set ? <b>{formatKRW(c.self_pay)}</b> : <span className="text-warn font-semibold">요율 미설정</span>} />
-      {(c.addons?.length ?? 0) > 0 && (
-        <div className="mt-2 pt-2 border-t border-warm-100">
-          <p className="text-xs font-semibold text-warm-600 mb-1">추가요금·대여 <span className="font-normal text-warm-500">(바우처 밖, 신청 때 금액)</span></p>
-          <ul className="space-y-0.5 text-sm">
-            {c.addons!.map((a) => (
-              <li key={`${a.kind}-${a.id}`} className="flex justify-between gap-3">
-                <span>{a.name} <span className="text-xs text-warm-500">{formatKRW(a.price)} × {a.qty}{a.unit_label}</span></span>
-                <span className="whitespace-nowrap">{formatKRW(a.amount)}</span>
-              </li>
-            ))}
-          </ul>
-          <Row k="추가요금 합계" v={<b>{formatKRW(c.addon_total ?? c.addons!.reduce((s, a) => s + a.amount, 0))}</b>} />
-        </div>
-      )}
       {edit === "table" && (
         <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); if (typeId) save.mutate({ support_type_id: Number(typeId) }); }}>
           <label className={labelCls} htmlFor="mnh-type">{c.year}년 기준표</label>

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { mnhDocAdminApi, DOC_STATUS_STYLE, type MnhDocBrief, type MnhDocFieldDef, type MnhTemplate } from "@/lib/api/mnh";
 
 const DOC_CSS =
-  "[&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_b]:font-bold text-sm leading-relaxed text-warm-700";
+  "[&_table.calc]:w-full [&_table.calc]:my-2 [&_table.calc]:border-collapse [&_table.calc_th]:border [&_table.calc_td]:border [&_table.calc_th]:border-warm-200 [&_table.calc_td]:border-warm-200 [&_table.calc_th]:px-2 [&_table.calc_td]:px-2 [&_table.calc_th]:py-1 [&_table.calc_td]:py-1 [&_table.calc_th]:bg-warm-50 [&_table.calc_th]:text-left [&_table.calc_th]:text-xs [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_b]:font-bold text-sm leading-relaxed text-warm-700";
 const TABLE_CSS = "[&_table]:w-full [&_th]:w-1/3 [&_th]:bg-warm-50 [&_th]:p-2 [&_th]:text-left [&_th]:align-top [&_th]:text-xs [&_td]:p-2 [&_td]:text-sm [&_tr]:border-b [&_tr]:border-warm-100";
 const labelCls = "block text-xs font-semibold text-warm-600 mb-1";
 const selectCls = "h-10 w-full rounded-lg border border-warm-200 bg-white px-2 text-sm";
