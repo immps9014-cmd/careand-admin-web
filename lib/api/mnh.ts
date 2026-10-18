@@ -400,6 +400,7 @@ export interface MnhDocBrief {
   issued_at: string;
   session_date?: string | null;
   void_reason: string | null;
+  needs_sign?: boolean;
   signed_ip?: string | null;
   content_hash?: string | null;
 }
@@ -469,6 +470,7 @@ export interface MnhArchiveRow {
   title: string;
   status: "issued" | "signed" | "void";
   void_reason: string | null;
+  needs_sign?: boolean;
   issued_at: string;
   signed_at: string | null;
   pdf_ready: boolean;
@@ -494,7 +496,7 @@ export interface MnhArchiveDocCell {
   type: string;
   label: string;
   before_start: boolean;
-  doc: { id: number; status: "issued" | "signed"; template_version: number | null; issued_at: string; signed_at: string | null; pdf_ready: boolean } | null;
+  doc: { id: number; status: "issued" | "signed"; needs_sign?: boolean; template_version: number | null; issued_at: string; signed_at: string | null; pdf_ready: boolean } | null;
   void_count: number;
 }
 
@@ -579,6 +581,12 @@ export const DOC_STATUS_STYLE: Record<string, { cls: string; label: string }> = 
   signed: { cls: "bg-brand-50 text-brand-700", label: "서명 완료" },
   void: { cls: "bg-warm-100 text-warm-500", label: "취소" },
 };
+
+/** 서류 상태 표시 — 서명 없이 발급하는 서류(영수증, needs_sign=false)는 「발급」(10-19) */
+export function docStatusStyle(status: string, needsSign?: boolean): { cls: string; label: string } {
+  if (status === "issued" && needsSign === false) return { cls: "bg-info-bg text-info", label: "발급" };
+  return DOC_STATUS_STYLE[status] ?? DOC_STATUS_STYLE.issued;
+}
 
 /* ───── 양방향 평가·종합평가(4단계) ───── */
 

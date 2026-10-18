@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import { mnhDocAdminApi, DOC_STATUS_STYLE, type MnhDocBrief, type MnhDocFieldDef, type MnhTemplate } from "@/lib/api/mnh";
+import { mnhDocAdminApi, DOC_STATUS_STYLE, docStatusStyle, type MnhDocBrief, type MnhDocFieldDef, type MnhTemplate } from "@/lib/api/mnh";
 
 const DOC_CSS =
   "[&_table.calc]:w-full [&_table.calc]:my-2 [&_table.calc]:border-collapse [&_table.calc_th]:border [&_table.calc_td]:border [&_table.calc_th]:border-warm-200 [&_table.calc_td]:border-warm-200 [&_table.calc_th]:px-2 [&_table.calc_td]:px-2 [&_table.calc_th]:py-1 [&_table.calc_td]:py-1 [&_table.calc_th]:bg-warm-50 [&_table.calc_th]:text-left [&_table.calc_th]:text-xs [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-bold [&_h3]:text-warm-800 [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_b]:font-bold text-sm leading-relaxed text-warm-700";
@@ -19,8 +19,8 @@ const TABLE_CSS = "[&_table]:w-full [&_th]:w-1/3 [&_th]:bg-warm-50 [&_th]:p-2 [&
 const labelCls = "block text-xs font-semibold text-warm-600 mb-1";
 const selectCls = "h-10 w-full rounded-lg border border-warm-200 bg-white px-2 text-sm";
 
-function StatusPill({ status }: { status: string }) {
-  const s = DOC_STATUS_STYLE[status] ?? DOC_STATUS_STYLE.issued;
+function StatusPill({ status, needsSign }: { status: string; needsSign?: boolean }) {
+  const s = docStatusStyle(status, needsSign);
   return <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap", s.cls)}>{s.label}</span>;
 }
 
@@ -104,7 +104,7 @@ export function DocViewer({ id, onClose }: { id: number; onClose: () => void }) 
             <h2 className="text-lg font-extrabold text-warm-800">{d?.title ?? "불러오는 중…"}</h2>
             {d && <p className="text-xs text-warm-500">MNHD-{String(d.id).padStart(6, "0")} · 서식 v{d.template_version} · 발행 {d.issued_at.slice(0, 16).replace("T", " ")}</p>}
           </div>
-          {d && <StatusPill status={d.status} />}
+          {d && <StatusPill status={d.status} needsSign={d.needs_sign} />}
           <button onClick={onClose} aria-label="닫기" className="p-1 rounded hover:bg-warm-100"><X className="w-5 h-5" /></button>
         </div>
         {d && (
@@ -216,9 +216,9 @@ function DocRow({ x, closed, onView, onPdf, onReissue }: { x: MnhDocBrief; close
   return (
     <li className="flex flex-wrap items-center gap-2 py-2 text-sm">
       <button onClick={onView} className="flex-1 min-w-[140px] text-left font-semibold text-warm-800 hover:underline">{x.title}</button>
-      <StatusPill status={x.status} />
+      <StatusPill status={x.status} needsSign={x.needs_sign} />
       {x.signed_at && <span className="text-xs text-warm-500">{x.signed_at.slice(5, 16).replace("T", " ")}</span>}
-      {x.status === "signed" && <Button size="sm" variant="ghost" onClick={onPdf} disabled={!x.pdf_ready} aria-label={`${x.title} PDF`}><FileDown /></Button>}
+      {(x.status === "signed" || (x.status === "issued" && x.needs_sign === false)) && <Button size="sm" variant="ghost" onClick={onPdf} disabled={!x.pdf_ready} aria-label={`${x.title} PDF`}><FileDown /></Button>}
       {!closed && x.status !== "void" && <Button size="sm" variant="ghost" onClick={onReissue}>다시 발행</Button>}
     </li>
   );

@@ -17,7 +17,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { DocViewer, usePdf } from "@/components/domain/mnh-docs";
 import {
-  mnhArchiveApi, DOC_STATUS_STYLE, MNH_STATUS_STYLE, dayLabel,
+  mnhArchiveApi, MNH_STATUS_STYLE, dayLabel, docStatusStyle,
   type MnhArchiveClient, type MnhArchiveProvisionDay, type MnhArchiveQuery,
 } from "@/lib/api/mnh";
 
@@ -25,8 +25,8 @@ const selectCls = "h-9 rounded-lg border border-warm-200 bg-white px-2 text-sm";
 const kstDay = (iso: string | null) =>
   iso ? new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso)) : "—";
 
-function StatusPill({ status }: { status: string }) {
-  const s = DOC_STATUS_STYLE[status] ?? DOC_STATUS_STYLE.issued;
+function StatusPill({ status, needsSign }: { status: string; needsSign?: boolean }) {
+  const s = docStatusStyle(status, needsSign);
   return <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap", s.cls)}>{s.label}</span>;
 }
 
@@ -144,7 +144,7 @@ function ArchiveSearch({ onClient }: { onClient: (id: number) => void }) {
                     {r.status === "void" && r.void_reason && <div className="text-xs text-warm-500">취소 사유: {r.void_reason}</div>}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">{r.caregiver_name ?? "—"}</TableCell>
-                  <TableCell><StatusPill status={r.status} /></TableCell>
+                  <TableCell><StatusPill status={r.status} needsSign={r.needs_sign} /></TableCell>
                   <TableCell className="whitespace-nowrap text-sm">{kstDay(r.signed_at)}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">
                     <Button size="sm" variant="outline" onClick={() => setView(r.id)}>보기</Button>
@@ -230,7 +230,7 @@ function ClientArchive({ id, onBack }: { id: number; onBack: () => void }) {
                       <div key={cell.type} className={cn("rounded-lg border p-3 text-sm", needed ? "border-warn bg-warn-bg/40" : "border-warm-200")}>
                         <div className="font-semibold text-warm-800 mb-1">{cell.label}</div>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          {cell.doc ? <StatusPill status={cell.doc.status} /> : <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-warm-100 text-warm-500">발행 전</span>}
+                          {cell.doc ? <StatusPill status={cell.doc.status} needsSign={cell.doc.needs_sign} /> : <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-warm-100 text-warm-500">발행 전</span>}
                           {needed && <span className="text-xs font-semibold text-warn">시작 전 필요</span>}
                         </div>
                         <div className="text-xs text-warm-500 mt-1">
