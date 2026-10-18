@@ -191,7 +191,7 @@ export default function PaymentsPage() {
                       {r.caregiver_name && <span className="text-warm-500"> · {r.caregiver_name}</span>}
                     </TableCell>
                     <TableCell className="text-xs text-warm-600">{r.service_domain ? DOMAIN_LABEL[r.service_domain] ?? r.service_domain : "-"}</TableCell>
-                    <TableCell className="text-xs text-warm-600">{r.method ? METHOD_LABEL[r.method] ?? r.method : "-"}</TableCell>
+                    <TableCell className="text-xs text-warm-600">{r.method ? METHOD_LABEL[r.method] ?? r.method : "-"}{r.offline && <span className="ml-1 text-[10px] font-bold text-warn bg-warn-bg px-1.5 py-px rounded">현장</span>}</TableCell>
                     <TableCell className="font-en text-xs">
                       {r.contract_id ? (
                         <Link href={`/mnh/${r.contract_id}`} className="text-brand-600 hover:underline">{r.ref ?? `#${r.contract_id}`}</Link>

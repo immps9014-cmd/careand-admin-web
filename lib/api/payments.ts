@@ -12,6 +12,8 @@ export interface PaymentRow {
   amount: number; // 환불은 음수
   status: string; // paid|pending|failed|cancelled|refunded
   method: string | null;
+  /** 앱 밖에서 받아 관리자가 기록한 결제(현금·계좌이체·현장 단말기, 10-18) */
+  offline?: boolean;
   ref: string | null; // 주문번호 또는 바우처 계약번호
   payer_name: string | null;
   recipient_name: string | null;

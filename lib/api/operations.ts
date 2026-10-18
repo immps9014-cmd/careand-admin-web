@@ -241,9 +241,26 @@ export interface MatchingDetailData {
   matched_at: string | null;
   senior: { gender: string | null; care_grade: string | null; special_notes: string | null } | null;
   address: { label: string | null; address: string | null; entry_note: string | null } | null;
-  matched_caregiver: { name: string | null; id: number; status: string; scheduled_start: string | null; scheduled_end: string | null; estimated_amount: number | null } | null;
+  matched_caregiver: {
+    name: string | null; id: number; status: string; scheduled_start: string | null; scheduled_end: string | null; estimated_amount: number | null;
+    is_manual?: boolean;
+    /** 결제 상태 — unpaid 면 출근이 막힌다. voucher·voucher_prepaid 는 바우처 계약(계약 화면에서 선납 기록) */
+    payment?: { state: "paid" | "unpaid" | "voucher" | "voucher_prepaid"; payment: OfflinePaymentInfo | null };
+  } | null;
   candidates: MatchingCandidate[];
 }
+export interface OfflinePaymentInfo {
+  id: number;
+  /** 앱 밖에서 받아 관리자가 기록한 결제 */
+  offline: boolean;
+  method: string;
+  method_label: string;
+  amount: number;
+  paid_at: string | null;
+  note: string | null;
+  recorded_by: string | null;
+}
+export type OfflinePaymentMethod = "cash" | "transfer" | "card";
 
 /* ===== #19 회원 통합관리 ===== */
 export interface Member {
@@ -551,6 +568,12 @@ export const operationsApi = {
   // 매칭 변경: 담당 돌봄전문가 교체 / 일정 날짜 수정 (requestId 기준)
   updateMatch: (requestId: number, payload: { caregiver_id?: number; scheduled_start?: string }) =>
     api.patch(`/v1/admin/matching/requests/${requestId}/match`, payload),
+
+  // 앱 밖에서 받은 결제 기록(현금·계좌이체·현장 단말기) — 결제 전 출근 차단의 예외(10-18)
+  recordOfflinePayment: (requestId: number, payload: { method: OfflinePaymentMethod; amount: number; paid_on: string; note?: string }) =>
+    api.post(`/v1/admin/matching/requests/${requestId}/offline-payment`, payload),
+  cancelOfflinePayment: (requestId: number, paymentId: number, reason?: string) =>
+    api.delete(`/v1/admin/matching/requests/${requestId}/offline-payment/${paymentId}`, { data: { reason } }),
 
   // #23
   async settlements(params?: { status?: string; page?: number }): Promise<

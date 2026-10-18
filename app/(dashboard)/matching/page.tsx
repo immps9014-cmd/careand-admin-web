@@ -18,7 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { operationsApi, type MatchingDetailData, type AdminCaregiver } from "@/lib/api/operations";
+import { operationsApi, type MatchingDetailData, type AdminCaregiver, type OfflinePaymentMethod } from "@/lib/api/operations";
+import { todayKst } from "@/lib/api/mnh";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -506,6 +507,121 @@ function CaregiverOptions({ list, domain, render }: { list?: AdminCaregiver[]; d
   );
 }
 
+const OFFLINE_METHODS: { key: OfflinePaymentMethod; label: string }[] = [
+  { key: "cash", label: "현금" },
+  { key: "transfer", label: "계좌이체" },
+  { key: "card", label: "카드(현장 단말기)" },
+];
+
+/**
+ * 매칭 결제 상태 + 앱 밖에서 받은 결제 기록(10-18, 관리자 수동 매칭 결제 예외).
+ * 결제 전엔 출근이 막힌다 — 현금·계좌이체·현장 단말기로 받았으면 여기서 기록해 출근을 연다.
+ */
+function PaymentBox({ requestId, m }: { requestId: number; m: NonNullable<MatchingDetailData["matched_caregiver"]> }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<null | { method: OfflinePaymentMethod; amount: string; paidOn: string; note: string }>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "matching-detail", requestId] });
+    qc.invalidateQueries({ queryKey: ["admin", "matching"] });
+  };
+  const record = useMutation({
+    mutationFn: (f: NonNullable<typeof form>) =>
+      operationsApi.recordOfflinePayment(requestId, { method: f.method, amount: Number(f.amount), paid_on: f.paidOn, note: f.note.trim() || undefined }),
+    onSuccess: () => { toast.success("현장 결제를 기록했어요. 이제 출근할 수 있어요."); setForm(null); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const cancel = useMutation({
+    mutationFn: (paymentId: number) => operationsApi.cancelOfflinePayment(requestId, paymentId),
+    onSuccess: () => { toast.success("현장 결제 기록을 취소했어요."); setCancelOpen(false); refresh(); },
+    onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const pay = m.payment;
+  if (!pay || pay.state === "voucher" || pay.state === "voucher_prepaid") {
+    return pay?.state === "voucher" ? (
+      <div className="mt-2 text-xs text-warm-500">결제: 바우처 계약 — 본인부담금 선납은 계약 화면에서 기록해요.</div>
+    ) : null;
+  }
+  const p = pay.payment;
+  const amountNum = Number(form?.amount ?? 0);
+  const amountOk = form != null && /^\d+$/.test(form.amount) && amountNum >= 1 && amountNum <= 10_000_000;
+  const dateOk = form != null && !!form.paidOn && form.paidOn <= todayKst();
+  const field = "w-full h-9 rounded-md border border-warm-300 bg-white px-2 text-sm text-warm-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
+  return (
+    <div className="mt-2 border-t border-brand-200 pt-2">
+      {pay.state === "paid" && p ? (
+        <div className="flex items-start gap-2 text-xs">
+          <span className="font-bold text-brand-700 flex-none">결제 완료</span>
+          <span className="text-warm-600 min-w-0">
+            {p.method_label} · <span className="font-en">{p.amount.toLocaleString()}</span>원{p.paid_at ? ` · ${formatDateTime(p.paid_at)}` : ""}
+            {p.offline && <> · 관리자 기록{p.recorded_by ? `(${p.recorded_by})` : ""}{p.note ? ` · ${p.note}` : ""}</>}
+          </span>
+          {p.offline && (
+            <button type="button" className="ml-auto flex-none font-semibold text-danger hover:underline" onClick={() => setCancelOpen(true)}>기록 취소</button>
+          )}
+        </div>
+      ) : form === null ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-warn">결제 전 — 돌봄전문가가 출근할 수 없어요</span>
+          <Button variant="outline" size="sm" className="ml-auto" onClick={() => setForm({ method: "transfer", amount: m.estimated_amount ? String(m.estimated_amount) : "", paidOn: todayKst(), note: "" })}>
+            현장 결제 기록
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          <div className="text-xs text-warm-600">앱 결제 대신 현금·계좌이체·현장 단말기로 <b>실제로 받은 돈</b>만 기록하세요. 기록하면 바로 출근할 수 있고 매출에 잡혀요.</div>
+          <div>
+            <label className="text-[11px] font-bold text-warm-600 block mb-1">받은 방법</label>
+            <div className="flex flex-wrap gap-1.5">
+              {OFFLINE_METHODS.map((o) => (
+                <button key={o.key} type="button" onClick={() => setForm({ ...form, method: o.key })}
+                  className={cn("h-8 px-3 rounded-full border text-xs font-semibold", form.method === o.key ? "border-brand-500 bg-brand-500 text-white" : "border-warm-300 bg-white text-warm-700 hover:bg-warm-50")}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[11px] font-bold text-warm-600 block mb-1">받은 금액(원) *</label>
+              <input inputMode="numeric" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value.replace(/[^\d]/g, "") })} className={cn(field, "font-en")} />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-warm-600 block mb-1">받은 날 *</label>
+              <input type="date" max={todayKst()} value={form.paidOn} onChange={(e) => setForm({ ...form, paidOn: e.target.value })} className={field} />
+            </div>
+          </div>
+          {m.estimated_amount != null && form.amount !== "" && amountNum !== m.estimated_amount && (
+            <div className="text-[11px] text-warn">예상 금액 {m.estimated_amount.toLocaleString()}원과 달라요. 맞는지 확인하세요.</div>
+          )}
+          <div>
+            <label className="text-[11px] font-bold text-warm-600 block mb-1">메모(입금자명·승인번호 등)</label>
+            <input maxLength={200} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className={field} />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setForm(null)}>취소</Button>
+            <Button variant="brand" size="sm" disabled={!amountOk || !dateOk || record.isPending} onClick={() => record.mutate(form)}>기록</Button>
+          </div>
+        </div>
+      )}
+      <ConfirmDialog
+        open={cancelOpen}
+        onOpenChange={(o) => { if (!o && !cancel.isPending) setCancelOpen(false); }}
+        loading={cancel.isPending}
+        tone="danger"
+        title="현장 결제 기록 취소"
+        description="잘못 기록한 결제를 취소 상태로 바꿉니다. 실제로 돈을 돌려줬다면 환불은 따로 하세요."
+        target={p ? <>{p.method_label} · {p.amount.toLocaleString()}원</> : null}
+        impact="결제 완료가 풀려 다시 기록하기 전까지 돌봄전문가가 출근할 수 없어요. 매출에서도 빠져요."
+        reversible
+        reverseHint="다시 「현장 결제 기록」으로 남기면 됩니다."
+        confirmLabel="기록 취소"
+        onConfirm={() => p && cancel.mutate(p.id)}
+      />
+    </div>
+  );
+}
+
 function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -607,6 +723,7 @@ function MatchingDetailModal({ id, onClose }: { id: number; onClose: () => void 
                   <div className="text-xs text-warm-500 mt-1">
                     일정: {data.matched_caregiver.scheduled_start ? formatDateTime(data.matched_caregiver.scheduled_start) : (data.scheduled_start ? formatDateTime(data.scheduled_start) : "-")}
                   </div>
+                  <PaymentBox requestId={data.id} m={data.matched_caregiver} />
                   {edit === null ? (
                     <div className="mt-2">
                       <Button variant="outline" size="sm" onClick={() => setEdit({ caregiverId: data.matched_caregiver!.id, start: toLocalDT(data.matched_caregiver!.scheduled_start ?? data.scheduled_start) })}>
