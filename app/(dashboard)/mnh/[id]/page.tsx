@@ -6,7 +6,7 @@ import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, ArrowLeft, BriefcaseBusiness, CalendarClock, CalendarX2, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ShieldAlert, BriefcaseBusiness, CalendarClock, CalendarX2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,12 @@ export default function MnhContractPage() {
           {c.cancel_notice_date && <> · 해지 통지 {c.cancel_notice_date}</>}
           {c.penalty_amount ? <> · 위약금 {formatKRW(c.penalty_amount)}</> : null}
           {c.penalty_status && c.penalty_status.outstanding > 0 ? <b className="text-warn"> · 받을 차액 {formatKRW(c.penalty_status.outstanding)}</b> : null}
+        </p>
+      )}
+      {c.health_consent_refused && (
+        <p role="status" className="flex items-start gap-2 text-sm text-warm-800 bg-info-bg rounded-lg px-4 py-2 mb-4">
+          <ShieldAlert className="w-4 h-4 text-info shrink-0 mt-0.5" />
+          산모가 건강정보(민감정보) 수집·이용에 동의하지 않았어요. 서비스·서류는 그대로 진행하고, 제공기록지의 건강 관찰 칸·이용일지 체온/산모 상태·산후우울 검사는 받지 않아요.
         </p>
       )}
       {c.voucher_warning && (

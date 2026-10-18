@@ -66,6 +66,8 @@ export interface MnhContractSummary {
   refunded_at: string | null;
   penalty_amount: number | null;
   penalty_due: number | null;
+  /** 산모가 건강정보(민감정보) 수집에 동의하지 않음 — 건강 기록만 빼고 진행(상세만) */
+  health_consent_refused?: boolean;
   cancel_notice_date: string | null;
   /** 위약금 차액(선납으로 못 채운 것) — 받을 것·받은 것·남은 것·받은 내역(관리자 상세만) */
   penalty_status?: { due: number; collected: number; outstanding: number;
