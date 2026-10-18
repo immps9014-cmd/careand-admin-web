@@ -15,6 +15,7 @@ import { EmploymentTab, TemplatesTab } from "@/components/domain/mnh-docs";
 import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { EpdsTab } from "@/components/domain/mnh-epds";
 import { MnhJournalTab } from "@/components/domain/mnh-journal";
+import { ArchiveTab } from "@/components/domain/mnh-archive";
 import { cn, formatKRW } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import {
@@ -39,6 +40,7 @@ const TABS = [
   { key: "evaluation", label: "인력 평가" },
   { key: "epds", label: "산후우울 검사" },
   { key: "journal", label: "이용일지" },
+  { key: "archive", label: "서류 보관함" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -91,6 +93,7 @@ function MnhPage() {
       {tab === "evaluation" && <EvaluationTab />}
       {tab === "epds" && <EpdsTab />}
       {tab === "journal" && <MnhJournalTab />}
+      {tab === "archive" && <ArchiveTab />}
     </div>
   );
 }

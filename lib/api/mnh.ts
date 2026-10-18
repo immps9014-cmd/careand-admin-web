@@ -460,6 +460,100 @@ export const mnhDocAdminApi = {
   },
 };
 
+/* ───── 서류 보관함 — 회원(산모)별 모아 보기·검색(2026-10-18) ───── */
+
+export interface MnhArchiveRow {
+  id: number;
+  doc_type: string;
+  label: string;
+  title: string;
+  status: "issued" | "signed" | "void";
+  void_reason: string | null;
+  issued_at: string;
+  signed_at: string | null;
+  pdf_ready: boolean;
+  session_date: string | null;
+  contract_id: number;
+  contract_no: string;
+  client_id: number;
+  client_name: string | null;
+  caregiver_name: string | null;
+}
+
+export interface MnhArchiveQuery {
+  q?: string;
+  doc_type?: string;
+  status?: "issued" | "signed" | "void" | "all";
+  date_kind?: "issued" | "signed" | "session";
+  from?: string;
+  to?: string;
+  page?: number;
+}
+
+export interface MnhArchiveDocCell {
+  type: string;
+  label: string;
+  before_start: boolean;
+  doc: { id: number; status: "issued" | "signed"; template_version: number | null; issued_at: string; signed_at: string | null; pdf_ready: boolean } | null;
+  void_count: number;
+}
+
+export interface MnhArchiveProvisionDay {
+  session_id: number;
+  date: string;
+  session_status: string;
+  doc: { id: number; status: "issued" | "signed"; pdf_ready: boolean } | null;
+  missing: boolean;
+}
+
+export interface MnhArchiveClient {
+  client: { id: number; name: string | null; phone_tail: string | null; delivery_date: string | null; expected_delivery_date: string | null };
+  contracts: {
+    id: number;
+    contract_no: string;
+    status: MnhStatus;
+    start_date: string | null;
+    days: number;
+    caregiver_name: string | null;
+    documents: MnhArchiveDocCell[];
+    provision: { days: MnhArchiveProvisionDay[]; completed: number; signed: number; missing: number };
+  }[];
+  pdf_count: number;
+}
+
+export const mnhArchiveApi = {
+  search: (params: MnhArchiveQuery) =>
+    api.get<Ok<{ rows: MnhArchiveRow[]; total: number; page: number; per_page: number; by_type: Record<string, number>; types: { type: string; label: string }[] }>>(
+      `/v1/admin/mnh/documents`, { params }).then((r) => r.data),
+  client: (id: number) => api.get<Ok<MnhArchiveClient>>(`/v1/admin/mnh/clients/${id}/documents`).then((r) => r.data),
+  /** 서명본 PDF 묶음(zip) — 사유 필수, 서버에 감사기록이 남는다 */
+  async downloadZip(id: number, reason: string, contractId?: number) {
+    try {
+      const res = await api.get(`/v1/admin/mnh/clients/${id}/documents/zip`, {
+        params: contractId ? { contract_id: contractId } : {},
+        headers: { "X-Access-Reason": encodeURIComponent(reason.trim()) },
+        responseType: "blob",
+      });
+      const cd = String(res.headers["content-disposition"] ?? "");
+      const star = /filename\*=utf-8''([^;]+)/i.exec(cd)?.[1];
+      const name = star ? decodeURIComponent(star) : /filename="?([^";]+)"?/.exec(cd)?.[1] ?? `mnh-documents-${id}.zip`;
+      const url = URL.createObjectURL(res.data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      const blob = (e as { response?: { data?: Blob } }).response?.data;
+      if (blob instanceof Blob) {
+        const msg = await blob.text().then((t) => JSON.parse(t).message as string).catch(() => null);
+        if (msg) throw new Error(msg);
+      }
+      throw e;
+    }
+  },
+};
+
 export const DOC_STATUS_STYLE: Record<string, { cls: string; label: string }> = {
   issued: { cls: "bg-warn-bg text-warn", label: "서명 대기" },
   signed: { cls: "bg-brand-50 text-brand-700", label: "서명 완료" },
