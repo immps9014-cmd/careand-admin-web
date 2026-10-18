@@ -554,6 +554,26 @@ export const mnhArchiveApi = {
   },
 };
 
+/* ───── 모니터링 설문 집계(2026-10-18) ───── */
+
+export interface MnhSurveySummary {
+  issued: number;
+  signed: number;
+  response_rate: number | null;
+  overall_avg: number | null;
+  eval_avg: number | null;
+  questions: { key: string; label: string; section: string | null; avg: number | null; n: number; dist: Record<string, number>; other: { label: string; n: number }[] }[];
+  general: { key: string; label: string; counts: { label: string; n: number }[] }[];
+  by_caregiver: { caregiver_id: number | null; name: string | null; n: number; eval_avg: number | null; overall_avg: number | null; recommend_avg: number | null }[];
+  comments: { document_id: number; contract_id: number; contract_no: string; client_name: string | null; caregiver_name: string | null; question: string; text: string; signed_at: string | null }[];
+  pending: { document_id: number; contract_id: number; contract_no: string; client_id: number; client_name: string | null; caregiver_name: string | null; issued_at: string; days: number; reminded: number }[];
+}
+
+export const mnhSurveyApi = {
+  summary: (params: { from?: string; to?: string; caregiver_id?: number }) =>
+    api.get<Ok<MnhSurveySummary>>(`/v1/admin/mnh/satisfaction`, { params }).then((r) => r.data),
+};
+
 export const DOC_STATUS_STYLE: Record<string, { cls: string; label: string }> = {
   issued: { cls: "bg-warn-bg text-warn", label: "서명 대기" },
   signed: { cls: "bg-brand-50 text-brand-700", label: "서명 완료" },

@@ -16,6 +16,7 @@ import { EvaluationTab } from "@/components/domain/mnh-eval";
 import { EpdsTab } from "@/components/domain/mnh-epds";
 import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { ArchiveTab } from "@/components/domain/mnh-archive";
+import { SurveyTab } from "@/components/domain/mnh-survey";
 import { cn, formatKRW } from "@/lib/utils";
 import { ExportXlsxButton } from "@/components/domain/export-xlsx-button";
 import {
@@ -41,6 +42,7 @@ const TABS = [
   { key: "epds", label: "산후우울 검사" },
   { key: "journal", label: "이용일지" },
   { key: "archive", label: "서류 보관함" },
+  { key: "survey", label: "모니터링" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -94,6 +96,7 @@ function MnhPage() {
       {tab === "epds" && <EpdsTab />}
       {tab === "journal" && <MnhJournalTab />}
       {tab === "archive" && <ArchiveTab />}
+      {tab === "survey" && <SurveyTab />}
     </div>
   );
 }
