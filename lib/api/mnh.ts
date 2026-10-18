@@ -175,6 +175,8 @@ export interface MnhContractDetail extends MnhContractSummary {
   expected_delivery_date?: string | null;
   /** 종료일이 출산 후 90일을 넘으면 문구 */
   voucher_warning?: string | null;
+  /** 담당 서류 중 계약 종료일까지 손봐야 할 것(CAREN-MNH-02 E) — expiring = 확인됐지만 계약 기간 중 만료 */
+  caregiver_doc_issues?: { type: string; label: string; status: "missing" | "submitted" | "rejected" | "expired" | "expiring"; expires_at: string | null }[];
 }
 
 export interface MnhCalendarRow {

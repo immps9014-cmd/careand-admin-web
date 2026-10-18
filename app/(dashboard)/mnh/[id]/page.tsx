@@ -536,6 +536,7 @@ function CaregiverCard({ c, closed, onDone }: CardProps) {
   return (
     <Section title="담당 산모신생아 건강관리사">
       <Row k="현재 담당" v={c.caregiver_name ?? <span className="text-warm-400">미배정</span>} />
+      {!!c.caregiver_doc_issues?.length && <DocIssues issues={c.caregiver_doc_issues} caregiverId={c.caregiver_id} />}
       {!closed && !assigned && (
         <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); if (cg) assign.mutate({ caregiver_id: Number(cg) }); }}>
           {picker}
@@ -555,6 +556,26 @@ function CaregiverCard({ c, closed, onDone }: CardProps) {
         </form>
       )}
     </Section>
+  );
+}
+
+const ISSUE_WORD = { missing: "미제출", submitted: "확인 대기", rejected: "반려", expired: "만료됨" } as const;
+
+/** 담당 서류 경고 — 계약 끝날 때까지 문제 되는 서류(만료·기간 중 만료를 먼저). 배정은 막지 않는다. */
+function DocIssues({ issues, caregiverId }: { issues: NonNullable<MnhContractDetail["caregiver_doc_issues"]>; caregiverId: number | null }) {
+  const sorted = [...issues].sort((a, b) => Number(a.status === "missing" || a.status === "submitted") - Number(b.status === "missing" || b.status === "submitted"));
+  return (
+    <div role="alert" className="mt-2 rounded-lg bg-warn-bg px-3 py-2 text-sm text-warm-800">
+      <p className="flex items-center gap-1.5 font-semibold"><AlertTriangle className="w-4 h-4 text-warn shrink-0" />담당 서류 확인 필요 {issues.length}건</p>
+      <ul className="mt-1 space-y-0.5 text-xs">
+        {sorted.map((i) => (
+          <li key={i.type}>
+            {i.label} · <b>{i.status === "expiring" ? `${i.expires_at} 만료(계약 기간 중)` : ISSUE_WORD[i.status]}</b>
+          </li>
+        ))}
+      </ul>
+      {caregiverId && <Link href="/caregiver-approval" className="mt-1 inline-block text-xs font-semibold text-brand-700 underline">자격검증에서 서류 보기</Link>}
+    </div>
   );
 }
 
