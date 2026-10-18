@@ -64,6 +64,8 @@ export interface MnhContractSummary {
   /** 취소 때 돌려준 본인부담금(매출에서 뺌) */
   refund_amount: number | null;
   refunded_at: string | null;
+  penalty_amount: number | null;
+  cancel_notice_date: string | null;
   caregiver_id: number | null;
   caregiver_name: string | null;
   member_note: string | null;
@@ -260,9 +262,28 @@ export const mnhApi = {
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/confirm-start`, body).then((r) => r.data),
   rejectStartRequest: (id: number, reason: string) =>
     api.delete<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/start-request`, { data: { reason } }).then((r) => r.data),
-  cancel: (id: number, reason: string, refund_amount?: number) =>
-    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, { reason, ...(refund_amount !== undefined ? { refund_amount } : {}) }).then((r) => r.data),
+  cancelQuote: (id: number, notice_date?: string) =>
+    api.get<Ok<MnhCancelQuote>>(`/v1/admin/mnh/contracts/${id}/cancel-quote`, { params: notice_date ? { notice_date } : {} }).then((r) => r.data),
+  cancel: (id: number, body: { reason: string; refund_amount?: number; penalty_amount?: number; notice_date?: string }) =>
+    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/cancel`, body).then((r) => r.data),
 };
+
+/** 취소 정산 제안 — 해지 통지 기한 안 지키면 위약금(비율 미등록이면 0), 환불 = 선납 − 받은 서비스분 − 위약금(CAREN-MNH-02 D) */
+export interface MnhCancelQuote {
+  notice_date: string;
+  noticed_days: number;
+  notice_days: number;
+  late: boolean;
+  penalty_pct: number | null;
+  total_price: number;
+  suggested_penalty: number;
+  completed_days: number;
+  days: number;
+  used_self_pay: number;
+  prepaid: boolean;
+  prepaid_amount: number;
+  suggested_refund: number | null;
+}
 
 /** 공휴일 표 변경 뒤 다시 맞춘 계약 / 담당 일정이 겹쳐 그대로 둔 계약 */
 export interface HolidayResync {

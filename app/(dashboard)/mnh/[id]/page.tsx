@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MnhJournalTab } from "@/components/domain/mnh-journal";
 import { useParams } from "next/navigation";
@@ -49,7 +49,13 @@ export default function MnhContractPage() {
         {c.start_date} ~ {c.end_date ?? "?"} · {c.days}일({c.completed_days}일 완료) · 매일 {c.daily_start}부터 {Math.round(c.daily_minutes / 60 * 10) / 10}시간 ·
         제공 요일 {c.weekdays.map((d) => DOW_KO[d % 7]).join("")}
       </p>
-      {c.status === "cancelled" && c.cancel_reason && <p className="text-sm bg-warm-100 rounded-lg px-4 py-2 mb-4">취소 사유: {c.cancel_reason}</p>}
+      {c.status === "cancelled" && c.cancel_reason && (
+        <p className="text-sm bg-warm-100 rounded-lg px-4 py-2 mb-4">
+          취소 사유: {c.cancel_reason}
+          {c.cancel_notice_date && <> · 해지 통지 {c.cancel_notice_date}</>}
+          {c.penalty_amount ? <> · 위약금 {formatKRW(c.penalty_amount)}</> : null}
+        </p>
+      )}
       {c.voucher_warning && (
         <p role="alert" className="flex items-start gap-2 text-sm text-warm-800 bg-warn-bg rounded-lg px-4 py-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-warn shrink-0 mt-0.5" />{c.voucher_warning}
@@ -307,7 +313,7 @@ function ScheduleCard({ c, closed, onDone }: CardProps) {
 
 const DOC_TYPE_LABEL: Record<string, string> = {
   service_contract: "서비스 이용계약서", privacy_consent: "개인정보 수집·이용 동의서", user_rules: "서비스 이용자 준수사항",
-  initial_consult: "초기상담 기록지", receipt: "본인부담금 영수증", satisfaction: "서비스 만족도 모니터링",
+  initial_consult: "초기상담 기록지", service_plan: "사회서비스 제공 계획서", receipt: "본인부담금 영수증", satisfaction: "서비스 만족도 모니터링",
 };
 
 function eventText(e: MnhContractDetail["events"][number]): string {
@@ -323,7 +329,7 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "prepaid": return `${formatKRW(Number(p.amount ?? 0))} · ${String(p.method ?? "")}${p.receipt_no ? ` · 영수증 ${String(p.receipt_no)}` : ""}`;
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
-    case "cancelled": return String(p.reason ?? "");
+    case "cancelled": return `${String(p.reason ?? "")}${p.notice_date ? ` · ${dayLabel(String(p.notice_date))} 통지` : ""}${p.penalty_amount ? ` · 위약금 ${formatKRW(Number(p.penalty_amount))}` : ""}`;
     case "birth_confirmed": return `${p.by === "member" ? "이용자" : "기관"} 확정${e.date ? ` · 개시 ${dayLabel(e.date)}` : ""}`;
     case "start_review": return `${p.start_date ? `${dayLabel(String(p.start_date))} 개시 요청 — ` : ""}${String(p.reason ?? "")}`;
     case "evaluated": return `${p.kind === "org_to_caregiver" ? "기관 → 관리사" : "관리사 → 이용자"} · ${p.timing === "final" ? "종료" : "수시"}`;
@@ -626,29 +632,95 @@ function SettingsCard({ c, onDone }: CardProps) {
   );
 }
 
+/** 계약 취소 — 해지 통지일로 위약금·환불을 제안받고 고쳐서 확정(CAREN-MNH-02 D) */
 function CancelCard({ c, onDone }: CardProps) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [notice, setNotice] = useState(todayKst());
+  const [penalty, setPenalty] = useState("");
+  const [refund, setRefund] = useState("");
+  const quote = useQuery({
+    queryKey: ["admin", "mnh", "cancel-quote", c.id, notice],
+    queryFn: () => mnhApi.cancelQuote(c.id, notice),
+    enabled: open && /^\d{4}-\d{2}-\d{2}$/.test(notice),
+  });
+  const qd = quote.data?.data;
+  // 통지일을 바꾸면 제안값으로 다시 채운다
+  useEffect(() => {
+    if (!qd) return;
+    setPenalty(String(qd.suggested_penalty));
+    if (qd.suggested_refund != null) setRefund(String(qd.suggested_refund));
+  }, [qd]);
   const cancel = useMutation({
-    mutationFn: (v: { reason: string; refund?: number }) => mnhApi.cancel(c.id, v.reason, v.refund),
-    onSuccess: (r) => { toast.success(r.message ?? "취소했어요."); onDone(r.data); },
+    mutationFn: () => mnhApi.cancel(c.id, {
+      reason: reason.trim(), notice_date: notice,
+      penalty_amount: Number(penalty.replace(/[^0-9]/g, "") || 0),
+      ...(c.prepaid ? { refund_amount: Number(refund.replace(/[^0-9]/g, "")) } : {}),
+    }),
+    onSuccess: (r) => { toast.success(r.message ?? "취소했어요."); setOpen(false); onDone(r.data); },
     onError: (e) => toast.error(getApiErrorMessage(e)),
   });
+  const max = c.prepaid_amount ?? 0;
+  const refundNum = Number(refund.replace(/[^0-9]/g, ""));
+  const refundBad = c.prepaid && (refund.trim() === "" || refundNum > max);
+
+  if (!open) {
+    return (
+      <div className="text-right">
+        <Button size="sm" variant="ghost" className="text-danger hover:bg-danger-bg" onClick={() => setOpen(true)}>계약 취소</Button>
+      </div>
+    );
+  }
   return (
-    <div className="text-right">
-      <Button size="sm" variant="ghost" className="text-danger hover:bg-danger-bg" disabled={cancel.isPending}
-        onClick={() => {
-          const reason = window.prompt("계약을 취소할까요? 남은 예정 일정이 모두 취소돼요. 사유를 적어 주세요.");
-          if (!reason || !reason.trim()) return;
-          if (!c.prepaid) { cancel.mutate({ reason: reason.trim() }); return; }
-          // 선납한 계약 — 돌려준 금액은 매출에서 빠진다. 제공 전이면 전액을 기본값으로
-          const max = c.prepaid_amount ?? 0;
-          const input = window.prompt(`돌려준 본인부담금(원)을 적어 주세요. 0 ~ ${max.toLocaleString("ko-KR")}원, 돌려주지 않았으면 0.`, String(c.completed_days > 0 ? "" : max));
-          if (input === null) return;
-          const refund = Number(input.replace(/[^0-9]/g, ""));
-          if (input.trim() === "" || !Number.isFinite(refund) || refund > max) { toast.error(`0 ~ ${max.toLocaleString("ko-KR")}원 사이로 적어 주세요.`); return; }
-          cancel.mutate({ reason: reason.trim(), refund });
+    <Section title="계약 취소">
+      <form className="grid sm:grid-cols-2 gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!reason.trim()) { toast.error("취소 사유를 적어 주세요."); return; }
+          if (refundBad) { toast.error(`환불액은 0 ~ ${max.toLocaleString("ko-KR")}원 사이로 적어 주세요.`); return; }
+          if (window.confirm("계약을 취소할까요? 남은 예정 일정이 모두 취소돼요.")) cancel.mutate();
         }}>
-        계약 취소
-      </Button>
-    </div>
+        <label className="sm:col-span-2">
+          <span className="block text-xs font-semibold text-warm-600 mb-1">취소 사유 *</span>
+          <Input value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} placeholder="예: 이용자 사정(입원)" />
+        </label>
+        <label>
+          <span className="block text-xs font-semibold text-warm-600 mb-1">이용자가 해지를 알린 날</span>
+          <Input type="date" value={notice} max={todayKst()} onChange={(e) => setNotice(e.target.value)} />
+        </label>
+        <label>
+          <span className="block text-xs font-semibold text-warm-600 mb-1">위약금(원)</span>
+          <Input inputMode="numeric" value={penalty} onChange={(e) => setPenalty(e.target.value)} />
+        </label>
+        {c.prepaid && (
+          <label>
+            <span className="block text-xs font-semibold text-warm-600 mb-1">돌려준 본인부담금(원) *</span>
+            <Input inputMode="numeric" value={refund} onChange={(e) => setRefund(e.target.value)} aria-invalid={refundBad} />
+          </label>
+        )}
+        {qd && (
+          <div className="sm:col-span-2 text-xs text-warm-600 bg-warm-50 rounded-lg px-3 py-2 space-y-0.5">
+            <p>
+              해지 통지 {qd.noticed_days}일 전(기한 {qd.notice_days}일) —{" "}
+              {qd.late
+                ? qd.penalty_pct == null
+                  ? "기한 안 지킴. 위약금 비율이 아직 등록되지 않아 0원으로 제안했어요(MNH_CANCEL_PENALTY_PCT)."
+                  : `기한 안 지킴 → 서비스 총 요금 ${formatKRW(qd.total_price)} × ${qd.penalty_pct}% = ${formatKRW(qd.suggested_penalty)}`
+                : "기한을 지켜 위약금 없음."}
+            </p>
+            {qd.prepaid && (
+              <p>
+                환불 제안: 선납 {formatKRW(qd.prepaid_amount)} − 받은 서비스 {qd.completed_days}/{qd.days}일분 {formatKRW(qd.used_self_pay)} − 위약금 {formatKRW(qd.suggested_penalty)} = {formatKRW(qd.suggested_refund ?? 0)}
+              </p>
+            )}
+            <p className="text-warm-500">제공기관 사정으로 해지하면 위약금을 0으로 고치세요.</p>
+          </div>
+        )}
+        <div className="sm:col-span-2 flex justify-end gap-2">
+          <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>닫기</Button>
+          <Button type="submit" size="sm" variant="outline" className="text-danger border-danger/40 hover:bg-danger-bg" disabled={cancel.isPending}>계약 취소 확정</Button>
+        </div>
+      </form>
+    </Section>
   );
 }

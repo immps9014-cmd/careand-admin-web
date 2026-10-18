@@ -28,25 +28,45 @@ export function usePdf() {
   return useMutation({ mutationFn: (id: number) => mnhDocAdminApi.openPdf(id), onError: (e) => toast.error(getApiErrorMessage(e)) });
 }
 
-/** 관리자가 채우는 칸 입력(초기상담·근로계약) */
-function AdminFields({ fields, value, onChange }: { fields: MnhDocFieldDef[]; value: Record<string, string>; onChange: (v: Record<string, string>) => void }) {
+type FormValue = Record<string, string | string[]>;
+
+/** 관리자가 채우는 칸 입력(초기상담·제공계획서·근로계약) */
+function AdminFields({ fields, value, onChange }: { fields: MnhDocFieldDef[]; value: FormValue; onChange: (v: FormValue) => void }) {
   return (
     <div className="grid sm:grid-cols-2 gap-2">
       {fields.map((f) => {
         const opts = f.options ? (Array.isArray(f.options) ? f.options.map((o) => [o, o]) : Object.entries(f.options)) : [];
-        const set = (v: string) => onChange({ ...value, [f.key]: v });
+        const set = (v: string | string[]) => onChange({ ...value, [f.key]: v });
+        if (f.type === "checks") {
+          const cur = Array.isArray(value[f.key]) ? (value[f.key] as string[]) : [];
+          return (
+            <fieldset key={f.key} className="sm:col-span-2">
+              <legend className={labelCls}>{f.label}</legend>
+              <div className="grid sm:grid-cols-2 gap-1">
+                {opts.map(([k, l]) => (
+                  <label key={k} className="flex items-start gap-2 text-sm text-warm-700">
+                    <input type="checkbox" className="mt-1" checked={cur.includes(k)}
+                      onChange={(e) => set(e.target.checked ? [...cur, k] : cur.filter((x) => x !== k))} />
+                    {l}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          );
+        }
+        const str = typeof value[f.key] === "string" ? (value[f.key] as string) : "";
         return (
           <label key={f.key} className={cn(f.type === "textarea" && "sm:col-span-2")}>
             <span className={labelCls}>{f.label}{f.type !== "textarea" && " *"}</span>
             {f.type === "select" ? (
-              <select className={selectCls} value={value[f.key] ?? ""} onChange={(e) => set(e.target.value)}>
+              <select className={selectCls} value={str} onChange={(e) => set(e.target.value)}>
                 <option value="">고르세요</option>
                 {opts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
             ) : f.type === "textarea" ? (
-              <textarea rows={3} maxLength={2000} value={value[f.key] ?? ""} onChange={(e) => set(e.target.value)} className="w-full rounded-lg border border-warm-200 p-2 text-sm" />
+              <textarea rows={3} maxLength={2000} value={str} onChange={(e) => set(e.target.value)} className="w-full rounded-lg border border-warm-200 p-2 text-sm" />
             ) : (
-              <Input type={f.type === "date" ? "date" : "text"} maxLength={100} value={value[f.key] ?? ""} onChange={(e) => set(e.target.value)} />
+              <Input type={f.type === "date" ? "date" : "text"} maxLength={100} value={str} onChange={(e) => set(e.target.value)} />
             )}
           </label>
         );
@@ -109,7 +129,7 @@ export function ContractDocsCard({ contractId, closed }: { contractId: number; c
   const q = useQuery({ queryKey: ["admin", "mnh", "contract-docs", contractId], queryFn: () => mnhDocAdminApi.forContract(contractId) });
   const [view, setView] = useState<number | null>(null);
   const [issueType, setIssueType] = useState("");
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<FormValue>({});
   const [showVoid, setShowVoid] = useState(false);
   const pdf = usePdf();
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "mnh", "contract-docs", contractId] });
@@ -276,7 +296,7 @@ export function EmploymentTab() {
   const tpl = useQuery({ queryKey: ["admin", "mnh", "templates"], queryFn: mnhDocAdminApi.templates });
   const empFields = (tpl.data?.data.templates.find((t) => t.doc_type === "employment_contract")?.fields ?? []).filter((f) => f.filled_by === "admin");
   const [target, setTarget] = useState<number | null>(null);
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<FormValue>({});
   const [view, setView] = useState<number | null>(null);
   const pdf = usePdf();
   const issue = useMutation({
