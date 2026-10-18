@@ -164,7 +164,7 @@ export interface MonthlyReport {
   generated_at: string;
   data: {
     revenue: { paid_count: number; total: number; self_pay: number; ltc_pay: number; cancelled_count: number; cancelled_amount: number;
-      voucher?: { net: number; prepaid_amount: number; prepaid_count: number; refund_amount: number; refund_count: number };
+      voucher?: { net: number; prepaid_amount: number; prepaid_count: number; refund_amount: number; refund_count: number; penalty_amount?: number; penalty_count?: number };
       by_domain: { domain: string; label: string; count: number; amount: number }[]; by_branch: { branch: string; count: number; amount: number }[] };
     settlement: { count: number; gross: number; withholding: number; net: number; paid_count: number };
     matching: { requests: number; matched: number; expired: number; avg_match_hours: number | null };

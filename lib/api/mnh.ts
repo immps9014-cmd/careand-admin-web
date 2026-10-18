@@ -65,7 +65,11 @@ export interface MnhContractSummary {
   refund_amount: number | null;
   refunded_at: string | null;
   penalty_amount: number | null;
+  penalty_due: number | null;
   cancel_notice_date: string | null;
+  /** 위약금 차액(선납으로 못 채운 것) — 받을 것·받은 것·남은 것·받은 내역(관리자 상세만) */
+  penalty_status?: { due: number; collected: number; outstanding: number;
+    rows: { id: number; amount: number; method: string; method_label: string; collected_on: string; note: string | null }[] } | null;
   caregiver_id: number | null;
   caregiver_name: string | null;
   member_note: string | null;
@@ -266,6 +270,10 @@ export const mnhApi = {
     api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/confirm-start`, body).then((r) => r.data),
   rejectStartRequest: (id: number, reason: string) =>
     api.delete<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/start-request`, { data: { reason } }).then((r) => r.data),
+  collectPenalty: (id: number, body: { amount: number; method: string; collected_on: string; note?: string }) =>
+    api.post<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/penalty-collections`, body).then((r) => r.data),
+  deletePenaltyCollection: (id: number, rowId: number) =>
+    api.delete<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/penalty-collections/${rowId}`).then((r) => r.data),
   setAddons: (id: number, body: { items: { id: number; qty: number }[]; custom: MnhCustomAddon[] }) =>
     api.put<Ok<MnhContractDetail>>(`/v1/admin/mnh/contracts/${id}/addons`, body).then((r) => r.data),
   cancelQuote: (id: number, notice_date?: string) =>
@@ -325,6 +333,8 @@ export const MNH_EVENT_LABEL: Record<string, string> = {
   start_changed: "일정 변경",
   note: "특이사항",
   addons_changed: "추가 서비스·대여 변경",
+  penalty_collected: "위약금 차액 받음",
+  penalty_collection_deleted: "위약금 차액 기록 지움",
   cancelled: "계약 취소",
   completed: "서비스 종료",
   doc_issued: "서류 발행",

@@ -54,6 +54,7 @@ export default function MnhContractPage() {
           취소 사유: {c.cancel_reason}
           {c.cancel_notice_date && <> · 해지 통지 {c.cancel_notice_date}</>}
           {c.penalty_amount ? <> · 위약금 {formatKRW(c.penalty_amount)}</> : null}
+          {c.penalty_status && c.penalty_status.outstanding > 0 ? <b className="text-warn"> · 받을 차액 {formatKRW(c.penalty_status.outstanding)}</b> : null}
         </p>
       )}
       {c.voucher_warning && (
@@ -78,6 +79,7 @@ export default function MnhContractPage() {
           <SupportCard c={c} closed={closed} onDone={apply} />
           <AddonsCard c={c} closed={closed} onDone={apply} />
           <PrepaidCard c={c} closed={closed} onDone={apply} refetch={() => q.refetch()} />
+          {c.penalty_status && <PenaltyCard c={c} onDone={apply} />}
           <CaregiverCard c={c} closed={closed} onDone={apply} />
           {!closed && <SettingsCard c={c} onDone={apply} />}
           {!closed && <CancelCard c={c} onDone={apply} />}
@@ -330,6 +332,8 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "prepaid": return `${formatKRW(Number(p.amount ?? 0))} · ${String(p.method ?? "")}${p.receipt_no ? ` · 영수증 ${String(p.receipt_no)}` : ""}`;
     case "support_set": return `본인부담금 ${formatKRW(Number(p.self_pay ?? 0))}`;
     case "start_changed": return `변경: ${Object.keys((p.after as Record<string, unknown>) ?? {}).join(", ")}`;
+    case "penalty_collected": return `${formatKRW(Number(p.amount ?? 0))} · ${String(p.method ?? "")}`;
+    case "penalty_collection_deleted": return `${formatKRW(Number(p.amount ?? 0))} 기록 지움`;
     case "addons_changed": return `${formatKRW(Number(p.before ?? 0))} → ${formatKRW(Number(p.after ?? 0))} · ${String(p.count ?? 0)}개 항목`;
     case "cancelled": return `${String(p.reason ?? "")}${p.notice_date ? ` · ${dayLabel(String(p.notice_date))} 통지` : ""}${p.penalty_amount ? ` · 위약금 ${formatKRW(Number(p.penalty_amount))}` : ""}`;
     case "birth_confirmed": return `${p.by === "member" ? "이용자" : "기관"} 확정${e.date ? ` · 개시 ${dayLabel(e.date)}` : ""}`;
@@ -384,6 +388,76 @@ function ClientCard({ c }: { c: MnhContractDetail }) {
         : <span className="text-warm-500">미등록</span>} />
       {c.care_profile_summary && <Row k="가정 정보" v={c.care_profile_summary} />}
       {c.member_note && <Row k="이용자 메모" v={c.member_note} />}
+    </Section>
+  );
+}
+
+/* ───── 위약금 차액(미수) — 선납으로 못 채운 위약금을 따로 받은 기록(CAREN-MNH-02 D 보강) ───── */
+
+const COLLECT_METHODS: Record<string, string> = { cash: "현금", card: "카드", local_currency: "지역화폐", transfer: "계좌이체" };
+
+function PenaltyCard({ c, onDone }: Omit<CardProps, "closed">) {
+  const st = c.penalty_status!;
+  const [amount, setAmount] = useState(String(st.outstanding));
+  const [method, setMethod] = useState("transfer");
+  const [date, setDate] = useState(todayKst());
+  const [note, setNote] = useState("");
+  const done = (r: { message?: string; data: MnhContractDetail }) => { toast.success(r.message ?? "저장했어요."); onDone(r.data); setAmount(String(r.data.penalty_status?.outstanding ?? 0)); setNote(""); };
+  const add = useMutation({
+    mutationFn: () => mnhApi.collectPenalty(c.id, { amount: Number(amount.replace(/[^0-9]/g, "")), method, collected_on: date, ...(note.trim() ? { note: note.trim() } : {}) }),
+    onSuccess: done, onError: (e) => toast.error(getApiErrorMessage(e)),
+  });
+  const del = useMutation({ mutationFn: (rowId: number) => mnhApi.deletePenaltyCollection(c.id, rowId), onSuccess: done, onError: (e) => toast.error(getApiErrorMessage(e)) });
+  const n = Number(amount.replace(/[^0-9]/g, "") || 0);
+  const bad = n < 1 || n > st.outstanding;
+
+  return (
+    <Section title="위약금 차액" aside={st.outstanding > 0
+      ? <span className="text-xs font-bold text-warn">받을 차액 {formatKRW(st.outstanding)}</span>
+      : <span className="text-xs font-bold text-brand-700">다 받음</span>}>
+      <p className="text-xs text-warm-500 mb-2">위약금 {formatKRW(c.penalty_amount ?? 0)} 중 선납으로 못 채운 금액이에요. 받은 날 바우처 매출에 들어가요.</p>
+      <Row k="받아야 할 차액" v={formatKRW(st.due)} />
+      <Row k="받은 금액" v={formatKRW(st.collected)} />
+      <Row k="남은 차액" v={<b className={st.outstanding > 0 ? "text-warn" : ""}>{formatKRW(st.outstanding)}</b>} />
+      {st.rows.length > 0 && (
+        <ul className="mt-2 pt-2 border-t border-warm-100 space-y-1 text-sm">
+          {st.rows.map((r) => (
+            <li key={r.id} className="flex items-center justify-between gap-2">
+              <span className="min-w-0">{r.collected_on} · {r.method_label}{r.note && <span className="text-xs text-warm-500"> · {r.note}</span>}</span>
+              <span className="flex items-center gap-1 whitespace-nowrap">
+                {formatKRW(r.amount)}
+                <Button size="sm" variant="ghost" aria-label={`${r.collected_on} ${formatKRW(r.amount)} 기록 지우기`} disabled={del.isPending}
+                  onClick={() => { if (window.confirm(`${r.collected_on} ${formatKRW(r.amount)} 기록을 지울까요? 매출에서도 빠져요(이력은 남아요).`)) del.mutate(r.id); }}>✕</Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {st.outstanding > 0 && (
+        <form className="mt-3 pt-3 border-t border-warm-100 grid grid-cols-2 gap-2"
+          onSubmit={(e) => { e.preventDefault(); if (!bad) add.mutate(); }}>
+          <label>
+            <span className={labelCls}>받은 금액(원)</span>
+            <Input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} aria-invalid={bad} />
+            {n > 0 && <span className="block text-[11px] text-warm-500 mt-0.5">{formatKRW(n)}{n > st.outstanding && " — 남은 차액보다 많아요"}</span>}
+          </label>
+          <label>
+            <span className={labelCls}>받은 방법</span>
+            <select className={selectCls} value={method} onChange={(e) => setMethod(e.target.value)}>
+              {Object.entries(COLLECT_METHODS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className={labelCls}>받은 날</span>
+            <Input type="date" value={date} max={todayKst()} onChange={(e) => setDate(e.target.value)} />
+          </label>
+          <label>
+            <span className={labelCls}>메모</span>
+            <Input maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} placeholder="예: 1차분" />
+          </label>
+          <Button type="submit" size="sm" variant="outline" className="col-span-2" disabled={add.isPending || bad}>받은 것 기록</Button>
+        </form>
+      )}
     </Section>
   );
 }
@@ -835,8 +909,8 @@ function CancelCard({ c, onDone }: CardProps) {
               <p role="alert" className="flex items-start gap-1 font-semibold text-warn">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                 {qd.prepaid
-                  ? `위약금이 돌려줄 선납 잔액(${formatKRW(leftover ?? 0)})보다 ${formatKRW(shortfall)} 많아요. 환불은 0원, 차액 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요.`
-                  : `선납 전이라 위약금 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요.`}
+                  ? `위약금이 돌려줄 선납 잔액(${formatKRW(leftover ?? 0)})보다 ${formatKRW(shortfall)} 많아요. 환불은 0원, 차액 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요. 취소하면 계약 화면 「위약금 차액」에 남고, 받은 것을 기록할 수 있어요.`
+                  : `선납 전이라 위약금 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요. 취소하면 계약 화면 「위약금 차액」에 남고, 받은 것을 기록할 수 있어요.`}
               </p>
             )}
             <p className="text-warm-500">제공기관 사정으로 해지하면 위약금을 0으로 고치세요.</p>

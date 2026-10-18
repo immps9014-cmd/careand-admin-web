@@ -2,7 +2,7 @@ import { api } from "./client";
 
 /** 관리자 결제 내역(2026-10-11) — GET /v1/admin/payments. 매출 = 카드 결제 완료 + 바우처 선납 − 환불(대시보드 「이번 주 매출」과 같은 식) */
 export type PaymentPeriod = "today" | "this_week" | "last_week" | "this_month" | "last_month" | "custom";
-export type PaymentKind = "card" | "voucher_prepaid" | "voucher_refund";
+export type PaymentKind = "card" | "voucher_prepaid" | "voucher_refund" | "voucher_penalty";
 
 export interface PaymentRow {
   key: string;
@@ -26,7 +26,7 @@ export interface PaymentSummary {
   to: string;
   revenue: number;
   card_paid: { count: number; amount: number };
-  voucher: { net: number; prepaid_count: number; refund_count: number };
+  voucher: { net: number; prepaid_count: number; refund_count: number; penalty_count?: number };
   by_status: Record<string, number>;
 }
 

@@ -30,13 +30,14 @@ const PERIODS: { key: PaymentPeriod; label: string }[] = [
 const KINDS = [
   { key: "", label: "전체" },
   { key: "card", label: "카드 결제" },
-  { key: "voucher", label: "바우처 선납·환불" },
+  { key: "voucher", label: "바우처 선납·환불·위약금" },
 ] as const;
 
 const KIND_BADGE: Record<PaymentRow["kind"], { label: string; variant: "info" | "brand" | "danger" }> = {
   card: { label: "카드 결제", variant: "info" },
   voucher_prepaid: { label: "바우처 선납", variant: "brand" },
   voucher_refund: { label: "바우처 환불", variant: "danger" },
+  voucher_penalty: { label: "바우처 위약금", variant: "brand" },
 };
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   paid: { label: "완료", cls: "text-warm-800" },
@@ -45,7 +46,7 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   cancelled: { label: "취소", cls: "text-warm-500" },
   refunded: { label: "환불", cls: "text-danger" },
 };
-const METHOD_LABEL: Record<string, string> = { card: "카드", account: "계좌", voucher_only: "바우처만", cash: "현금", local_currency: "지역화폐" };
+const METHOD_LABEL: Record<string, string> = { card: "카드", account: "계좌", voucher_only: "바우처만", cash: "현금", local_currency: "지역화폐", transfer: "계좌이체" };
 
 function readUrlParam(key: string): string {
   if (typeof window === "undefined") return "";

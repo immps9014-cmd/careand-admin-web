@@ -24,6 +24,7 @@ function toCsv(r: MonthlyReport): string {
     ...(d.revenue.voucher ? [
       ["매출", "그중 바우처 선납(환불 차감)", d.revenue.voucher.net], ["매출", "바우처 선납 건수", d.revenue.voucher.prepaid_count],
       ["매출", "바우처 환불 금액", d.revenue.voucher.refund_amount],
+      ["매출", "바우처 위약금 차액 받은 금액", d.revenue.voucher.penalty_amount ?? 0],
     ] : []),
     ...d.revenue.by_domain.map((x) => ["도메인 매출", x.label, x.amount]),
     ...d.revenue.by_branch.map((x) => ["지점 매출", x.branch, x.amount]),
