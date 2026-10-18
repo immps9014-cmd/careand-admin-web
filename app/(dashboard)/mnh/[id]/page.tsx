@@ -774,6 +774,11 @@ function CancelCard({ c, onDone }: CardProps) {
   const max = c.prepaid_amount ?? 0;
   const refundNum = Number(refund.replace(/[^0-9]/g, ""));
   const refundBad = c.prepaid && (refund.trim() === "" || refundNum > max);
+  const penaltyNum = Number(penalty.replace(/[^0-9]/g, "") || 0);
+  // 선납에서 받은 서비스분을 빼고 남은 돈보다 위약금이 크면 그 차액은 따로 받아야 한다(위약금 기준은 총 요금이라 본인부담보다 클 수 있음)
+  const leftover = qd ? (qd.prepaid ? Math.max(0, qd.prepaid_amount - qd.used_self_pay) : 0) : null;
+  const shortfall = leftover != null && penaltyNum > leftover ? penaltyNum - leftover : 0;
+  const won = (v: string) => (v.trim() !== "" && /^[0-9,]+$/.test(v.trim()) ? formatKRW(Number(v.replace(/[^0-9]/g, ""))) : null);
 
   if (!open) {
     return (
@@ -802,26 +807,36 @@ function CancelCard({ c, onDone }: CardProps) {
         <label>
           <span className="block text-xs font-semibold text-warm-600 mb-1">위약금(원)</span>
           <Input inputMode="numeric" value={penalty} onChange={(e) => setPenalty(e.target.value)} />
+          {won(penalty) && <span className="block text-[11px] text-warm-500 mt-0.5">{won(penalty)}</span>}
         </label>
         {c.prepaid && (
           <label>
             <span className="block text-xs font-semibold text-warm-600 mb-1">돌려준 본인부담금(원) *</span>
             <Input inputMode="numeric" value={refund} onChange={(e) => setRefund(e.target.value)} aria-invalid={refundBad} />
+            {won(refund) && <span className="block text-[11px] text-warm-500 mt-0.5">{won(refund)} (선납 {formatKRW(max)} 중)</span>}
           </label>
         )}
         {qd && (
           <div className="sm:col-span-2 text-xs text-warm-600 bg-warm-50 rounded-lg px-3 py-2 space-y-0.5">
             <p>
-              해지 통지 {qd.noticed_days}일 전(기한 {qd.notice_days}일) —{" "}
+              {qd.noticed_days === 0 ? "오늘 알림" : `${qd.noticed_days}일 전에 알림`}({qd.notice_days}일 전까지 알려야 함) —{" "}
               {qd.late
                 ? qd.penalty_pct == null
-                  ? "기한 안 지킴. 위약금 비율이 아직 등록되지 않아 0원으로 제안했어요(MNH_CANCEL_PENALTY_PCT)."
-                  : `기한 안 지킴 → 서비스 총 요금 ${formatKRW(qd.total_price)} × ${qd.penalty_pct}% = ${formatKRW(qd.suggested_penalty)}`
+                  ? "기한을 못 지켰지만 위약금 비율이 아직 정해지지 않아(운영 설정 필요) 0원으로 제안했어요. 받을 위약금이 있으면 직접 적으세요."
+                  : `기한을 못 지켜 위약금 = 서비스 총 요금 ${formatKRW(qd.total_price)} × ${qd.penalty_pct}% = ${formatKRW(qd.suggested_penalty)}`
                 : "기한을 지켜 위약금 없음."}
             </p>
             {qd.prepaid && (
               <p>
                 환불 제안: 선납 {formatKRW(qd.prepaid_amount)} − 받은 서비스 {qd.completed_days}/{qd.days}일분 {formatKRW(qd.used_self_pay)} − 위약금 {formatKRW(qd.suggested_penalty)} = {formatKRW(qd.suggested_refund ?? 0)}
+              </p>
+            )}
+            {shortfall > 0 && (
+              <p role="alert" className="flex items-start gap-1 font-semibold text-warn">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                {qd.prepaid
+                  ? `위약금이 돌려줄 선납 잔액(${formatKRW(leftover ?? 0)})보다 ${formatKRW(shortfall)} 많아요. 환불은 0원, 차액 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요.`
+                  : `선납 전이라 위약금 ${formatKRW(shortfall)}은 이용자에게 따로 받아야 해요.`}
               </p>
             )}
             <p className="text-warm-500">제공기관 사정으로 해지하면 위약금을 0으로 고치세요.</p>
