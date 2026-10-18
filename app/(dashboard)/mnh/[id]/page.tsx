@@ -465,17 +465,37 @@ function AddonsCard({ c, closed, onDone }: CardProps) {
           <div className="pt-2 border-t border-warm-100 space-y-2">
             <p className="text-xs font-semibold text-warm-600">협의해 직접 적는 항목</p>
             {custom.map((x, i) => (
-              <div key={i} className="grid grid-cols-[auto_1fr] gap-1.5 items-center">
-                <select aria-label="종류" className={cn(selectCls, "w-24")} value={x.kind} onChange={(e) => setCustomAt(i, { kind: e.target.value })}>
-                  {Object.entries(kinds).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-                </select>
-                <Input aria-label="항목 이름" maxLength={60} value={x.name} placeholder="항목 이름" onChange={(e) => setCustomAt(i, { name: e.target.value })} />
-                <div className="col-span-2 flex gap-1.5 items-center">
-                  <Input aria-label="단가(원)" inputMode="numeric" value={x.price} placeholder="단가(원)" onChange={(e) => setCustomAt(i, { price: e.target.value.replace(/[^0-9]/g, "") })} />
-                  <Input aria-label="수량" inputMode="numeric" className="w-16 text-right" value={x.qty} onChange={(e) => setCustomAt(i, { qty: e.target.value.replace(/[^0-9]/g, "") })} />
-                  <Input aria-label="단위" maxLength={10} className="w-16" value={x.unit_label} onChange={(e) => setCustomAt(i, { unit_label: e.target.value })} />
+              <div key={i} className="grid grid-cols-[auto_1fr] gap-x-1.5 gap-y-1 items-end rounded-lg border border-warm-100 p-2">
+                <label>
+                  <span className="block text-[11px] text-warm-500 mb-0.5">종류</span>
+                  <select className={cn(selectCls, "w-24")} value={x.kind} onChange={(e) => setCustomAt(i, { kind: e.target.value })}>
+                    {Object.entries(kinds).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span className="block text-[11px] text-warm-500 mb-0.5">항목 이름</span>
+                  <Input maxLength={60} value={x.name} placeholder="예: 큰아이 돌봄" onChange={(e) => setCustomAt(i, { name: e.target.value })} />
+                </label>
+                <div className="col-span-2 flex gap-1.5 items-end">
+                  <label className="flex-1 min-w-0">
+                    <span className="block text-[11px] text-warm-500 mb-0.5">단가(원)</span>
+                    <Input inputMode="numeric" value={x.price} onChange={(e) => setCustomAt(i, { price: e.target.value.replace(/[^0-9]/g, "") })} />
+                  </label>
+                  <label className="w-16">
+                    <span className="block text-[11px] text-warm-500 mb-0.5">수량</span>
+                    <Input inputMode="numeric" className="text-right" value={x.qty} onChange={(e) => setCustomAt(i, { qty: e.target.value.replace(/[^0-9]/g, "") })} />
+                  </label>
+                  <label className="w-16">
+                    <span className="block text-[11px] text-warm-500 mb-0.5">단위</span>
+                    <Input maxLength={10} value={x.unit_label} onChange={(e) => setCustomAt(i, { unit_label: e.target.value })} />
+                  </label>
                   <Button type="button" size="sm" variant="ghost" aria-label="이 항목 빼기" onClick={() => setCustom(custom.filter((_, k) => k !== i))}>✕</Button>
                 </div>
+                {x.price !== "" && (
+                  <p className="col-span-2 text-xs text-warm-600 text-right">
+                    {formatKRW(Number(x.price))} × {x.qty || 1}{x.unit_label || "회"} = <b>{formatKRW(Number(x.price) * Number(x.qty || 1))}</b>
+                  </p>
+                )}
               </div>
             ))}
             <Button type="button" size="sm" variant="outline" disabled={custom.length >= 10}

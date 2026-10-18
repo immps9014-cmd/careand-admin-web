@@ -162,7 +162,7 @@ export function ContractDocsCard({ contractId, closed }: { contractId: number; c
             {d.enforce ? " — 서명 전엔 출근이 막혀요." : " (지금은 출근 차단 꺼짐 · MNH_DOCS_ENFORCE)"}
           </p>
         )}
-        {main.length === 0 && <p className="text-sm text-warm-500">아직 발행한 서류가 없어요. 담당을 배정하면 이용계약서·개인정보 동의서·준수사항이 자동으로 발행돼요.</p>}
+        {main.length === 0 && <p className="text-sm text-warm-500">아직 발행한 서류가 없어요. 담당을 배정하면 이용계약서·계약서 별지(계약금액 산출내역)·개인정보 동의서·준수사항이 자동으로 발행돼요.</p>}
         <ul className="divide-y divide-warm-100">
           {main.map((x) => (
             <DocRow key={x.id} x={x} closed={closed} onView={() => setView(x.id)} onPdf={() => pdf.mutate(x.id)}
