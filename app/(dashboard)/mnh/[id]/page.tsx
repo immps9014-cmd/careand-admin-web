@@ -339,7 +339,12 @@ function eventText(e: MnhContractDetail["events"][number]): string {
     case "birth_confirmed": return `${p.by === "member" ? "이용자" : "기관"} 확정${e.date ? ` · 개시 ${dayLabel(e.date)}` : ""}`;
     case "start_review": return `${p.start_date ? `${dayLabel(String(p.start_date))} 개시 요청 — ` : ""}${String(p.reason ?? "")}`;
     case "evaluated": return `${p.kind === "org_to_caregiver" ? "기관 → 관리사" : "관리사 → 이용자"} · ${p.timing === "final" ? "종료" : "수시"}`;
-    case "doc_issued": case "doc_signed": return DOC_TYPE_LABEL[String(p.doc_type ?? "")] ?? String(p.doc_type ?? "");
+    case "doc_issued": case "doc_signed": {
+      const label = DOC_TYPE_LABEL[String(p.doc_type ?? "")] ?? String(p.doc_type ?? "");
+      // 개인정보 동의서에서 동의하지 않은 항목(민감정보 등)
+      const refused = Array.isArray(p.refused) ? (p.refused as string[]) : [];
+      return refused.length ? `${label} · 동의 안 함: ${refused.join(", ")}` : label;
+    }
     default: return e.date ? dayLabel(e.date) : "";
   }
 }
