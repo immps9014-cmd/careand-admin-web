@@ -30,6 +30,17 @@ export function usePdf() {
 
 type FormValue = Record<string, string | string[]>;
 
+/** 관리자 칸 중 발행 전에 꼭 채울 것 — 서버 MnhDocumentService::fieldRequired 와 같은 규칙(서명하는 사람은 이 칸을 채울 수 없음) */
+const adminRequired = (f: MnhDocFieldDef) => f.type !== "textarea";
+/** 비어 있는 필수 칸 이름 */
+export const missingAdmin = (fields: MnhDocFieldDef[], v: FormValue) =>
+  fields.filter((f) => adminRequired(f) && (Array.isArray(v[f.key]) ? (v[f.key] as string[]).length === 0 : !String(v[f.key] ?? "").trim())).map((f) => f.label);
+
+function MissingHint({ names }: { names: string[] }) {
+  if (!names.length) return null;
+  return <p className="text-xs font-semibold text-warn">필수 칸을 채워야 발행할 수 있어요: {names.join(", ")}</p>;
+}
+
 /** 관리자가 채우는 칸 입력(초기상담·제공계획서·근로계약) */
 function AdminFields({ fields, value, onChange }: { fields: MnhDocFieldDef[]; value: FormValue; onChange: (v: FormValue) => void }) {
   return (
@@ -41,7 +52,7 @@ function AdminFields({ fields, value, onChange }: { fields: MnhDocFieldDef[]; va
           const cur = Array.isArray(value[f.key]) ? (value[f.key] as string[]) : [];
           return (
             <fieldset key={f.key} className="sm:col-span-2">
-              <legend className={labelCls}>{f.label}</legend>
+              <legend className={labelCls}>{f.label} *</legend>
               <div className="grid sm:grid-cols-2 gap-1">
                 {opts.map(([k, l]) => (
                   <label key={k} className="flex items-start gap-2 text-sm text-warm-700">
@@ -57,7 +68,7 @@ function AdminFields({ fields, value, onChange }: { fields: MnhDocFieldDef[]; va
         const str = typeof value[f.key] === "string" ? (value[f.key] as string) : "";
         return (
           <label key={f.key} className={cn(f.type === "textarea" && "sm:col-span-2")}>
-            <span className={labelCls}>{f.label}{f.type !== "textarea" && " *"}</span>
+            <span className={labelCls}>{f.label}{adminRequired(f) && " *"}</span>
             {f.type === "select" ? (
               <select className={selectCls} value={str} onChange={(e) => set(e.target.value)}>
                 <option value="">고르세요</option>
@@ -189,9 +200,10 @@ export function ContractDocsCard({ contractId, closed }: { contractId: number; c
                 <option value="">발행할 서류 고르기</option>
                 {d.issuable.map((t) => <option key={t.type} value={t.type}>{t.label}</option>)}
               </select>
-              <Button type="submit" size="md" disabled={!issueType || issue.isPending}>발행</Button>
+              <Button type="submit" size="md" disabled={!issueType || issue.isPending || (!!chosen && missingAdmin(chosen.admin_fields, form).length > 0)}>발행</Button>
             </div>
             {chosen && chosen.admin_fields.length > 0 && <AdminFields fields={chosen.admin_fields} value={form} onChange={setForm} />}
+            {chosen && <MissingHint names={missingAdmin(chosen.admin_fields, form)} />}
           </form>
         )}
       </CardContent>
@@ -332,7 +344,8 @@ export function EmploymentTab() {
                 {target === r.caregiver_id && (
                   <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); issue.mutate(); }}>
                     <AdminFields fields={empFields} value={form} onChange={setForm} />
-                    <div className="flex gap-2"><Button type="submit" size="sm" disabled={issue.isPending}>발행</Button><Button type="button" size="sm" variant="outline" onClick={() => setTarget(null)}>닫기</Button></div>
+                    <MissingHint names={missingAdmin(empFields, form)} />
+                    <div className="flex gap-2"><Button type="submit" size="sm" disabled={issue.isPending || missingAdmin(empFields, form).length > 0}>발행</Button><Button type="button" size="sm" variant="outline" onClick={() => setTarget(null)}>닫기</Button></div>
                   </form>
                 )}
               </div>
