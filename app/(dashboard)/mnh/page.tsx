@@ -220,17 +220,17 @@ function ContractsTab() {
               )}
               {rows.map((r) => (
                 <TableRow key={r.id} className="cursor-pointer hover:bg-warm-50" onClick={() => router.push(`/mnh/${r.id}`)}>
-                  <TableCell className="font-mono text-xs"><Link href={`/mnh/${r.id}`} className="text-brand-700 hover:underline" onClick={(e) => e.stopPropagation()}>{r.contract_no}</Link></TableCell>
-                  <TableCell className="font-semibold">{r.client_name ?? "-"}<ProvisionalBadges r={r} /></TableCell>
+                  <TableCell className="font-mono text-xs whitespace-nowrap"><Link href={`/mnh/${r.id}`} className="text-brand-700 hover:underline" onClick={(e) => e.stopPropagation()}>{r.contract_no}</Link></TableCell>
+                  <TableCell className="font-semibold whitespace-nowrap">{r.client_name ?? "-"}<ProvisionalBadges r={r} /></TableCell>
                   <TableCell className="text-xs text-warm-600">{r.support_label ?? "-"}</TableCell>
                   <TableCell className="text-xs whitespace-nowrap">{r.start_date} ~ {r.end_date ?? "?"}<span className="text-warm-500"> · {r.days}일</span></TableCell>
                   <TableCell className="text-right whitespace-nowrap">{r.rates_set ? formatKRW(r.self_pay) : <span className="text-warn text-xs font-semibold">요율 미설정</span>}</TableCell>
-                  <TableCell>{r.prepaid ? <span className="text-brand-700 text-xs font-bold">확인</span> : <span className="text-warm-500 text-xs">미확인</span>}<span className="block text-[11px] text-warm-500">{r.payment_method_label}</span></TableCell>
-                  <TableCell className="text-sm">{r.caregiver_name ?? <span className="text-warm-400">미배정</span>}</TableCell>
-                  <TableCell className="text-xs">{r.completed_days ?? 0}/{r.days}일</TableCell>
+                  <TableCell className="whitespace-nowrap">{r.prepaid ? <span className="text-brand-700 text-xs font-bold">확인</span> : <span className="text-warm-500 text-xs">미확인</span>}<span className="block text-[11px] text-warm-500">{r.payment_method_label}</span></TableCell>
+                  <TableCell className="text-sm whitespace-nowrap">{r.caregiver_name ?? <span className="text-warm-400">미배정</span>}</TableCell>
+                  <TableCell className="text-xs whitespace-nowrap">{r.completed_days ?? 0}/{r.days}일</TableCell>
                   <TableCell>
                     <StatusPill status={r.status} label={r.status_label} />
-                    {(r.penalty_outstanding ?? 0) > 0 && <span className="block mt-1 text-[11px] font-bold text-warn whitespace-nowrap">위약금 미수 {formatKRW(r.penalty_outstanding!)}</span>}
+                    {(r.penalty_outstanding ?? 0) > 0 && <span className="block mt-1 text-[11px] font-bold text-warn whitespace-nowrap" title="위약금 차액 중 아직 받지 못한 금액">미수 {formatKRW(r.penalty_outstanding!)}</span>}
                   </TableCell>
                 </TableRow>
               ))}
