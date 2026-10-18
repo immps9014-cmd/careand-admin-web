@@ -106,6 +106,7 @@ const STATUS_FILTERS = [
   { key: "active", label: "서비스 중" },
   { key: "completed", label: "종료" },
   { key: "cancelled", label: "취소" },
+  { key: "penalty_due", label: "위약금 미수" },   // 위약금 차액 중 아직 덜 받은 계약(상태와 겹치는 묶음)
 ];
 
 function StatusPill({ status, label }: { status: MnhContractSummary["status"]; label: string }) {
@@ -144,8 +145,8 @@ function ContractsTab() {
   // 개시일 확인 요청이 있는 계약을 위로
   const rows = (onlyReq ? allRows.filter((r) => r.start_change_request) : [...allRows].sort((a, b) => Number(!!b.start_change_request) - Number(!!a.start_change_request)));
   const counts = query.data?.counts ?? {};
-  // 전체 = 실제 상태 5가지 합(ongoing·unpaid 는 겹치는 묶음이라 빼고 센다)
-  const total = Object.entries(counts).filter(([k]) => k !== "ongoing" && k !== "unpaid").reduce((a, [, b]) => a + Number(b), 0);
+  // 전체 = 실제 상태 5가지 합(ongoing·unpaid·penalty_due 는 겹치는 묶음이라 빼고 센다)
+  const total = Object.entries(counts).filter(([k]) => !["ongoing", "unpaid", "penalty_due"].includes(k)).reduce((a, [, b]) => a + Number(b), 0);
   const needs = rows.filter((r) => r.status === "applied" || (!r.prepaid && r.status === "confirmed")).length;
 
   return (
@@ -157,7 +158,7 @@ function ContractsTab() {
           fallbackName="careand_mnh-contracts.xlsx" />
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {STATUS_FILTERS.map((f) => (
+        {STATUS_FILTERS.filter((f) => f.key !== "penalty_due" || (counts.penalty_due ?? 0) > 0 || status === "penalty_due").map((f) => (
           <button
             key={f.key}
             onClick={() => setStatus(f.key)}
@@ -227,7 +228,10 @@ function ContractsTab() {
                   <TableCell>{r.prepaid ? <span className="text-brand-700 text-xs font-bold">확인</span> : <span className="text-warm-500 text-xs">미확인</span>}<span className="block text-[11px] text-warm-500">{r.payment_method_label}</span></TableCell>
                   <TableCell className="text-sm">{r.caregiver_name ?? <span className="text-warm-400">미배정</span>}</TableCell>
                   <TableCell className="text-xs">{r.completed_days ?? 0}/{r.days}일</TableCell>
-                  <TableCell><StatusPill status={r.status} label={r.status_label} /></TableCell>
+                  <TableCell>
+                    <StatusPill status={r.status} label={r.status_label} />
+                    {(r.penalty_outstanding ?? 0) > 0 && <span className="block mt-1 text-[11px] font-bold text-warn whitespace-nowrap">위약금 미수 {formatKRW(r.penalty_outstanding!)}</span>}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

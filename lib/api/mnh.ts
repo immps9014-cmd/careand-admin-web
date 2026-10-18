@@ -76,6 +76,8 @@ export interface MnhContractSummary {
   cancel_reason: string | null;
   created_at: string;
   completed_days?: number;
+  /** 위약금 차액 중 아직 받지 못한 금액(목록만, 없으면 0) */
+  penalty_outstanding?: number;
   /** 추가요금·대여용품(케어앤 자체 가격, 바우처 밖) — 신청 때 금액 그대로 */
   addons?: MnhContractAddon[];
   addon_total?: number | null;
